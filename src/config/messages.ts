@@ -1,0 +1,23 @@
+export const messages = {
+  SUCCESS: 'success',
+  HEALTH_CHECK: 'Server is up and running',
+  USER_NOT_FOUND: 'User not found',
+  USER_ALREADY_EXIST: 'User already exists',
+  INVALID_CREDENTIALS: 'Invalid credentials',
+  INVALID_PASSWORD: 'Invalid password',
+  INVALID_TOKEN: 'Token is not valid',
+  ACCESS_DENIED: 'Access denied. No permission to access',
+  PASSWORD_NOT_MATCHED: 'Old Password Not Matched',
+  PASSWORD_CHANGED_SUCCESS: 'Password changed successfully',
+  NO_TOKEN: 'No token, authorization denied',
+  TOKEN_EXPIRED: 'Your token has been expired please generate a new one',
+  TOKEN_REQUIRED: 'Token is required',
+  SERVER_FAILURE: 'Internal server error',
+  FRONTEND_LINK: 'http://localhost:3000',
+  AUTHORIZATION: 'Authorization',
+  NAME_REQUIRED: 'Name is required',
+  EMAIL_REQUIRED: 'Email is required',
+  INVALID_EMAIL: 'Email is not valid',
+  USER_REGISTER_SUCCESS: 'User registered successfully',
+  ID_IS_NOT_VALID: 'ID is not valid'
+}

@@ -1,0 +1,16 @@
+version: '3.7'
+
+services:
+  hlyx-backend-app:
+    image: hlyx-backend
+    container_name:  hlyx-backend-app
+    env_file:
+      - ./.env
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./src:/app/src
+    ports:
+      - 4000:4000
+    command: yarn start:prod
