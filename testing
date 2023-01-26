@@ -1,3 +1,0 @@
-rm -r dist/src/
-npx tsc
-node dist/src/server.js

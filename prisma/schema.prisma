@@ -25,6 +25,8 @@ model User {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
+  // Required to pass to UserBio
+  @@unique([id, email, phone])
   // Required to pass avatar to card
   @@unique([id, profileAvatar])
 }
@@ -32,19 +34,26 @@ model User {
 // Updated during onboarding process and used to initialize card creation
 model UserBio {
   id              Int       @id
-  User            User      @relation(fields: [id], references: [id])
-  firstName       String
+  User            User?     @relation(fields: [id, email, phone], references: [id, email, phone])
+  firstName       String?
   middleInitial   String?  
-  lastName        String
-  company         String  
-  profTitle       String  
-  industry        String
-  country         String
-  city            String
-  state           String
-  zipcode         String
+  lastName        String?
+  email           String
+  phone           String? 
+  company         String? 
+  profTitle       String?
+  industry        String?
+  profRole        String?
+  website         String?
+  country         String?
+  city            String?
+  state           String?
+  zipcode         String?
   profilePhotos   UserPhoto[]
   updatedAt       DateTime  @updatedAt
+
+  // Required to link with User
+  @@unique([id, email, phone])
 }
 
 model UserPhoto {

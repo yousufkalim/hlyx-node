@@ -24,8 +24,7 @@ export const validateLogin = (loginPayload: IValidateLogin): string | undefined 
 export const validateRegister = (registerPayload: IValidateRegister): string | undefined => {
   const registerSchema = Joi.object({
     email: Joi.string().email({ tlds: { allow: false } }).required(),
-    password: Joi.string().pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/).required().error(new Error(`${messages.PASSWORD_FAILURE}`)),
-    termsAndConditions: Joi.boolean().required()
+    password: Joi.string().pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/).required().error(new Error(`${messages.PASSWORD_FAILURE}`))
   })
 
   return (registerSchema.validate(registerPayload)?.error?.message)

@@ -1,10 +1,9 @@
-import { Types } from 'mongoose'
 import { Timestamps, IProfession, ILocation } from './common.interface'
 
 export interface ICard extends Timestamps {
-  _id: Types.ObjectId
+  id: number
   cardType: string
-  user: Types.ObjectId
+  user: number
   urlPath: string
   fullName: string
   professionalName?: string
@@ -26,7 +25,7 @@ export interface ICard extends Timestamps {
 
 export interface IValidateCardCreate {
   cardType: string
-  user: Types.ObjectId
+  user: number
   urlPath: string
   fullName: string
   profession?: ICardProfession

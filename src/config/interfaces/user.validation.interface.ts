@@ -1,8 +1,7 @@
-import { Types } from 'mongoose'
 import { Timestamps, IProfession, ILocation } from './common.interface'
 
 export interface IUser extends Timestamps {
-  id: Types.ObjectId
+  id: number
   name?: IUserName
   email: string
   phone?: string
@@ -10,7 +9,7 @@ export interface IUser extends Timestamps {
   password: string
   profession?: IProfession
   location?: ILocation
-  cards?: Types.ObjectId[]
+  cards?: number[]
   isEmailVerified: boolean
   isPhoneVerified: boolean
   termsAndConditions: boolean

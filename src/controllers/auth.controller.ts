@@ -72,22 +72,14 @@ class AuthController extends BaseController {
         }
       )
     } catch (error: any) {
-      if (error.status != null) {
-        return res.status(error.status).json({
-          code: error.status,
-          message: error.message
-        })
-      }
-      return res.status(500).json({
-        code: codes.INTERNAL_SERVER_ERROR,
-        message: messages.SERVER_FAILURE
-      })
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
   register = async (req: Request, res: Response): Promise<Response | undefined> => {
     const params = this.filterParams(req.body, authControllerParams)
-    const { email, password, termsAndConditions } = params
+    const { email, password } = params
     try {
       // Validate input
       const validationError = validateRegister(params)
@@ -112,7 +104,7 @@ class AuthController extends BaseController {
       const userObject = {
         email,
         password: await bcrypt.hash(password, salt),
-        termsAndConditions
+        userBio: { create: {} }
       }
 
       // Create User
@@ -145,16 +137,8 @@ class AuthController extends BaseController {
         }
       )
     } catch (error: any) {
-      if (error.status != null) {
-        return res.status(error.status).json({
-          code: error.status,
-          message: error.message
-        })
-      }
-      return res.status(500).json({
-        code: codes.INTERNAL_SERVER_ERROR,
-        message: messages.SERVER_FAILURE
-      })
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -187,16 +171,8 @@ class AuthController extends BaseController {
         message: messages.CODE_SENT_SUCCESS
       })
     } catch (error: any) {
-      if (error.status != null) {
-        return res.status(error.status).json({
-          code: error.status,
-          message: error.message
-        })
-      }
-      return res.status(500).json({
-        code: codes.INTERNAL_SERVER_ERROR,
-        message: messages.SERVER_FAILURE
-      })
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -244,16 +220,8 @@ class AuthController extends BaseController {
         message: messages.VERIFIED_SUCCESS
       })
     } catch (error: any) {
-      if (error.status != null) {
-        return res.status(error.status).json({
-          code: error.status,
-          message: error.message
-        })
-      }
-      return res.status(500).json({
-        code: codes.INTERNAL_SERVER_ERROR,
-        message: messages.SERVER_FAILURE
-      })
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -300,16 +268,8 @@ class AuthController extends BaseController {
         message: messages.PASSWORD_CHANGED_SUCCESS
       })
     } catch (error: any) {
-      if (error.status != null) {
-        return res.status(error.status).json({
-          code: error.status,
-          message: error.message
-        })
-      }
-      return res.status(500).json({
-        code: codes.INTERNAL_SERVER_ERROR,
-        message: messages.SERVER_FAILURE
-      })
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 }
