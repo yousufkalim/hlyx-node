@@ -16,6 +16,7 @@
         "semi": "error",
         "no-unused-vars": "error",
         "@typescript-eslint/no-explicit-any": "off",
-        "@typescript-eslint/restrict-template-expressions": "off"
+        "@typescript-eslint/restrict-template-expressions": "off",
+        "@typescript-eslint/no-misused-promises": "off"
     }
 }

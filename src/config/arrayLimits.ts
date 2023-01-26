@@ -1,0 +1,10 @@
+export const arrayLimits = {
+  MAX_HOBBIES: 8,
+  MAX_SKILLS: 8,
+  MAX_EMAILS: 8,
+  MAX_WEBSITES: 8,
+  MAX_SOCIAL_MEDIA: 8,
+  MAX_PHONES: 8,
+  MAX_ADDITIONAL_LINKS: 8,
+  MAX_AWARDS: 8
+}

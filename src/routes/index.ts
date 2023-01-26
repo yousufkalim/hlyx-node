@@ -7,10 +7,9 @@ import { messages } from '../config/messages'
 const router = Router()
 
 // Authentication Routes
-router.post('/auth/register', AuthController.register)
 router.post('/auth/login', AuthController.login)
 
-router.get('/health-check', (_req: Request, res: Response) => {
+router.get('/health-check', (req: Request, res: Response) => {
   return res.status(200).json({
     code: codes.OK,
     message: messages.HEALTH_CHECK
