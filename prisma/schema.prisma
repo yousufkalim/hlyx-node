@@ -1,0 +1,251 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int       @id @default(autoincrement())
+  email           String    @unique
+  phone           String?   @unique
+  password        String
+  profileAvatar   String?   @unique // Path to file
+  isEmailVerified Boolean   @default(false)
+  isPhoneVerified Boolean   @default(false)
+  termsConditions Boolean   @default(false)
+  role            Role      @default(USER)
+  userBio         UserBio?
+  cards           Card[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Required to pass avatar to card
+  @@unique([id, profileAvatar])
+}
+
+// Updated during onboarding process and used to initialize card creation
+model UserBio {
+  id              Int       @id
+  User            User      @relation(fields: [id], references: [id])
+  firstName       String
+  middleInitial   String?  
+  lastName        String
+  company         String  
+  profTitle       String  
+  industry        String
+  country         String
+  city            String
+  state           String
+  zipcode         String
+  profilePhotos   UserPhoto[]
+  updatedAt       DateTime  @updatedAt
+}
+
+model UserPhoto {
+  User          UserBio   @relation(fields: [userId], references: [id])
+  userId        Int
+  pathToFile    String
+  @@id([userId, pathToFile])
+}
+
+model Card {
+  urlPath         String    @id @default(uuid())
+  cardType        CardType
+  User            User      @relation(fields: [userId, userAvatar], references: [id, profileAvatar])
+  userId          Int
+  Links           Link[]    @relation("CardOneRef")
+  LinksDuplicate  Link[]    @relation("CardTwoRef") // IMPORTANT NOTE: This is only included to make prisma happy; however, this should not be referenced in any queries
+  // Header
+  userAvatar      String
+  coverPhoto      String    // Path to file
+  coverPhotos     CardPhotos[]
+  fullName        String    
+  // Contact Page
+  emails          CardEmails[]
+  phones          CardPhones[]
+  calendar        String?
+  websites        CardWebsites[]
+  locations       CardLocations[]
+  socialMedias    CardSocialMedias[]
+  additionalLinks CardAdditionalLinks[]
+  // About Page
+  about           String?
+  company         String?
+  profTitle       String?
+  occupation      String?
+  industry        String?
+  educationLevel  String? // May want to enum later (Note: Prisma does not support spaces in enums)
+  schoolName      String?
+  academicFocus   String?
+  degreeType      DegreeType
+  accolades       String[]
+  achievements    CardAchievements[]
+  businessGoals   String[]
+  needsAsks       String[]
+  hobbies         String[]
+  interests       String[]
+  skills          String[]
+  motto           String
+  // Services
+  services        CardServices[]
+  // Portfolio
+  portfolio       CardPortfolio? // Not Implemented
+  // Misc
+  qrCode          String    @unique // Path to file
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model CardPhotos {
+  Card          Card   @relation(fields: [cardId], references: [urlPath])
+  cardId        String
+  pathToFile    String
+  @@id([cardId, pathToFile])
+}
+
+model CardEmails {
+  id              Int      @id @default(autoincrement())
+  email           String
+  type            EmailType?
+  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  cardId          String
+}
+
+model CardPhones {
+  id              Int      @id @default(autoincrement())
+  phone           String
+  extention       String?
+  type            PhoneType // Required to choose Icon
+  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  cardId          String
+}
+
+model CardWebsites {
+  id              Int      @id @default(autoincrement())
+  website         String
+  description     String?
+  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  cardId          String
+}
+
+model CardLocations {
+  id              Int      @id @default(autoincrement())
+  country         String
+  city            String
+  state           String
+  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  cardId          String
+}
+
+model CardSocialMedias {
+  id              Int      @id @default(autoincrement())
+  platform        SocialMediaPlatforms
+  handle          String
+  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  cardId          String
+}
+
+model CardAdditionalLinks {
+  id              Int      @id @default(autoincrement())
+  website         String
+  icon            String  // Path to icon (Only required if allowing user to upload own icon)
+  title           String
+  description     String
+  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  cardId          String
+}
+
+model CardAchievements {
+  id              Int      @id @default(autoincrement())
+  title           String
+  issuedBy        String
+  issuedYear      String
+  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  cardId          String
+}
+
+model CardServices {
+  id              Int      @id @default(autoincrement())
+  title           String
+  icon            String  // Path to icon (Only required if allowing user to upload own icon)
+  details         String
+  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  cardId          String
+}
+
+model CardPortfolio {
+  id              Int      @id @default(autoincrement())
+  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  cardId          String   @unique
+}
+
+model Link {
+  CardOneRef      Card     @relation("CardOneRef", fields: [cardOne], references: [urlPath])
+  CardTwoRef      Card     @relation("CardTwoRef", fields: [cardTwo], references: [urlPath])
+  cardOne         String
+  cardTwo         String
+  status          LinkType
+  recentChangeBy  String  // Useful for logical statements later (Ex. cannot change to 'accepted' unless other user set 'requested')
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  @@id([cardOne, cardTwo])
+}
+
+
+// Enums
+enum Role {
+  USER
+  ADMIN
+}
+
+enum CardType {
+  personal
+  professional
+}
+
+enum EmailType {
+  work
+  personal
+}
+
+enum PhoneType {
+  home
+  work
+  mobile
+  main
+  fax
+  direct
+  office
+}
+
+enum SocialMediaPlatforms {
+  // Add more once list of supported platforms is finalized
+  linkedin
+  youtube
+  slack
+  reddit
+  discord
+  facebook
+  twitter
+  instagram
+}
+
+enum DegreeType {
+  Associates
+  Bachelors
+  Masters
+  Doctorate
+}
+
+enum LinkType {
+  requested
+  accepted
+  declined
+  blocked
+}
