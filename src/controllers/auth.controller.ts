@@ -29,7 +29,7 @@ class AuthController extends BaseController {
       }
 
       // Verify User exists
-      const user = await prisma.user.findUnique({ where: { email } })
+      const user = await prisma.userAuth.findUnique({ where: { email } })
       if (user === null) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -91,7 +91,7 @@ class AuthController extends BaseController {
       }
 
       // Check if email is already registered
-      const userWithEmail = await prisma.user.findUnique({ where: { email } })
+      const userWithEmail = await prisma.userAuth.findUnique({ where: { email } })
       if (userWithEmail != null) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -108,7 +108,7 @@ class AuthController extends BaseController {
       }
 
       // Create User
-      const createUser = await prisma.user.create({ data: userObject })
+      const createUser = await prisma.userAuth.create({ data: userObject })
 
       // Return jsonwebtoken
       const payload = {
@@ -156,7 +156,7 @@ class AuthController extends BaseController {
       }
 
       // Verify User exists
-      const user = await prisma.user.findUnique({ where: { email } })
+      const user = await prisma.userAuth.findUnique({ where: { email } })
       if (user === null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -187,7 +187,7 @@ class AuthController extends BaseController {
       }
 
       // Verify User exists
-      const user = await prisma.user.findUnique({ where: { email } })
+      const user = await prisma.userAuth.findUnique({ where: { email } })
       if (user == null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -208,7 +208,7 @@ class AuthController extends BaseController {
       }
 
       // Update User and return
-      await prisma.user.update({
+      await prisma.userAuth.update({
         where: { email },
         data: {
           isEmailVerified: true
@@ -236,7 +236,7 @@ class AuthController extends BaseController {
       }
 
       // Verify User exists
-      const user = await prisma.user.findUnique({ where: { email } })
+      const user = await prisma.userAuth.findUnique({ where: { email } })
       if (user == null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -257,7 +257,7 @@ class AuthController extends BaseController {
 
       // Update User and return
       const salt = await bcrypt.genSalt(10)
-      await prisma.user.update({
+      await prisma.userAuth.update({
         where: { email },
         data: {
           password: await bcrypt.hash(password, salt)

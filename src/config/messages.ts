@@ -33,6 +33,8 @@ export const messages = {
   INVALID_CARDTYPE: 'Invalid card type was submitted.',
   CARD_NOT_FOUND: 'Card not found',
   EXCEEDS_ARRAY_LIMIT: ' array length is larger than acceptable',
+  EXCEEDS_CARD_LIMIT: 'Adding another card would exceed the allotted amount allowed',
+  EXCEEDS_PHOTO_LIMIT: 'Adding another photo would exceed the allotted amount allowed',
   ARRAY_LENGTH_DIFFERENT: ' array lengths are not equal',
   YEAR_NOT_INTEGER: 'Year is not an integer',
   YEAR_TOO_OLD: 'Inputted year is from beyond 100 years ago',

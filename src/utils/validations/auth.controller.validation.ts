@@ -1,5 +1,5 @@
 import Joi from 'joi'
-import { IValidateForgotPassword, IValidateLogin, IValidateRegister, IValidateSendVerificationCode, IValidateVerifyCode } from '../../config/interfaces/auth.validations.interface'
+import { IValidateLoginRegister, IValidateForgotPassword, IValidateSendVerificationCode, IValidateVerifyCode } from '../../config/interfaces/auth.validations.interface'
 import { messages } from '../../config/messages'
 
 /**
@@ -7,7 +7,7 @@ import { messages } from '../../config/messages'
  * @param loginPayload
  * @returns Error message
  */
-export const validateLogin = (loginPayload: IValidateLogin): string | undefined => {
+export const validateLogin = (loginPayload: IValidateLoginRegister): string | undefined => {
   const loginSchema = Joi.object({
     email: Joi.string().email({ tlds: { allow: false } }).required(),
     password: Joi.string().pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/).required().error(new Error(`${messages.PASSWORD_FAILURE}`))
@@ -21,7 +21,7 @@ export const validateLogin = (loginPayload: IValidateLogin): string | undefined 
  * @param registerPayload
  * @returns Error message
  */
-export const validateRegister = (registerPayload: IValidateRegister): string | undefined => {
+export const validateRegister = (registerPayload: IValidateLoginRegister): string | undefined => {
   const registerSchema = Joi.object({
     email: Joi.string().email({ tlds: { allow: false } }).required(),
     password: Joi.string().pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/).required().error(new Error(`${messages.PASSWORD_FAILURE}`))

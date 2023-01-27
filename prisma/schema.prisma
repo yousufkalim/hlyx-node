@@ -10,31 +10,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
+model UserAuth {
   id              Int       @id @default(autoincrement())
   email           String    @unique
   phone           String?   @unique
   password        String
-  profileAvatar   String?   @unique // Path to file
   isEmailVerified Boolean   @default(false)
   isPhoneVerified Boolean   @default(false)
-  termsConditions Boolean   @default(false)
   role            Role      @default(USER)
   userBio         UserBio?
-  cards           Card[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
   // Required to pass to UserBio
-  @@unique([id, email, phone])
-  // Required to pass avatar to card
-  @@unique([id, profileAvatar])
+  @@unique([id, email, phone]) 
 }
 
 // Updated during onboarding process and used to initialize card creation
 model UserBio {
   id              Int       @id
-  User            User?     @relation(fields: [id, email, phone], references: [id, email, phone])
+  User            UserAuth? @relation(fields: [id, email, phone], references: [id, email, phone])
+  profileAvatar   String?   @unique // Path to file
   firstName       String?
   middleInitial   String?  
   lastName        String?
@@ -50,10 +46,14 @@ model UserBio {
   state           String?
   zipcode         String?
   profilePhotos   UserPhoto[]
+  cards           Card[]
   updatedAt       DateTime  @updatedAt
 
   // Required to link with User
   @@unique([id, email, phone])
+
+  // Required to link with Card
+  @@unique([id, profileAvatar])
 }
 
 model UserPhoto {
@@ -66,13 +66,13 @@ model UserPhoto {
 model Card {
   urlPath         String    @id @default(uuid())
   cardType        CardType
-  User            User      @relation(fields: [userId, userAvatar], references: [id, profileAvatar])
+  User            UserBio   @relation(fields: [userId, userAvatar], references: [id, profileAvatar])
   userId          Int
   Links           Link[]    @relation("CardOneRef")
   LinksDuplicate  Link[]    @relation("CardTwoRef") // IMPORTANT NOTE: This is only included to make prisma happy; however, this should not be referenced in any queries
   // Header
   userAvatar      String
-  coverPhoto      String    // Path to file
+  coverPhoto      String?    // Path to file
   coverPhotos     CardPhotos[]
   fullName        String    
   // Contact Page
@@ -80,7 +80,11 @@ model Card {
   phones          CardPhones[]
   calendar        String?
   websites        CardWebsites[]
-  locations       CardLocations[]
+  country         String?
+  city            String?
+  state           String?
+  streetAddress   String?
+  zipcode         String?
   socialMedias    CardSocialMedias[]
   additionalLinks CardAdditionalLinks[]
   // About Page
@@ -92,7 +96,7 @@ model Card {
   educationLevel  String? // May want to enum later (Note: Prisma does not support spaces in enums)
   schoolName      String?
   academicFocus   String?
-  degreeType      DegreeType
+  degreeType      DegreeType?
   accolades       String[]
   achievements    CardAchievements[]
   businessGoals   String[]
@@ -100,13 +104,13 @@ model Card {
   hobbies         String[]
   interests       String[]
   skills          String[]
-  motto           String
+  motto           String?
   // Services
   services        CardServices[]
   // Portfolio
   portfolio       CardPortfolio? // Not Implemented
   // Misc
-  qrCode          String    @unique // Path to file
+  qrCode          String?   @unique // Path to file
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }
@@ -139,15 +143,6 @@ model CardWebsites {
   id              Int      @id @default(autoincrement())
   website         String
   description     String?
-  Card            Card     @relation(fields: [cardId], references: [urlPath])
-  cardId          String
-}
-
-model CardLocations {
-  id              Int      @id @default(autoincrement())
-  country         String
-  city            String
-  state           String
   Card            Card     @relation(fields: [cardId], references: [urlPath])
   cardId          String
 }

@@ -1,4 +1,6 @@
 export const arrayLimits = {
+  MAX_CARDS: 2,
+  MAX_PROFILE_IMAGES: 3,
   MAX_HOBBIES: 8,
   MAX_SKILLS: 8,
   MAX_EMAILS: 8,

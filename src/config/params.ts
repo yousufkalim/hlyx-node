@@ -8,6 +8,7 @@ export const userControllerParams = [
   'firstName',
   'middleInitial',
   'lastName',
+  'profileImage',
   'phone',
   'company',
   'profTitle',
@@ -18,5 +19,46 @@ export const userControllerParams = [
   'city',
   'state',
   'zipcode',
-  'cardType'
+  'cardType',
+  'profilePhoto'
+]
+
+export const cardControllerParams = [
+  'fullName',
+  'professionalName',
+  'coverPhoto',
+  'emails',
+  'phones',
+  'calendar',
+  'websites',
+  'country',
+  'city',
+  'state',
+  'streetAddress',
+  'zipcode',
+  'socialMedias',
+  'additionalLinks',
+  'about',
+  'company',
+  'profTitle',
+  'occupation',
+  'industry',
+  'educationLevel',
+  'schoolName',
+  'academicFocus',
+  'degreeType',
+  'accolades',
+  'achievements',
+  'businessGoals',
+  'needsAsks',
+  'hobbies',
+  'interests',
+  'skills',
+  'motto'
+]
+
+export const linkControllerParams = [
+  'cardOne',
+  'cardTwo',
+  'status'
 ]

@@ -50,13 +50,13 @@ export const validateNameUpdate = (updateNamePayload: IValidateName): string | u
 
 /**
  *
- * @param updateProfileImagePaylaod
+ * @param validateProfileImagePaylaod
  * @returns Error message
  */
-export const validateProfileImageUpdate = (updateProfileImagePaylaod: IValidateProfileImage): string | undefined => {
+export const validateProfileImage = (validateProfileImagePaylaod: IValidateProfileImage): string | undefined => {
   const profileImageSchema = Joi.object({
     profileImage: Joi.string().max(stringLengths.IMAGE_MAX)
   })
 
-  return (profileImageSchema.validate(updateProfileImagePaylaod)?.error?.message)
+  return (profileImageSchema.validate(validateProfileImagePaylaod)?.error?.message)
 }

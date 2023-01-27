@@ -1,10 +1,6 @@
-export interface IValidateLogin {
+export interface IValidateLoginRegister {
   email: string
   password: string
-}
-
-export interface IValidateRegister extends IValidateLogin {
-  termsAndConditions: boolean
 }
 
 export interface IValidateSendVerificationCode {
@@ -15,6 +11,6 @@ export interface IValidateVerifyCode extends IValidateSendVerificationCode {
   code: string
 }
 
-export interface IValidateForgotPassword extends IValidateLogin {
+export interface IValidateForgotPassword extends IValidateLoginRegister {
   code: string
 }

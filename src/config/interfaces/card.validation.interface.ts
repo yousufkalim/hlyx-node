@@ -1,6 +1,6 @@
-import { Timestamps, IProfession, ILocation } from './common.interface'
+import { IProfession, ILocation } from './common.interface'
 
-export interface ICard extends Timestamps {
+export interface ICard {
   id: number
   cardType: string
   user: number
@@ -21,17 +21,6 @@ export interface ICard extends Timestamps {
   hobbies?: string[]
   skills?: string[]
   qrCodePath?: string
-}
-
-export interface IValidateCardCreate {
-  cardType: string
-  user: number
-  urlPath: string
-  fullName: string
-  profession?: ICardProfession
-  location?: ILocation
-  emails: ICardEmails
-  phones: ICardPhones
 }
 
 export interface IValidateCardUpdate {
@@ -56,17 +45,6 @@ export interface IValidateCardUpdate {
 interface ICardProfession extends IProfession {
   occupation?: string
   professionalDescription?: string
-}
-
-interface ICardEmails {
-  emailList: string[]
-  emailTypes: string[]
-}
-
-interface ICardPhones {
-  numbers: string[]
-  extentions: string[]
-  phoneTypes: string[]
 }
 
 interface ICardWebsites {
