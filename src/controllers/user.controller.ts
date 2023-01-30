@@ -40,7 +40,7 @@ class UserController extends BaseController {
     }
   }
 
-  // Update user via id passed as param
+  // Update user
   updateBio = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, userControllerParams)
     const { firstName, middleInitial, lastName, phone, profession, profTitle, industry, profRole, website } = params
@@ -275,6 +275,50 @@ class UserController extends BaseController {
         }
       })
       return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Find all links associated with user
+  userAllLinks = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      // Verify user exists
+      const user = await prisma.userBio.findUnique({ where: { id: parseInt(req.params.id) } })
+      if (user === null) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.USER_NOT_FOUND
+        })
+      }
+
+      // Find all cards associated with user
+      const cards = await prisma.card.findMany({
+        where: {
+          userId: parseInt(req.params.id)
+        },
+        include: {
+          Links: true
+        }
+      })
+
+      // Set array and return
+      const returnArray: string[] = []
+      for (let i = 0; i < cards.length; i++) {
+        for (let j = 0; j < cards[i].Links.length; j++) {
+          if (cards[i].Links[j].cardOne === cards[i].urlPath) {
+            returnArray.push(cards[i].Links[j].cardTwo)
+          } else {
+            returnArray.push(cards[i].Links[j].cardOne)
+          }
+        }
+      }
+      return res.status(200).json({
+        returnArray,
         code: codes.OK,
         message: messages.SUCCESS
       })

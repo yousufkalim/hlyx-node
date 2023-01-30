@@ -121,6 +121,44 @@ class CardController extends BaseController {
       })
     }
   }
+
+  cardAllLinks = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      // Verify card exists
+      const card = await prisma.card.findUnique({
+        where: {
+          urlPath: req.params.urlPath
+        },
+        include: {
+          Links: true
+        }
+      })
+      if (card === null) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.CARD_NOT_FOUND
+        })
+      }
+
+      // Set array and return
+      const returnArray: string[] = []
+      for (let i = 0; i < card?.Links.length; i++) {
+        if (card.Links[i].cardOne === card.urlPath) {
+          returnArray.push(card.Links[i].cardTwo)
+        } else {
+          returnArray.push(card.Links[i].cardOne)
+        }
+      }
+      return res.status(200).json({
+        returnArray,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
 }
 
 export default new CardController()

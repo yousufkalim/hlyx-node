@@ -14,7 +14,7 @@ const router = Router()
 router.post('/auth/register', AuthController.register)
 router.post('/auth/login', AuthController.login)
 router.post('/auth/send-verification-code', AuthController.sendVerificationCode)
-router.post('/auth/verify-code', AuthController.verifyCodeEmail)
+router.post('/auth/verify-code-email', AuthController.verifyCodeEmail)
 router.post('/auth/forgot-password', AuthController.forgotPassword)
 
 // User Routes (add auth after testing)
@@ -67,7 +67,6 @@ router.post('/scrubDatabase', async (req: Request, res: Response) => {
     const two = prisma.cardAchievements.deleteMany()
     const three = prisma.cardAdditionalLinks.deleteMany()
     const four = prisma.cardEmails.deleteMany()
-    const five = prisma.cardLocations.deleteMany()
     const six = prisma.cardPhones.deleteMany()
     const seven = prisma.cardPhotos.deleteMany()
     const eight = prisma.cardPortfolio.deleteMany()
@@ -77,9 +76,9 @@ router.post('/scrubDatabase', async (req: Request, res: Response) => {
     const twelve = prisma.card.deleteMany()
     const thirteen = prisma.userBio.deleteMany()
     const fourtenn = prisma.userPhoto.deleteMany()
-    const fifteen = prisma.user.deleteMany()
+    const fifteen = prisma.userAuth.deleteMany()
     console.log('yes')
-    await prisma.$transaction([one, two, three, four, five, six, seven, eight, nine, ten, eleven, twelve, thirteen, fourtenn, fifteen])
+    await prisma.$transaction([one, two, three, four, six, seven, eight, nine, ten, eleven, twelve, thirteen, fourtenn, fifteen])
   } catch (error: any) {
     console.log(error)
   }
