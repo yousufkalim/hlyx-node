@@ -3,8 +3,9 @@ import { Request, Response } from 'express'
 import { RequestUserAuth } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
+import { arrayLimits } from '../config/arrayLimits'
 import { cardControllerParams } from '../config/params'
-import { validateCardUpdate } from '../utils/validations/card.controller.validation'
+import { validateCardUpdate, validateCovePhoto } from '../utils/validations/card.controller.validation'
 import BaseController from './base.controller'
 
 import { PrismaClient } from '@prisma/client'
@@ -31,7 +32,7 @@ class CardController extends BaseController {
   update = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, cardControllerParams)
     const {
-      fullName, emails, phones, calendar, websites,
+      fullName, emails, phones, calendar, websites, coverPhoto,
       country, city, state, streetAddress, zipcode, socialMedias, additionalLinks,
       about, company, profTitle, occupation, industry, educationLevel, schoolName,
       academicFocus, degreeType, accolades, achievements, businessGoals, needsAsks,
@@ -56,6 +57,7 @@ class CardController extends BaseController {
       const data: any = {
         fullName,
         calendar,
+        coverPhoto,
         country,
         city,
         state,
@@ -109,6 +111,132 @@ class CardController extends BaseController {
       })
 
       return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  addCoverPhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const params = this.filterParams(req.body, cardControllerParams)
+    const { coverPhoto } = params
+    try {
+      // Validate Input
+      const validationError = validateCovePhoto(params)
+      if (validationError != null) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+
+      // Verify Card exists
+      const card = await prisma.card.findUnique({ where: { urlPath: req.params.urlPath } })
+      if (card === null) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.USER_NOT_FOUND
+        })
+      }
+
+      // Verify under maximum amount Profile Images
+      const photos = await prisma.cardPhotos.findMany({ where: { cardId: req.params.urlPath } })
+      if (photos.length >= arrayLimits.MAX_COVER_PHOTOS) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.EXCEEDS_PHOTO_LIMIT
+        })
+      }
+
+      // Update and return
+      await prisma.card.update({
+        where: { urlPath: req.params.urlPath },
+        data: {
+          coverPhotos: {
+            create: {
+              pathToFile: coverPhoto
+            }
+          }
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Removes specified cover photo
+  deleteProfilePhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const params = this.filterParams(req.body, cardControllerParams)
+    const { profileImage } = params
+    try {
+      // Validate Input
+      const validationError = validateCovePhoto(params)
+      if (validationError != null) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+
+      // Verify user / photo exists
+      const image = await prisma.cardPhotos.findUnique({
+        where: {
+          cardId_pathToFile: {
+            cardId: req.params.urlPath,
+            pathToFile: profileImage
+          }
+        }
+      })
+      if (image === null) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.IMAGE_NOT_FOUND
+        })
+      }
+
+      // Delete and return
+      await prisma.cardPhotos.delete({
+        where: {
+          cardId_pathToFile: {
+            cardId: req.params.urlPath,
+            pathToFile: profileImage
+          }
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Find all cover photos associated with card
+  findCoverPhotos = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      // Verify card exists
+      const card = await prisma.card.findUnique({ where: { urlPath: req.params.urlPath } })
+      if (card === null) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.CARD_NOT_FOUND
+        })
+      }
+
+      // Grab images and return
+      const images = await prisma.cardPhotos.findMany({ where: { cardId: req.params.urlPath } })
+      return res.status(200).json({
+        images,
         code: codes.OK,
         message: messages.SUCCESS
       })

@@ -71,6 +71,10 @@ export interface IValidateCardUpdate {
   services: ICardServices[]
 }
 
+export interface IValidateCardPhoto {
+  coverPhoto: string
+}
+
 interface ICardEmails {
   id: number
   email: string

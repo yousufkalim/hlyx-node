@@ -24,7 +24,6 @@ export const userControllerParams = [
 
 export const cardControllerParams = [
   'fullName',
-  'professionalName',
   'coverPhoto',
   'emails',
   'phones',

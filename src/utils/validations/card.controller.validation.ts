@@ -1,5 +1,5 @@
 import Joi from 'joi'
-import { IValidateCardUpdate } from '../../config/interfaces/card.validation.interface'
+import { IValidateCardUpdate, IValidateCardPhoto } from '../../config/interfaces/card.validation.interface'
 import { stringLengths } from '../../config/stringLengths'
 import { emailTypes, phoneTypes, academicLevels, degreeTypes } from '../../config/enumTypes'
 import { stateAbbreviations } from '../../config/stateAbbreviations'
@@ -13,6 +13,7 @@ import { arrayLimits } from '../../config/arrayLimits'
 export const validateCardUpdate = (cardUpdatePayload: IValidateCardUpdate): string | undefined => {
   const cardSchema = Joi.object({
     fullName: Joi.string().min(stringLengths.NAME_MIN).max(stringLengths.NAME_MAX),
+    coverPhoto: Joi.string().max(stringLengths.IMAGE_MAX),
     emails: Joi.array().max(arrayLimits.MAX_EMAILS).items(Joi.object({
       email: Joi.string().min(stringLengths.EMAIL_MIN).max(stringLengths.EMAIL_MAX).email({ tlds: { allow: false } }),
       type: Joi.string().valid(...Object.values(emailTypes))
@@ -69,4 +70,16 @@ export const validateCardUpdate = (cardUpdatePayload: IValidateCardUpdate): stri
     }))
   })
   return (cardSchema.validate(cardUpdatePayload)?.error?.message)
+}
+
+/**
+ *
+ * @param cardPhotoPayload
+ * @returns Error message
+ */
+export const validateCovePhoto = (cardPhotoPayload: IValidateCardPhoto): string | undefined => {
+  const photoSchema = Joi.object({
+    coverPhoto: Joi.string().max(stringLengths.IMAGE_MAX)
+  })
+  return (photoSchema.validate(cardPhotoPayload)?.error?.message)
 }
