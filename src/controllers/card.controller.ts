@@ -22,10 +22,8 @@ class CardController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
-      return res.status(500).json({
-        code: codes.INTERNAL_SERVER_ERROR,
-        message: messages.SERVER_FAILURE
-      })
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -33,11 +31,11 @@ class CardController extends BaseController {
   update = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, cardControllerParams)
     const {
-      fullName, professionalName, coverPhoto, emails, phones, calendar, websites,
+      fullName, emails, phones, calendar, websites,
       country, city, state, streetAddress, zipcode, socialMedias, additionalLinks,
       about, company, profTitle, occupation, industry, educationLevel, schoolName,
       academicFocus, degreeType, accolades, achievements, businessGoals, needsAsks,
-      hobbies, interests, skills, motto
+      hobbies, interests, skills, motto, services
     } = params
     try {
       // Validate input
@@ -57,8 +55,6 @@ class CardController extends BaseController {
 
       const data: any = {
         fullName,
-        professionalName,
-        coverPhoto,
         calendar,
         country,
         city,
@@ -98,6 +94,9 @@ class CardController extends BaseController {
         },
         achievements: {
           create: achievements
+        },
+        services: {
+          create: services
         }
       }
 
@@ -115,10 +114,7 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({
-        code: codes.INTERNAL_SERVER_ERROR,
-        message: messages.SERVER_FAILURE
-      })
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 

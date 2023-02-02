@@ -32,14 +32,11 @@ export const messages = {
   PASSWORD_FAILURE: 'Password fails to match the Minimum eight characters, at least one letter and one number',
   INVALID_CARDTYPE: 'Invalid card type was submitted.',
   CARD_NOT_FOUND: 'Card not found',
-  EXCEEDS_ARRAY_LIMIT: ' array length is larger than acceptable',
   EXCEEDS_CARD_LIMIT: 'Adding another card would exceed the allotted amount allowed',
   EXCEEDS_PHOTO_LIMIT: 'Adding another photo would exceed the allotted amount allowed',
-  ARRAY_LENGTH_DIFFERENT: ' array lengths are not equal',
-  YEAR_NOT_INTEGER: 'Year is not an integer',
-  YEAR_TOO_OLD: 'Inputted year is from beyond 100 years ago',
   INVALID_LINK_STATUS: 'Invalid status specified',
   LINK_ALREADY_EXISTS: 'Link between users already exists',
   LINK_NOT_FOUND: 'Link not found',
-  LINK_ARRAY_LENGTH: 'LinkedUsers array can only be length 2'
+  LINK_ARRAY_LENGTH: 'LinkedUsers array can only be length 2',
+  IMAGE_NOT_FOUND: 'Image not found'
 }

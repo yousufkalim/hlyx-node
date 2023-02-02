@@ -17,18 +17,14 @@ class UserController extends BaseController {
   me = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify user exists
-      const user = await prisma.userBio.findUnique({
-        where: {
-          id: req.user?.id
-        }
-      })
+      const user = await prisma.userBio.findUnique({ where: { id: req.user?.id } })
       if (user === null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: messages.USER_NOT_FOUND
         })
       }
-
+      // Return
       return res.status(200).json({
         user,
         code: codes.OK,
@@ -43,7 +39,7 @@ class UserController extends BaseController {
   // Update user
   updateBio = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, userControllerParams)
-    const { firstName, middleInitial, lastName, phone, profession, profTitle, industry, profRole, website } = params
+    const { firstName, middleInitial, lastName, company, profTitle, industry, profRole, website } = params
     try {
       // Validate input
       const validationError = validateUserUpdate(params)
@@ -63,39 +59,21 @@ class UserController extends BaseController {
         })
       }
 
-      const userBioObject: any = {
-        firstName,
-        middleInitial,
-        lastName,
-        profession,
-        profTitle,
-        industry,
-        profRole,
-        website
-      }
-
-      // Only update phone in this route if null
-      if (user.phone === null) {
-        // Verify uniqueness of phone
-        const phoneUnique = await prisma.userAuth.findUnique({ where: phone })
-        if (phoneUnique !== null) {
-          return res.status(400).json({
-            code: codes.BAD_REQUEST,
-            message: `${messages.USER_ALREADY_EXIST} with phone number: "${phone}"`
-          })
-        }
-        // Update UserAuth table
-        await prisma.userAuth.update({
-          where: { id: parseInt(req.params.id) },
-          data: { phone }
-        })
-        userBioObject.phone = phone
-      }
+      // add check for null phone here
 
       // Update UserBio table and return
       await prisma.userBio.update({
         where: { id: parseInt(req.params.id) },
-        data: userBioObject
+        data: {
+          firstName,
+          middleInitial,
+          lastName,
+          company,
+          profTitle,
+          industry,
+          profRole,
+          website
+        }
       })
       return res.status(200).json({
         code: codes.OK,
@@ -107,7 +85,7 @@ class UserController extends BaseController {
     }
   }
 
-  // Update profile image
+  // Update profile avatar
   updateProfileAvatar = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, userControllerParams)
     const { profileImage } = params
@@ -147,6 +125,7 @@ class UserController extends BaseController {
     }
   }
 
+  // Add a card to user
   addCard = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, userControllerParams)
     const { cardType } = params
@@ -196,7 +175,7 @@ class UserController extends BaseController {
         }
       }
 
-      // Add option fields if set
+      // Add optional fields if set
       if (user.phone !== null) {
         cardData.phone = {
           create: {
@@ -232,6 +211,7 @@ class UserController extends BaseController {
     }
   }
 
+  // Adds new photo to set of availble ones
   addProfilePhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, userControllerParams)
     const { profileImage } = params
@@ -275,6 +255,79 @@ class UserController extends BaseController {
         }
       })
       return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Removes specified profile image
+  deleteProfilePhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const params = this.filterParams(req.body, userControllerParams)
+    const { profileImage } = params
+    try {
+      // Validate Input
+      const validationError = validateProfileImage(params)
+      if (validationError != null) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+
+      // Verify user / photo exists
+      const image = await prisma.userPhoto.findUnique({
+        where: {
+          userId_pathToFile: {
+            userId: parseInt(req.params.id),
+            pathToFile: profileImage
+          }
+        }
+      })
+      if (image === null) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.IMAGE_NOT_FOUND
+        })
+      }
+
+      // Delete and return
+      await prisma.userPhoto.delete({
+        where: {
+          userId_pathToFile: {
+            userId: parseInt(req.params.id),
+            pathToFile: profileImage
+          }
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  findProfilePhotos = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      // Verify user exists
+      const user = await prisma.userBio.findUnique({ where: { id: parseInt(req.params.id) } })
+      if (user === null) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.USER_NOT_FOUND
+        })
+      }
+
+      // Grab images and return
+      const images = await prisma.userPhoto.findMany({ where: { userId: parseInt(req.params.id) } })
+      return res.status(200).json({
+        images,
         code: codes.OK,
         message: messages.SUCCESS
       })

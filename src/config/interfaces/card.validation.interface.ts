@@ -1,79 +1,131 @@
-import { IProfession, ILocation } from './common.interface'
-
 export interface ICard {
-  id: number
-  cardType: string
-  user: number
   urlPath: string
+  cardType: string
+  userId: number
+  userAvatar: string
+  coverPhoto: string
   fullName: string
-  professionalName?: string
-  coverPhoto?: string
-  profession?: ICardProfession
-  location?: ILocation
-  emails?: ICardEmails
-  phones?: ICardPhones
-  websites?: ICardWebsites
-  socialMediaAccounts?: ICardSocialMediaAccounts
-  additionalLinks?: ICardAdditionalLinks
+  emails?: ICardEmails[]
+  phones?: ICardPhones[]
+  calendar: string
+  websites?: ICardWebsites[]
+  country?: string
+  city?: string
+  state?: string
+  streetAddress?: string
+  zipcode?: string
+  socialMedias?: ICardSocialMedias[]
+  additionalLinks?: ICardAdditionalLinks[]
   about?: string
-  education?: ICardEducation
-  awards?: ICardAwards
+  company?: string
+  profTitle?: string
+  occupation?: string
+  industry?: string
+  educationLevel?: string
+  schoolName?: string
+  academicFocus?: string
+  degreeType?: string
+  accolades?: string[]
+  achievements?: ICardAchievements[]
+  businessGoals?: string[]
+  needsAsks?: string[]
   hobbies?: string[]
+  interests?: string[]
   skills?: string[]
-  qrCodePath?: string
+  motto?: string
+  services: ICardServices[]
+  portfolio: ICardPortfolio[]
+  qrCode: string
 }
 
 export interface IValidateCardUpdate {
-  cardType: string
   fullName: string
-  professionalName?: string
-  coverPhoto?: string
-  profession?: ICardProfession
-  location?: ILocation
-  emails?: ICardEmails
-  phones?: ICardPhones
-  websites?: ICardWebsites
-  socialMediaAccounts?: ICardSocialMediaAccounts
-  additionalLinks?: ICardAdditionalLinks
+  emails?: ICardEmails[]
+  phones?: ICardPhones[]
+  calendar: string
+  websites?: ICardWebsites[]
+  country?: string
+  city?: string
+  state?: string
+  streetAddress?: string
+  zipcode?: string
+  socialMedias?: ICardSocialMedias[]
+  additionalLinks?: ICardAdditionalLinks[]
   about?: string
-  education?: ICardEducation
-  awards?: ICardAwards
+  company?: string
+  profTitle?: string
+  occupation?: string
+  industry?: string
+  educationLevel?: string
+  schoolName?: string
+  academicFocus?: string
+  degreeType?: string
+  accolades?: string[]
+  achievements?: ICardAchievements[]
+  businessGoals?: string[]
+  needsAsks?: string[]
   hobbies?: string[]
+  interests?: string[]
   skills?: string[]
+  motto?: string
+  services: ICardServices[]
 }
 
-interface ICardProfession extends IProfession {
-  occupation?: string
-  professionalDescription?: string
+interface ICardEmails {
+  id: number
+  email: string
+  type?: string
+  cardId: string
+}
+
+interface ICardPhones {
+  id: number
+  phone: string
+  extention?: string
+  type: string
+  cardId: string
 }
 
 interface ICardWebsites {
-  addresses: string[]
-  descriptions: string[]
+  id: number
+  website: string
+  description: string
+  cardId: string
 }
 
-interface ICardSocialMediaAccounts {
-  platforms: string[]
-  handles: string[]
+interface ICardSocialMedias {
+  id: number
+  platform: string
+  handle: string
+  cardId: string
 }
 
 interface ICardAdditionalLinks {
-  platforms: string[]
-  handles: string[]
-  descriptions: string[]
+  id: number
+  website: string
+  icon: string
+  title: string
+  description: string
+  cardId: string
 }
 
-interface ICardEducation {
-  academicLevel?: string
-  schoolName?: string
-  academicConcentration?: string
-  degreeType?: string
+interface ICardAchievements {
+  id: number
+  title: string
+  issuedBy: string
+  issuedYear: string
+  cardId: string
 }
 
-interface ICardAwards {
-  titles: string[]
-  issuedBy: string[]
-  issueMonth: string[]
-  issueYear: string[]
-  descriptions: string[]
+interface ICardServices {
+  id: number
+  title: string
+  icon: string
+  details: string
+  cardId: string
+}
+
+interface ICardPortfolio {
+  id: number
+  cardId: string
 }
