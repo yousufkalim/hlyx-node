@@ -16,7 +16,95 @@ class CardController extends BaseController {
   find = async (req: Request, res: Response): Promise<Response> => {
     try {
       // Find Card and return
-      const card = await prisma.card.findUnique({ where: { urlPath: req.params.urlPath } })
+      const card = await prisma.card.findUnique({ 
+        where: {
+          urlPath: req.params.urlPath
+        },
+        select: {
+          urlPath: true,
+          cardType: true,
+          userAvatar: true,
+          coverPhoto: true,
+          fullName: true,
+          emails: {
+            select: {
+              email: true,
+              type: true
+            }
+          },
+          phones: {
+            select: {
+              phone: true,
+              extention: true,
+              type: true
+            }
+          },
+          calendar: true,
+          websites: {
+            select: {
+              website: true,
+              description: true
+            }
+          },
+          country: true,
+          city: true,
+          state: true,
+          streetAddress: true,
+          zipcode: true,
+          socialMedias: {
+            select: {
+              platform: true,
+              handle: true
+            }
+          },
+          additionalLinks: {
+            select: {
+              website: true,
+              icon: true,
+              title: true,
+              description: true
+            }
+          },
+          about: true,
+          company: true,
+          profTitle: true,
+          occupation: true,
+          industry: true,
+          educationLevel: true,
+          schoolName: true,
+          academicFocus: true,
+          degreeType: true,
+          accolades: true,
+          achievements: {
+            select: {
+              title: true,
+              issuedBy: true,
+              issuedYear: true
+            }
+          },
+          businessGoals: true,
+          needsAsks: true,
+          hobbies: true,
+          interests: true,
+          skills: true,
+          motto: true,
+          services: {
+            select: {
+              title: true,
+              icon: true,
+              details: true
+            }
+          }
+        }
+      })
+
+      // Check if null and return
+      if (card === null) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.CARD_NOT_FOUND
+        })
+      }
       return res.status(200).json({
         card,
         code: codes.OK,
@@ -42,7 +130,10 @@ class CardController extends BaseController {
       // Validate input
       const validationError = validateCardUpdate(params)
       if (validationError != null) {
-        return res.status(400).json({ code: codes.BAD_REQUEST, message: validationError })
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
       }
 
       // Verify card exists
@@ -102,6 +193,15 @@ class CardController extends BaseController {
         }
       }
 
+      // Remove existing emails, phones, websites, etc.....
+      await prisma.cardEmails.deleteMany({ where: { cardId: req.params.urlPath } })
+      await prisma.cardPhones.deleteMany({ where: { cardId: req.params.urlPath } })
+      await prisma.cardWebsites.deleteMany({ where: { cardId: req.params.urlPath } })
+      await prisma.cardSocialMedias.deleteMany({ where: { cardId: req.params.urlPath } })
+      await prisma.cardAdditionalLinks.deleteMany({ where: { cardId: req.params.urlPath } })
+      await prisma.cardAchievements.deleteMany({ where: { cardId: req.params.urlPath } })
+      await prisma.cardServices.deleteMany({ where: { cardId: req.params.urlPath } })
+
       // Update and return
       await prisma.card.update({
         where: {
@@ -151,6 +251,21 @@ class CardController extends BaseController {
         })
       }
 
+      // Verify Uniqueness
+      let uniqueTest: boolean = true
+      photos.forEach(photo => {
+        if (photo.pathToFile === coverPhoto){
+          uniqueTest = false
+          return
+        }
+      })
+      if (!uniqueTest) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.DUPLICATE_IMAGE
+        })
+      }
+
       // Update and return
       await prisma.card.update({
         where: { urlPath: req.params.urlPath },
@@ -173,9 +288,9 @@ class CardController extends BaseController {
   }
 
   // Removes specified cover photo
-  deleteProfilePhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+  deleteCoverPhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, cardControllerParams)
-    const { profileImage } = params
+    const { coverPhoto } = params
     try {
       // Validate Input
       const validationError = validateCovePhoto(params)
@@ -191,7 +306,7 @@ class CardController extends BaseController {
         where: {
           cardId_pathToFile: {
             cardId: req.params.urlPath,
-            pathToFile: profileImage
+            pathToFile: coverPhoto
           }
         }
       })
@@ -207,7 +322,7 @@ class CardController extends BaseController {
         where: {
           cardId_pathToFile: {
             cardId: req.params.urlPath,
-            pathToFile: profileImage
+            pathToFile: coverPhoto
           }
         }
       })
@@ -234,7 +349,14 @@ class CardController extends BaseController {
       }
 
       // Grab images and return
-      const images = await prisma.cardPhotos.findMany({ where: { cardId: req.params.urlPath } })
+      const images = await prisma.cardPhotos.findMany({
+        where: {
+          cardId: req.params.urlPath
+        },
+        select: {
+          pathToFile: true
+        }
+      })
       return res.status(200).json({
         images,
         code: codes.OK,
@@ -275,6 +397,45 @@ class CardController extends BaseController {
       }
       return res.status(200).json({
         returnArray,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  delete = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      // Verify card exists
+      const card = await prisma.card.findUnique({
+        where: {
+          urlPath: req.params.urlPath
+        }
+      })
+      if (card === null) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.CARD_NOT_FOUND
+        })
+      }
+
+      // Delete and return
+      await prisma.cardPortfolio.deleteMany({ where: { cardId: req.params.urlPath } })
+      await prisma.cardServices.deleteMany({ where: { cardId: req.params.urlPath } })
+      await prisma.cardAchievements.deleteMany({ where: { cardId: req.params.urlPath } })
+      await prisma.cardAdditionalLinks.deleteMany({ where: { cardId: req.params.urlPath } })
+      await prisma.cardSocialMedias.deleteMany({ where: { cardId: req.params.urlPath } })
+      await prisma.cardWebsites.deleteMany({ where: { cardId: req.params.urlPath } })
+      await prisma.cardPhones.deleteMany({ where: { cardId: req.params.urlPath } })
+      await prisma.cardEmails.deleteMany({ where: { cardId: req.params.urlPath } })
+      await prisma.cardPhotos.deleteMany({ where: { cardId: req.params.urlPath } })
+      await prisma.link.deleteMany({ where: { cardOne: req.params.urlPath } })
+      await prisma.link.deleteMany({ where: { cardTwo: req.params.urlPath } })
+      await prisma.card.delete({ where: { urlPath: req.params.urlPath } })
+
+      return res.status(200).json({
         code: codes.OK,
         message: messages.SUCCESS
       })

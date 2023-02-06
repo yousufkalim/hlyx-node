@@ -25,8 +25,8 @@ export const validateCardUpdate = (cardUpdatePayload: IValidateCardUpdate): stri
     })),
     calendar: Joi.string().max(stringLengths.CALENDAR_MAX),
     websites: Joi.array().max(arrayLimits.MAX_WEBSITES).items(Joi.object({
-      addresses: Joi.string().max(stringLengths.WEBSITES_MAX).hostname(),
-      descriptions: Joi.string().max(stringLengths.WEBSITES_DESC_MAX).optional().allow('')
+      website: Joi.string().max(stringLengths.WEBSITES_MAX).hostname(),
+      description: Joi.string().max(stringLengths.WEBSITES_DESC_MAX).optional().allow('')
     })),
     country: Joi.string().max(stringLengths.COUNTRY_MAX).optional().allow(''),
     city: Joi.string().max(stringLengths.CITY_MAX).optional().allow(''),
@@ -34,13 +34,14 @@ export const validateCardUpdate = (cardUpdatePayload: IValidateCardUpdate): stri
     streetAddress: Joi.string().max(stringLengths.STREET_MAX),
     zipcode: Joi.string().min(stringLengths.ZIPCODE_MIN).max(stringLengths.ZIPCODE_MAX).pattern(/^[0-9]+$/).optional().allow(''),
     socialMedias: Joi.array().max(arrayLimits.MAX_SOCIAL_MEDIA).items(Joi.object({
-      platforms: Joi.string().max(stringLengths.PLATFORM_MAX).hostname(),
-      handles: Joi.string().max(stringLengths.HANDLES_MAX)
+      platform: Joi.string().max(stringLengths.PLATFORM_MAX).hostname(),
+      handle: Joi.string().max(stringLengths.HANDLES_MAX)
     })),
     additionalLinks: Joi.array().max(arrayLimits.MAX_ADDITIONAL_LINKS).items(Joi.object({
-      platforms: Joi.string().max(stringLengths.PLATFORM_MAX).hostname(),
-      handles: Joi.string().max(stringLengths.HANDLES_MAX),
-      descriptions: Joi.string().max(stringLengths.LINK_DESC_MAX).optional().allow('')
+      website: Joi.string().max(stringLengths.WEBSITES_MAX).hostname(),
+      icon: Joi.string().max(stringLengths.IMAGE_MAX),
+      title: Joi.string().max(stringLengths.SERVICES_TITLE),
+      description: Joi.string().max(stringLengths.LINK_DESC_MAX).optional().allow('')
     })),
     about: Joi.string().max(stringLengths.ABOUT_MAX).optional().allow(''),
     company: Joi.string().max(stringLengths.COMPANY_MAX),
@@ -55,7 +56,7 @@ export const validateCardUpdate = (cardUpdatePayload: IValidateCardUpdate): stri
     achievements: Joi.array().max(arrayLimits.MAX_ACHIEVEMENTS).items(Joi.object({
       title: Joi.string().max(stringLengths.AWARDS_TITLES_MAX),
       issuedBy: Joi.string().max(stringLengths.AWARDS_ISSUED_BY_MAX).optional().allow(''),
-      issueYear: Joi.string().min(4).max(4).valid(/^[0-9]+$/)
+      issuedYear: Joi.string().min(4).max(4).pattern(/^[0-9]+$/)
     })),
     businessGoals: Joi.array().max(arrayLimits.MAX_BUSINESSGOALS).items(Joi.string().max(stringLengths.GOALS_MAX)),
     needsAsks: Joi.array().max(arrayLimits.MAX_NEEDSASKS).items(Joi.string().max(stringLengths.NEEDSASKS_MAX)),

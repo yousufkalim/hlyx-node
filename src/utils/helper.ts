@@ -11,7 +11,7 @@ export const forgotPasswordEmailTemplate = (user: IUser, link: string): IEmail =
     from: messages.SENDER_EMAIL,
     subject: 'Reset Password',
     text: 'Frontlinegig reset password link',
-    html: `Hi <strong>${user.name}
+    html: `Hi <strong>${user.firstName}
     }!</strong><br> Here is Your Reset Password Link, Please Click: <strong><a href='${link}'>Here</a></strong> Which is only valid for 5 minutes`
   }
 
@@ -22,4 +22,11 @@ export const sendCodeToEmail = async (email: string): Promise<VerificationInstan
   return await twilioClient.verify.v2
     .services(config.get('email_verification_sid') as string)
     .verifications.create({ to: email, channel: 'email' })
+}
+
+// +1 for USA, will need to modify if we go global
+export const sendCodeToPhone = async (phone: string): Promise<VerificationInstance> => {
+  return await twilioClient.verify.v2
+    .services(config.get('sms_verification_sid') as string)
+    .verifications.create({ to: `+1${phone}`, channel: 'sms' })
 }

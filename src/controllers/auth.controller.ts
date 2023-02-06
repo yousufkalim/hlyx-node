@@ -2,14 +2,15 @@ import { Request, Response } from 'express'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
+import { RequestUserAuth } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import BaseController from './base.controller'
 import { authControllerParams } from '../config/params'
 import { config } from '../config/env.config.validations'
-import { sendCodeToEmail } from '../utils/helper'
+import { sendCodeToEmail, sendCodeToPhone } from '../utils/helper'
 import { twilioClient } from '../utils/twilio'
-import { validateForgotPassword, validateLogin, validateRegister, validateSendVerificationCode, validateVerifyCode } from '../utils/validations/auth.controller.validation'
+import { validateForgotPassword, validateLogin, validateRegister, validateSendVerificationCode, validateVerifyCode, validatePhone, validateVerifyPhone } from '../utils/validations/auth.controller.validation'
 
 import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
@@ -266,6 +267,197 @@ class AuthController extends BaseController {
       return res.status(200).json({
         code: codes.OK,
         message: messages.PASSWORD_CHANGED_SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  updatePhone = async (req: RequestUserAuth, res: Response): Promise<Response | undefined> => {
+    const params = this.filterParams(req.body, authControllerParams)
+    const { phone } = params
+    try {
+      // Verify Input
+      const validationError = validatePhone(params)
+      if (validationError != null) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+
+      // Verify User exists
+      const user = await prisma.userAuth.findUnique({ where: { id: parseInt(req.params.id) } })
+      if (user == null) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.USER_NOT_FOUND
+        })
+      }
+
+      // Check phone uniqueness
+      const uniqueness = await prisma.userAuth.findUnique({ where: { phone } })
+      if (uniqueness !== null) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: `${messages.USER_ALREADY_EXIST} with phone "${phone}"`
+        })
+      }
+
+      // Update User and return
+      await prisma.userAuth.update({
+        where: { 
+          id: parseInt(req.params.id)
+         },
+        data: {
+          phone,
+          isPhoneVerified: false
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.PHONE_UPDATED
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  sendCodePhone = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const params = this.filterParams(req.body, authControllerParams)
+    const { phone } = params
+    try {
+      // Validate input
+      const validationError = validatePhone(params)
+      if (validationError != null) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+
+      // Verify User exists
+      const user = await prisma.userAuth.findUnique({ where: { phone } })
+      if (user === null) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: `User with "${phone}" does not exist`
+        })
+      }
+      // Send code and return
+      await sendCodeToPhone(phone)
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.CODE_SENT_PHONE_SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  verifyCodePhone = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const params = this.filterParams(req.body, authControllerParams)
+    const { phone, code } = params
+    try {
+      // Validate input
+      const validationError = validateVerifyPhone(params)
+      if (validationError != null) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+
+      // Verify User exists
+      const user = await prisma.userAuth.findUnique({ where: { phone } })
+      if (user == null) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: `User with "${phone}" does not exist`
+        })
+      }
+
+      // Twilio verify +1 is for USA only
+      const verification = await twilioClient.verify.v2
+        .services(config.get('sms_verification_sid') as string)
+        .verificationChecks.create({ to: `+1${phone}`, code })
+
+      if (verification.status !== 'approved') {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.INVALID_CODE
+        })
+      }
+
+      // Update User and return
+      await prisma.userAuth.update({
+        where: { phone },
+        data: {
+          isPhoneVerified: true
+        }
+      })
+
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.VERIFIED_SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  delete = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      // Verify user exists
+      const user = await prisma.userAuth.findUnique({
+        where: {
+          id: parseInt(req.params.id)
+        },
+        select: {
+          userBio: {
+            select: {
+              cards: true
+            }
+          }
+        }
+      })
+      if (user === null) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.USER_NOT_FOUND
+        })
+      }
+
+      if (user.userBio !== null) {
+        // Loop through cards and delete
+        for(let i = 0; i < user.userBio.cards.length; i++) {
+          await prisma.cardPortfolio.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
+          await prisma.cardServices.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
+          await prisma.cardAchievements.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
+          await prisma.cardAdditionalLinks.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
+          await prisma.cardSocialMedias.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
+          await prisma.cardWebsites.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
+          await prisma.cardPhones.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
+          await prisma.cardEmails.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
+          await prisma.cardPhotos.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
+          await prisma.link.deleteMany({ where: { cardOne: user.userBio.cards[i].urlPath } })
+          await prisma.link.deleteMany({ where: { cardTwo: user.userBio.cards[i].urlPath } })
+          await prisma.card.delete({ where: { urlPath: user.userBio.cards[i].urlPath } })
+        }
+      }
+
+      // Delete user and return
+      await prisma.userPhoto.deleteMany({ where: { userId: parseInt(req.params.id) }})
+      await prisma.userBio.delete({ where: { id: parseInt(req.params.id) }})
+      await prisma.userAuth.delete({ where: { id: parseInt(req.params.id) }})
+
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
       })
     } catch (error: any) {
       console.error(error)

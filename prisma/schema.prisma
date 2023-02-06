@@ -30,7 +30,7 @@ model UserAuth {
 model UserBio {
   id              Int       @id
   User            UserAuth? @relation(fields: [id, email, phone], references: [id, email, phone])
-  profileAvatar   String?   @unique // Path to file
+  profileAvatar   String?   
   firstName       String?
   middleInitial   String?  
   lastName        String?

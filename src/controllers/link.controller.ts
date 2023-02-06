@@ -54,7 +54,7 @@ class LinkController extends BaseController {
         data: {
           cardOne,
           cardTwo,
-          status: 'accepted',
+          status,
           recentChangeBy: cardOne
         }
       })
@@ -71,17 +71,24 @@ class LinkController extends BaseController {
     }
   }
 
+  // Add auth
   delete = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, linkControllerParams)
     const { cardOne, cardTwo } = params
     try {
-      // Verify Cards exist
-      const foundCardOne = await prisma.card.findUnique({ where: { urlPath: cardOne } })
-      const foundCardTwo = await prisma.card.findUnique({ where: { urlPath: cardTwo } })
-      if (foundCardOne === null || foundCardTwo === null) {
+      // Verify Link exists
+      const link = await prisma.link.findUnique({
+        where: {
+          cardOne_cardTwo: {
+            cardOne,
+            cardTwo
+          }
+        }
+      })
+      if (link === null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
-          message: messages.CARD_NOT_FOUND
+          message: messages.LINK_NOT_FOUND
         })
       }
 
@@ -118,6 +125,11 @@ class LinkController extends BaseController {
             cardOne,
             cardTwo
           }
+        },
+        select: {
+          cardOne: true,
+          cardTwo: true,
+          status: true
         }
       })
 

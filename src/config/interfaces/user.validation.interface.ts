@@ -1,5 +1,8 @@
 export interface IUser {
   id: number
+  email: string
+  phone: string
+  firstName: string
 }
 
 export interface IValidateUserUpdate {

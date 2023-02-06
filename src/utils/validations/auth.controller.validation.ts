@@ -1,6 +1,7 @@
 import Joi from 'joi'
-import { IValidateLoginRegister, IValidateForgotPassword, IValidateSendVerificationCode, IValidateVerifyCode } from '../../config/interfaces/auth.validations.interface'
+import { IValidateLoginRegister, IValidateForgotPassword, IValidateSendVerificationCode, IValidateVerifyCode, IValidateAddPhone, IValidateVerifyPhone } from '../../config/interfaces/auth.validations.interface'
 import { messages } from '../../config/messages'
+import { stringLengths } from '../../config/stringLengths'
 
 /**
  *
@@ -70,4 +71,31 @@ export const validateForgotPassword = (forgotPasswordPayload: IValidateForgotPas
   })
 
   return (forgotPasswordSchema.validate(forgotPasswordPayload)?.error?.message)
+}
+
+/**
+ *
+ * @param addPhonePayload
+ * @returns Error message
+ */
+export const validatePhone = (addPhonePayload: IValidateAddPhone): string | undefined => {
+  const phoneSchema = Joi.object({
+    phone: Joi.string().min(stringLengths.PHONE_MIN).max(stringLengths.PHONE_MAX).pattern(/^[0-9]+$/)
+  })
+
+  return (phoneSchema.validate(addPhonePayload)?.error?.message)
+}
+
+/**
+ *
+ * @param verifyPhonePayload
+ * @returns Error message
+ */
+export const validateVerifyPhone = (addPhonePayload: IValidateVerifyPhone): string | undefined => {
+  const verifySchema = Joi.object({
+    phone: Joi.string().min(stringLengths.PHONE_MIN).max(stringLengths.PHONE_MAX).pattern(/^[0-9]+$/),
+    code: Joi.string().required()
+  })
+
+  return (verifySchema.validate(addPhonePayload)?.error?.message)
 }

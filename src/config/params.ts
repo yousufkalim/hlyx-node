@@ -1,7 +1,8 @@
 export const authControllerParams = [
   'email',
   'password',
-  'code'
+  'code',
+  'phone'
 ]
 
 export const userControllerParams = [

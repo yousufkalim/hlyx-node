@@ -20,6 +20,7 @@ export const messages = {
   EMAIL_REQUIRED: 'Email is required',
   EMAIL_NOT_FOUND: 'Email was not found',
   EMAIL_NOT_VERIFIED: 'Email has not been verified',
+  PHONE_UPDATED: 'Phone number updated',
   INVALID_EMAIL: 'Email is not valid',
   USER_REGISTER_SUCCESS: 'User registered successfully',
   ID_IS_NOT_VALID: 'ID is not valid',
@@ -28,6 +29,7 @@ export const messages = {
   USER_LOGGED_IN: 'logged in successfully',
   SENDER_EMAIL: 'dev@hlyx.io',
   CODE_SENT_SUCCESS: 'Code sent to your email address, Please verify',
+  CODE_SENT_PHONE_SUCCESS: 'Code texted to your phone, Please verify',
   VERIFIED_SUCCESS: 'Verified successfully',
   PASSWORD_FAILURE: 'Password fails to match the Minimum eight characters, at least one letter and one number',
   INVALID_CARDTYPE: 'Invalid card type was submitted.',
@@ -38,5 +40,6 @@ export const messages = {
   LINK_ALREADY_EXISTS: 'Link between users already exists',
   LINK_NOT_FOUND: 'Link not found',
   LINK_ARRAY_LENGTH: 'LinkedUsers array can only be length 2',
-  IMAGE_NOT_FOUND: 'Image not found'
+  IMAGE_NOT_FOUND: 'Image not found',
+  DUPLICATE_IMAGE: 'Image is a duplicate'
 }

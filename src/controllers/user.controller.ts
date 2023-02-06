@@ -39,7 +39,8 @@ class UserController extends BaseController {
   // Update user
   updateBio = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, userControllerParams)
-    const { firstName, middleInitial, lastName, company, profTitle, industry, profRole, website } = params
+    const { firstName, middleInitial, lastName, company, profTitle, industry, profRole,
+            website, country, city, state, zipcode } = params
     try {
       // Validate input
       const validationError = validateUserUpdate(params)
@@ -72,7 +73,11 @@ class UserController extends BaseController {
           profTitle,
           industry,
           profRole,
-          website
+          website,
+          country,
+          city,
+          state,
+          zipcode
         }
       })
       return res.status(200).json({
@@ -163,7 +168,6 @@ class UserController extends BaseController {
         company: user.company ?? undefined,
         profTitle: user.profTitle ?? undefined,
         industry: user.industry ?? undefined,
-        profRole: user.profRole ?? undefined,
         country: user.country ?? undefined,
         city: user.city ?? undefined,
         state: user.state ?? undefined,
@@ -185,7 +189,7 @@ class UserController extends BaseController {
         }
       }
       if (user.website !== null) {
-        cardData.website = {
+        cardData.websites = {
           create: {
             website: user.website
           }
@@ -325,7 +329,14 @@ class UserController extends BaseController {
       }
 
       // Grab images and return
-      const images = await prisma.userPhoto.findMany({ where: { userId: parseInt(req.params.id) } })
+      const images = await prisma.userPhoto.findMany({
+        where: {
+          userId: parseInt(req.params.id)
+        },
+        select: {
+          pathToFile: true
+        }
+      })
       return res.status(200).json({
         images,
         code: codes.OK,

@@ -2,10 +2,13 @@ import { Router, Request, Response } from 'express'
 
 import AuthController from '../controllers/auth.controller'
 import UserController from '../controllers/user.controller'
+import CardController from '../controllers/card.controller'
+import LinkController from '../controllers/link.controller'
 import { authenticate } from '../middleware/authentication'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { PrismaClient } from '@prisma/client'
+
 const prisma = new PrismaClient()
 
 const router = Router()
@@ -13,13 +16,36 @@ const router = Router()
 // Authentication Routes
 router.post('/auth/register', AuthController.register)
 router.post('/auth/login', AuthController.login)
-router.post('/auth/send-verification-code', AuthController.sendVerificationCode)
+router.post('/auth/send-code-email', AuthController.sendVerificationCode)
 router.post('/auth/verify-code-email', AuthController.verifyCodeEmail)
 router.post('/auth/forgot-password', AuthController.forgotPassword)
+router.put('/auth/update-phone/:id', authenticate, AuthController.updatePhone)
+router.post('/auth/send-code-phone', authenticate, AuthController.sendCodePhone)
+router.post('/auth/verify-code-phone', authenticate, AuthController.verifyCodePhone)
 
 // User Routes (add auth after testing)
 router.get('/user/me', authenticate, UserController.me)
-router.post('/user/bioUpdate/:id', authenticate, UserController.updateBio)
+router.post('/user/updateBio/:id', authenticate, UserController.updateBio)
+router.post('/user/updateAvatar/:id', authenticate, UserController.updateProfileAvatar)
+router.post('/user/addCard/:id', authenticate, UserController.addCard)
+router.post('/user/addProfilePhoto/:id', authenticate, UserController.addProfilePhoto)
+router.post('/user/deleteProfilePhoto/:id', authenticate, UserController.deleteProfilePhoto)
+router.get('/user/findProfilePhoto/:id', authenticate, UserController.findProfilePhotos)
+router.get('/user/findAllLinks/:id', authenticate, UserController.userAllLinks)
+
+// Card Routes
+router.get('/card/find/:urlPath', authenticate, CardController.find)
+router.put('/card/update/:urlPath', authenticate, CardController.update)
+router.post('/card/addCoverPhoto/:urlPath', authenticate, CardController.addCoverPhoto)
+router.post('/card/deleteCoverPhoto/:urlPath', authenticate, CardController.deleteCoverPhoto)
+router.get('/card/findCoverPhoto/:urlPath', authenticate, CardController.findCoverPhotos)
+router.get('/card/findAllLinks/:urlPath', authenticate, CardController.cardAllLinks)
+
+// Link Routes
+router.post('/link/create', authenticate, LinkController.create)
+router.post('/link/delete', authenticate, LinkController.delete)
+router.get('/link/find', authenticate, LinkController.find)
+router.post('/link/update', authenticate, LinkController.update)
 
 router.get('/health-check', (req: Request, res: Response) => {
   return res.status(200).json({
