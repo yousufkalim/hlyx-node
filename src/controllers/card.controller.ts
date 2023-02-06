@@ -16,7 +16,7 @@ class CardController extends BaseController {
   find = async (req: Request, res: Response): Promise<Response> => {
     try {
       // Find Card and return
-      const card = await prisma.card.findUnique({ 
+      const card = await prisma.card.findUnique({
         where: {
           urlPath: req.params.urlPath
         },
@@ -252,13 +252,13 @@ class CardController extends BaseController {
       }
 
       // Verify Uniqueness
-      let uniqueTest: boolean = true
-      photos.forEach(photo => {
-        if (photo.pathToFile === coverPhoto){
+      let uniqueTest = true
+      for (const photo of photos) {
+        if (photo.pathToFile === coverPhoto) {
           uniqueTest = false
-          return
+          break
         }
-      })
+      }
       if (!uniqueTest) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,

@@ -307,9 +307,9 @@ class AuthController extends BaseController {
 
       // Update User and return
       await prisma.userAuth.update({
-        where: { 
+        where: {
           id: parseInt(req.params.id)
-         },
+        },
         data: {
           phone,
           isPhoneVerified: false
@@ -434,7 +434,7 @@ class AuthController extends BaseController {
 
       if (user.userBio !== null) {
         // Loop through cards and delete
-        for(let i = 0; i < user.userBio.cards.length; i++) {
+        for (let i = 0; i < user.userBio.cards.length; i++) {
           await prisma.cardPortfolio.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
           await prisma.cardServices.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
           await prisma.cardAchievements.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
@@ -451,9 +451,9 @@ class AuthController extends BaseController {
       }
 
       // Delete user and return
-      await prisma.userPhoto.deleteMany({ where: { userId: parseInt(req.params.id) }})
-      await prisma.userBio.delete({ where: { id: parseInt(req.params.id) }})
-      await prisma.userAuth.delete({ where: { id: parseInt(req.params.id) }})
+      await prisma.userPhoto.deleteMany({ where: { userId: parseInt(req.params.id) } })
+      await prisma.userBio.delete({ where: { id: parseInt(req.params.id) } })
+      await prisma.userAuth.delete({ where: { id: parseInt(req.params.id) } })
 
       return res.status(200).json({
         code: codes.OK,

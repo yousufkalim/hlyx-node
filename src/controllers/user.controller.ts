@@ -39,8 +39,10 @@ class UserController extends BaseController {
   // Update user
   updateBio = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, userControllerParams)
-    const { firstName, middleInitial, lastName, company, profTitle, industry, profRole,
-            website, country, city, state, zipcode } = params
+    const {
+      firstName, middleInitial, lastName, company, profTitle, industry, profRole,
+      website, country, city, state, zipcode
+    } = params
     try {
       // Validate input
       const validationError = validateUserUpdate(params)
