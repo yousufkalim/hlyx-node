@@ -374,12 +374,12 @@ class UserController extends BaseController {
 
       // Set array and return
       const returnArray: string[] = []
-      for (let i = 0; i < cards.length; i++) {
-        for (let j = 0; j < cards[i].Links.length; j++) {
-          if (cards[i].Links[j].cardOne === cards[i].urlPath) {
-            returnArray.push(cards[i].Links[j].cardTwo)
+      for (const card of cards) {
+        for (const link of card.Links) {
+          if (link.cardOne === card.urlPath) {
+            returnArray.push(link.cardTwo)
           } else {
-            returnArray.push(cards[i].Links[j].cardOne)
+            returnArray.push(link.cardOne)
           }
         }
       }
