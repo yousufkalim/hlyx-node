@@ -16,6 +16,7 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 class AuthController extends BaseController {
+  // Login in user
   login = async (req: Request, res: Response): Promise<Response | undefined> => {
     const params = this.filterParams(req.body, authControllerParams)
     const { email, password } = params
@@ -78,6 +79,7 @@ class AuthController extends BaseController {
     }
   }
 
+  // Register new user
   register = async (req: Request, res: Response): Promise<Response | undefined> => {
     const params = this.filterParams(req.body, authControllerParams)
     const { email, password } = params
@@ -102,14 +104,14 @@ class AuthController extends BaseController {
 
       // Encrypt password
       const salt = await bcrypt.genSalt(10)
-      const userObject = {
+      const data = {
         email,
         password: await bcrypt.hash(password, salt),
         userBio: { create: {} }
       }
 
       // Create User
-      const createUser = await prisma.userAuth.create({ data: userObject })
+      const createUser = await prisma.userAuth.create({ data })
 
       // Return jsonwebtoken
       const payload = {
@@ -143,6 +145,7 @@ class AuthController extends BaseController {
     }
   }
 
+  // Send verification code to specified email
   sendCodeEmail = async (req: Request, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, authControllerParams)
     const { email } = params
@@ -177,6 +180,7 @@ class AuthController extends BaseController {
     }
   }
 
+  // Verify code from email
   verifyCodeEmail = async (req: Request, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, authControllerParams)
     const { email, code } = params
@@ -229,6 +233,7 @@ class AuthController extends BaseController {
     }
   }
 
+  // Update Password
   forgotPassword = async (req: Request, res: Response): Promise<Response | undefined> => {
     const params = this.filterParams(req.body, authControllerParams)
     const { email, code, password } = params
@@ -277,6 +282,7 @@ class AuthController extends BaseController {
     }
   }
 
+  // Update Phone
   updatePhone = async (req: RequestUserAuth, res: Response): Promise<Response | undefined> => {
     const params = this.filterParams(req.body, authControllerParams)
     const { phone } = params
@@ -336,6 +342,7 @@ class AuthController extends BaseController {
     }
   }
 
+  // Send verification code to specified phone
   sendCodePhone = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, authControllerParams)
     const { phone } = params
@@ -369,6 +376,7 @@ class AuthController extends BaseController {
     }
   }
 
+  // Verify code from phone
   verifyCodePhone = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, authControllerParams)
     const { phone, code } = params
@@ -421,21 +429,11 @@ class AuthController extends BaseController {
     }
   }
 
+  // Delete user
   delete = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify user exists
-      const user = await prisma.userAuth.findUnique({
-        where: {
-          id: parseInt(req.params.id)
-        },
-        select: {
-          userBio: {
-            select: {
-              cards: true
-            }
-          }
-        }
-      })
+      const user = await prisma.userAuth.findUnique({ where: { id: parseInt(req.params.id) } })
       if (user === null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -443,31 +441,6 @@ class AuthController extends BaseController {
         })
       }
 
-      if (user.userBio !== null) {
-        // Loop through cards and delete
-        for (let i = 0; i < user.userBio.cards.length; i++) {
-          await prisma.cardPortfolio.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
-          await prisma.cardServices.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
-          await prisma.cardBusinessNeeds.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
-          await prisma.cardBusinessGoals.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
-          await prisma.cardAchievements.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
-          await prisma.cardAccolades.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
-          await prisma.cardEducations.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
-          await prisma.cardAdditionalLinks.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
-          await prisma.cardSocialMedias.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
-          await prisma.cardWebsites.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
-          await prisma.cardPhones.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
-          await prisma.cardEmails.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
-          await prisma.cardPhotos.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
-          await prisma.link.deleteMany({ where: { cardOne: user.userBio.cards[i].urlPath } })
-          await prisma.link.deleteMany({ where: { cardTwo: user.userBio.cards[i].urlPath } })
-          await prisma.card.delete({ where: { urlPath: user.userBio.cards[i].urlPath } })
-        }
-      }
-
-      // Delete user and return
-      await prisma.userPhoto.deleteMany({ where: { userId: parseInt(req.params.id) } })
-      await prisma.userBio.delete({ where: { id: parseInt(req.params.id) } })
       await prisma.userAuth.delete({ where: { id: parseInt(req.params.id) } })
 
       return res.status(200).json({

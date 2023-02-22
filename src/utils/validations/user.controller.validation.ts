@@ -1,7 +1,8 @@
 import Joi from 'joi'
-import { IValidateUserUpdate, IValidateProfileImage } from '../../config/interfaces/user.validation.interface'
+import { IValidateUserUpdate, IValidateProfileImage, IValidateAllImages } from '../../config/interfaces/user.validation.interface'
 import { stringLengths } from '../../config/stringLengths'
 import { stateAbbreviations } from '../../config/stateAbbreviations'
+import { arrayLimits } from '../../config/arrayLimits'
 
 /**
  *
@@ -10,9 +11,9 @@ import { stateAbbreviations } from '../../config/stateAbbreviations'
  */
 export const validateUserUpdate = (userUpdatePayload: IValidateUserUpdate): string | undefined => {
   const userUpdateSchema = Joi.object({
-    firstName: Joi.string().min(stringLengths.NAME_MIN).max(stringLengths.NAME_MAX).required(),
+    firstName: Joi.string().min(stringLengths.NAME_MIN).max(stringLengths.NAME_MAX),
     middleInitial: Joi.string().max(stringLengths.MIDDLE_INITIAL_MAX),
-    lastName: Joi.string().min(stringLengths.NAME_MIN).max(stringLengths.NAME_MAX).required(),
+    lastName: Joi.string().min(stringLengths.NAME_MIN).max(stringLengths.NAME_MAX),
     company: Joi.string().max(stringLengths.COMPANY_MAX),
     profTitle: Joi.string().max(stringLengths.PROFESSIONAL_TITLE_MAX),
     industry: Joi.string().max(stringLengths.INDUSTRY_MAX),
@@ -37,4 +38,17 @@ export const validateProfileImage = (validateProfileImagePaylaod: IValidateProfi
   })
 
   return (profileImageSchema.validate(validateProfileImagePaylaod)?.error?.message)
+}
+
+/**
+ *
+ * @param validateAllProfileImagePaylaod
+ * @returns Error message
+ */
+export const validateAllProfileImage = (validateAllProfileImagePaylaod: IValidateAllImages): string | undefined => {
+  const allImageSchema = Joi.object({
+    allPhotos: Joi.array().max(arrayLimits.MAX_PROFILE_IMAGES).items(Joi.string().max(stringLengths.IMAGE_MAX)).required()
+  })
+
+  return (allImageSchema.validate(validateAllProfileImagePaylaod)?.error?.message)
 }

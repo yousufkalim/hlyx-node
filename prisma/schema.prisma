@@ -29,8 +29,8 @@ model UserAuth {
 // Updated during onboarding process and used to initialize card creation
 model UserBio {
   id              Int       @id
-  User            UserAuth? @relation(fields: [id, email, phone], references: [id, email, phone])
-  profileAvatar   String?   
+  User            UserAuth? @relation(fields: [id, email, phone], references: [id, email, phone], onDelete: Cascade, onUpdate: Cascade)
+  profileAvatar   String    @default("routeToOurDefaultAvatar")
   firstName       String?
   middleInitial   String?  
   lastName        String?
@@ -57,7 +57,7 @@ model UserBio {
 }
 
 model UserPhoto {
-  User          UserBio   @relation(fields: [userId], references: [id])
+  User          UserBio   @relation(fields: [userId], references: [id] , onDelete: Cascade, onUpdate: Cascade)
   userId        Int
   pathToFile    String
   @@id([userId, pathToFile])
@@ -65,7 +65,7 @@ model UserPhoto {
 
 model Card {
   urlPath         String    @id @default(uuid())
-  User            UserBio   @relation(fields: [userId, userAvatar], references: [id, profileAvatar])
+  User            UserBio   @relation(fields: [userId, userAvatar], references: [id, profileAvatar], onDelete: Cascade, onUpdate: Cascade)
   userId          Int
   Links           Link[]    @relation("CardOneRef")
   LinksDuplicate  Link[]    @relation("CardTwoRef") // IMPORTANT NOTE: This is only included to make prisma happy; however, this should not be referenced in any queries
@@ -113,7 +113,7 @@ model Card {
 }
 
 model CardPhotos {
-  Card          Card   @relation(fields: [cardId], references: [urlPath])
+  Card          Card   @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId        String
   pathToFile    String
   @@id([cardId, pathToFile])
@@ -123,7 +123,7 @@ model CardEmails {
   id              Int      @id @default(autoincrement())
   email           String
   type            EmailType?
-  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
 
@@ -132,7 +132,7 @@ model CardPhones {
   phone           String
   extention       String?
   type            PhoneType // Required to choose Icon
-  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
 
@@ -140,7 +140,7 @@ model CardWebsites {
   id              Int      @id @default(autoincrement())
   website         String
   description     String?
-  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
 
@@ -148,7 +148,7 @@ model CardSocialMedias {
   id              Int      @id @default(autoincrement())
   platform        SocialMediaPlatforms
   handle          String
-  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
 
@@ -158,7 +158,7 @@ model CardAdditionalLinks {
   icon            String  // Path to icon (Only required if allowing user to upload own icon)
   title           String
   description     String
-  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
 
@@ -169,7 +169,7 @@ model CardEducations {
   graduationYear  String 
   academicFocus   String
   degreeType      DegreeType?
-  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
 
@@ -179,7 +179,7 @@ model CardAccolades {
   fromWho         String
   startDate       DateTime
   endDate         DateTime
-  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
 
@@ -188,7 +188,7 @@ model CardAchievements {
   title           String
   issuedBy        String
   issuedYear      String
-  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
 
@@ -202,7 +202,7 @@ model CardBusinessGoals {
   startDate       DateTime
   endDate         DateTime
   about           String
-  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
 
@@ -212,7 +212,7 @@ model CardBusinessNeeds {
   title           String
   subTitle        String
   status          BusinessNeedsStatus
-  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
 
@@ -223,7 +223,7 @@ model CardServices {
   subtitle        String
   icon            String  // Path to icon (Only required if allowing user to upload own icon)
   details         String
-  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
 
@@ -233,13 +233,13 @@ model CardPortfolio {
   image           String
   title           String
   subTitle        String
-  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String   @unique
 }
 
 model Link {
-  CardOneRef      Card     @relation("CardOneRef", fields: [cardOne], references: [urlPath])
-  CardTwoRef      Card     @relation("CardTwoRef", fields: [cardTwo], references: [urlPath])
+  CardOneRef      Card     @relation("CardOneRef", fields: [cardOne], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
+  CardTwoRef      Card     @relation("CardTwoRef", fields: [cardTwo], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardOne         String
   cardTwo         String
   status          LinkType

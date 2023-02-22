@@ -80,7 +80,7 @@ export const validateForgotPassword = (forgotPasswordPayload: IValidateForgotPas
  */
 export const validatePhone = (addPhonePayload: IValidateAddPhone): string | undefined => {
   const phoneSchema = Joi.object({
-    phone: Joi.string().min(stringLengths.PHONE_MIN).max(stringLengths.PHONE_MAX).pattern(/^[0-9]+$/)
+    phone: Joi.string().min(stringLengths.PHONE_MIN).max(stringLengths.PHONE_MAX).pattern(/^[0-9]+$/).required()
   })
 
   return (phoneSchema.validate(addPhonePayload)?.error?.message)
@@ -93,7 +93,7 @@ export const validatePhone = (addPhonePayload: IValidateAddPhone): string | unde
  */
 export const validateVerifyPhone = (addPhonePayload: IValidateVerifyPhone): string | undefined => {
   const verifySchema = Joi.object({
-    phone: Joi.string().min(stringLengths.PHONE_MIN).max(stringLengths.PHONE_MAX).pattern(/^[0-9]+$/),
+    phone: Joi.string().min(stringLengths.PHONE_MIN).max(stringLengths.PHONE_MAX).pattern(/^[0-9]+$/).required(),
     code: Joi.string().required()
   })
 

@@ -20,10 +20,7 @@ export interface ICard {
   profTitle?: string
   occupation?: string
   industry?: string
-  educationLevel?: string
-  schoolName?: string
-  academicFocus?: string
-  degreeType?: string
+  education?: ICardEducation[]
   accolades?: string[]
   achievements?: ICardAchievements[]
   businessGoals?: string[]
@@ -37,8 +34,11 @@ export interface ICard {
   qrCode: string
 }
 
-export interface IValidateCardUpdate {
+export interface IValidateCardFullName {
   fullName: string
+}
+
+export interface IValidateCardContactPage {
   emails?: ICardEmails[]
   phones?: ICardPhones[]
   calendar: string
@@ -50,28 +50,39 @@ export interface IValidateCardUpdate {
   zipcode?: string
   socialMedias?: ICardSocialMedias[]
   additionalLinks?: ICardAdditionalLinks[]
+}
+
+export interface IValidateCardAboutPage {
   about?: string
   company?: string
   profTitle?: string
   occupation?: string
   industry?: string
-  educationLevel?: string
-  schoolName?: string
-  academicFocus?: string
-  degreeType?: string
-  accolades?: string[]
+  education?: ICardEducation[]
+  accolades?: ICardAccolades[]
   achievements?: ICardAchievements[]
-  businessGoals?: string[]
-  needsAsks?: string[]
+  businessGoals?: ICardBusinessGoals[]
+  businessNeeds?: ICardBusinessNeeds[]
   hobbies?: string[]
   interests?: string[]
   skills?: string[]
   motto?: string
+}
+
+export interface IValidateCardServices {
   services: ICardServices[]
+}
+
+export interface IValidateCardPortfolio {
+  portfolio: ICardPortfolio[]
 }
 
 export interface IValidateCardPhoto {
   coverPhoto: string
+}
+
+export interface IValidateCardAllPhotos {
+  allPhotos: string[]
 }
 
 interface ICardEmails {
@@ -111,6 +122,24 @@ interface ICardAdditionalLinks {
   description: string
   cardId: string
 }
+interface ICardEducation {
+  id: number
+  academicLevel: string
+  schoolName: string
+  graduationYear: string
+  academicFocus: string
+  degreeType: string
+  cardId: string
+}
+
+interface ICardAccolades {
+  id: number
+  title: string
+  fromWho: string
+  startDate: Date
+  endDate: Date
+  cardId: string
+}
 
 interface ICardAchievements {
   id: number
@@ -120,9 +149,32 @@ interface ICardAchievements {
   cardId: string
 }
 
+interface ICardBusinessGoals {
+  id: number
+  status: string
+  title: string
+  subTitle: string
+  percentComplete: number
+  startDate: Date
+  endDate: Date
+  about: string
+  cardId: string
+}
+
+interface ICardBusinessNeeds {
+  id: string
+  date: Date
+  title: string
+  subTitle: string
+  status: string
+  cardId: string
+}
+
 interface ICardServices {
   id: number
+  type: string
   title: string
+  subtitle: string
   icon: string
   details: string
   cardId: string
@@ -130,5 +182,9 @@ interface ICardServices {
 
 interface ICardPortfolio {
   id: number
+  type: string
+  image: string
+  title: string
+  subTitle: string
   cardId: string
 }

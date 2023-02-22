@@ -4,7 +4,7 @@ import { RequestUserAuth } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { userControllerParams } from '../config/params'
-import { validateUserUpdate, validateProfileImage } from '../utils/validations/user.controller.validation'
+import { validateUserUpdate, validateProfileImage, validateAllProfileImage } from '../utils/validations/user.controller.validation'
 import { arrayLimits } from '../config/arrayLimits'
 import BaseController from './base.controller'
 
@@ -37,11 +37,9 @@ class UserController extends BaseController {
 
   // Update user
   updateBio = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    const params = this.filterParams(req.body, userControllerParams)
-    const {
-      firstName, middleInitial, lastName, company, profTitle, industry, profRole,
-      website, country, city, state, zipcode
-    } = params
+    const routeSpecificKeys = ['firstName', 'middleInitial', 'lastName', 'company', 'profTitle', 'industry', 'profRole',
+      'website', 'country', 'city', 'state', 'zipcode']
+    const params = this.filterParams(req.body, routeSpecificKeys)
     try {
       // Validate input
       const validationError = validateUserUpdate(params)
@@ -64,20 +62,7 @@ class UserController extends BaseController {
       // Update UserBio and return
       await prisma.userBio.update({
         where: { id: parseInt(req.params.id) },
-        data: {
-          firstName,
-          middleInitial,
-          lastName,
-          company,
-          profTitle,
-          industry,
-          profRole,
-          website,
-          country,
-          city,
-          state,
-          zipcode
-        }
+        data: params
       })
       return res.status(200).json({
         code: codes.OK,
@@ -89,7 +74,7 @@ class UserController extends BaseController {
     }
   }
 
-  // Update profile avatar
+  // Set active profile avatar
   updateProfileAvatar = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, userControllerParams)
     const { profileImage } = params
@@ -126,12 +111,13 @@ class UserController extends BaseController {
           profileAvatar: profileImage
         }
       })
-      await prisma.card.updateMany({
-        where: { userId: parseInt(req.params.id) },
-        data: {
-          userAvatar: profileImage
-        }
-      })
+      // Test if this is required anymore (shouldnt be after cascade change)
+      // await prisma.card.updateMany({
+      //   where: { userId: parseInt(req.params.id) },
+      //   data: {
+      //     userAvatar: profileImage
+      //   }
+      // })
       return res.status(200).json({
         code: codes.OK,
         message: messages.SUCCESS
@@ -321,6 +307,43 @@ class UserController extends BaseController {
           userId_pathToFile: {
             userId: parseInt(req.params.id),
             pathToFile: profileImage
+          }
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  deleteExistingAddNewProfilePhotos = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const params = this.filterParams(req.body, userControllerParams)
+    const { allPhotos } = params
+    try {
+      // Validate Input
+      const validationError = validateAllProfileImage(params)
+      if (validationError != null) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+
+      // Delete existing images
+      await prisma.userPhoto.deleteMany({ where: { userId: parseInt(req.params.id) } })
+
+      // Add all listed images
+      await prisma.userBio.update({
+        where: {
+          id: parseInt(req.params.id)
+        },
+        data: {
+          profilePhotos: {
+            create: allPhotos
           }
         }
       })

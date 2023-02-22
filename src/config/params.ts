@@ -19,7 +19,8 @@ export const userControllerParams = [
   'country',
   'city',
   'state',
-  'zipcode'
+  'zipcode',
+  'allPhotos'
 ]
 
 export const cardControllerParams = [
@@ -53,7 +54,8 @@ export const cardControllerParams = [
   'interests',
   'skills',
   'motto',
-  'services'
+  'services',
+  'portfolio'
 ]
 
 export const linkControllerParams = [

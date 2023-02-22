@@ -5,7 +5,7 @@ import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { arrayLimits } from '../config/arrayLimits'
 import { cardControllerParams } from '../config/params'
-import { validateCardUpdate, validateCovePhoto } from '../utils/validations/card.controller.validation'
+import { validateCardFullName, validateCardContactPage, validateCardAboutPage, validateCardServices, validateCardPortfolio, validateCardCovePhoto, validateAllCoverImage } from '../utils/validations/card.controller.validation'
 import BaseController from './base.controller'
 
 import { PrismaClient } from '@prisma/client'
@@ -140,103 +140,27 @@ class CardController extends BaseController {
     }
   }
 
-  // Update everything about a Card (Probably better to do individual updates)
-  update = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+  // Update Full Name on Card
+  updateFullName = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, cardControllerParams)
-    const {
-      fullName, emails, phones, calendar, websites, coverPhoto,
-      country, city, state, streetAddress, zipcode, socialMedias, additionalLinks,
-      about, company, profTitle, occupation, industry, education, accolades,
-      achievements, businessGoals, businessNeeds, hobbies, interests,
-      skills, motto, services, portfolio
-    } = params
+    const { fullName } = params
     try {
-      // Validate input
-      const validationError = validateCardUpdate(params)
+      const validationError = validateCardFullName(params)
       if (validationError != null) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
         })
       }
-
-      const data: any = {
-        fullName,
-        calendar,
-        coverPhoto,
-        country,
-        city,
-        state,
-        streetAddress,
-        zipcode,
-        about,
-        company,
-        profTitle,
-        occupation,
-        industry,
-        hobbies,
-        interests,
-        skills,
-        motto,
-        emails: {
-          create: emails
-        },
-        phones: {
-          create: phones
-        },
-        websites: {
-          create: websites
-        },
-        socialMedias: {
-          create: socialMedias
-        },
-        additionalLinks: {
-          create: additionalLinks
-        },
-        education: {
-          create: education
-        },
-        accolades: {
-          create: accolades
-        },
-        businessGoals: {
-          create: businessGoals
-        },
-        businessNeeds: {
-          create: businessNeeds
-        },
-        achievements: {
-          create: achievements
-        },
-        services: {
-          create: services
-        },
-        portfolio: {
-          create: portfolio
-        }
-      }
-
-      // Remove existing emails, phones, websites, etc.....
-      await prisma.cardEmails.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardPhones.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardWebsites.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardSocialMedias.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardAdditionalLinks.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardAccolades.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardAchievements.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardBusinessGoals.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardBusinessNeeds.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardServices.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardPortfolio.deleteMany({ where: { cardId: req.params.urlPath } })
-
       // Update and return
       await prisma.card.update({
         where: {
           urlPath: req.params.urlPath
         },
-        data
+        data: {
+          fullName
+        }
       })
-
       return res.status(200).json({
         code: codes.OK,
         message: messages.SUCCESS
@@ -247,12 +171,140 @@ class CardController extends BaseController {
     }
   }
 
-  setActiveCoverPhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+  // Update Contact Page on Card
+  updateContactPage = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const routeSpecificParams = ['emails', 'phones', 'calendar', 'websites', 'country',
+      'city', 'state', 'streetAddress', 'zipcode', 'socialMedias', 'additionalLinks']
+    const params = this.filterParams(req.body, routeSpecificParams)
+    try {
+      const validationError = validateCardContactPage(params)
+      if (validationError != null) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+      // Update and return
+      await prisma.card.update({
+        where: {
+          urlPath: req.params.urlPath
+        },
+        data: {
+          ...params
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Update About Page on Card
+  updateAboutPage = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const routeSpecificParams = ['about', 'company', 'profTitle', 'occupation', 'industry',
+      'educationLevel', 'schoolName', 'academicFocus', 'degreeType', 'accolades', 'achievements',
+      'businessGoals', 'needsAsks', 'hobbies', 'interests', 'skills', 'motto']
+    const params = this.filterParams(req.body, routeSpecificParams)
+    try {
+      const validationError = validateCardAboutPage(params)
+      if (validationError != null) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+      // Update and return
+      await prisma.card.update({
+        where: {
+          urlPath: req.params.urlPath
+        },
+        data: {
+          ...params
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Update Services Page on Card
+  updateServicesPage = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const params = this.filterParams(req.body, cardControllerParams)
+    const { services } = params
+    try {
+      const validationError = validateCardServices(params)
+      if (validationError != null) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+      // Update and return
+      await prisma.card.update({
+        where: {
+          urlPath: req.params.urlPath
+        },
+        data: {
+          services
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Update Portfolio Page on Card
+  updatePortfolioPage = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const params = this.filterParams(req.body, cardControllerParams)
+    const { portfolio } = params
+    try {
+      const validationError = validateCardPortfolio(params)
+      if (validationError != null) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+      // Update and return
+      await prisma.card.update({
+        where: {
+          urlPath: req.params.urlPath
+        },
+        data: {
+          portfolio
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Set active Cover Photo
+  updateCoverPhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, cardControllerParams)
     const { profileImage } = params
     try {
       // Validate Input
-      const validationError = validateCovePhoto(params)
+      const validationError = validateCardCovePhoto(params)
       if (validationError != null) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -295,12 +347,13 @@ class CardController extends BaseController {
     }
   }
 
+  // Adds new cover photo to set of availble ones
   addCoverPhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, cardControllerParams)
     const { coverPhoto } = params
     try {
       // Validate Input
-      const validationError = validateCovePhoto(params)
+      const validationError = validateCardCovePhoto(params)
       if (validationError != null) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -359,7 +412,7 @@ class CardController extends BaseController {
     const { coverPhoto } = params
     try {
       // Validate Input
-      const validationError = validateCovePhoto(params)
+      const validationError = validateCardCovePhoto(params)
       if (validationError != null) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -389,6 +442,44 @@ class CardController extends BaseController {
           cardId_pathToFile: {
             cardId: req.params.urlPath,
             pathToFile: coverPhoto
+          }
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Delete all existing cover photos and add new ones
+  deleteExistingAddNewCoverPhotos = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const params = this.filterParams(req.body, cardControllerParams)
+    const { allPhotos } = params
+    try {
+      // Validate Input
+      const validationError = validateAllCoverImage(params)
+      if (validationError != null) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+
+      // Delete existing images
+      await prisma.cardPhotos.deleteMany({ where: { cardId: req.params.urlPath } })
+
+      // Add all listed images
+      await prisma.card.update({
+        where: {
+          urlPath: req.params.urlPath
+        },
+        data: {
+          coverPhotos: {
+            create: allPhotos
           }
         }
       })
@@ -434,6 +525,7 @@ class CardController extends BaseController {
     }
   }
 
+  // Find all links associated with card
   cardAllLinks = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify card exists
@@ -472,22 +564,10 @@ class CardController extends BaseController {
     }
   }
 
+  // Delete card
   delete = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Delete and return
-      await prisma.cardPortfolio.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardServices.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardBusinessNeeds.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardBusinessGoals.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardAchievements.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardAccolades.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardEducations.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardAdditionalLinks.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardSocialMedias.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardWebsites.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardPhones.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardEmails.deleteMany({ where: { cardId: req.params.urlPath } })
-      await prisma.cardPhotos.deleteMany({ where: { cardId: req.params.urlPath } })
       await prisma.link.deleteMany({ where: { cardOne: req.params.urlPath } })
       await prisma.link.deleteMany({ where: { cardTwo: req.params.urlPath } })
       await prisma.card.delete({ where: { urlPath: req.params.urlPath } })
