@@ -5,6 +5,10 @@ export interface RequestUserAuth extends Request {
   user?: IUser
 }
 
+export interface RequestLink extends RequestUserAuth {
+  card?: string
+}
+
 export interface IEmail {
   to: string
   from: string

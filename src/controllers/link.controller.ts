@@ -1,6 +1,6 @@
 import { Response } from 'express'
 
-import { RequestUserAuth } from '../config/interfaces/common.interface'
+import { RequestUserAuth, RequestLink } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { linkControllerParams } from '../config/params'
@@ -20,16 +20,6 @@ class LinkController extends BaseController {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: messages.INVALID_LINK_STATUS
-        })
-      }
-
-      // Verify Cards exist
-      const foundCardOne = await prisma.card.findUnique({ where: { urlPath: cardOne } })
-      const foundCardTwo = await prisma.card.findUnique({ where: { urlPath: cardTwo } })
-      if (foundCardOne === null || foundCardTwo === null) {
-        return res.status(404).json({
-          code: codes.NOT_FOUND,
-          message: messages.CARD_NOT_FOUND
         })
       }
 
@@ -64,14 +54,11 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({
-        code: codes.INTERNAL_SERVER_ERROR,
-        message: messages.SERVER_FAILURE
-      })
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
-  // Add auth
+  // Delete a link
   delete = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, linkControllerParams)
     const { cardOne, cardTwo } = params
@@ -107,13 +94,11 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({
-        code: codes.INTERNAL_SERVER_ERROR,
-        message: messages.SERVER_FAILURE
-      })
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
+  // Find a Link
   find = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, linkControllerParams)
     const { cardOne, cardTwo } = params
@@ -147,15 +132,12 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({
-        code: codes.INTERNAL_SERVER_ERROR,
-        message: messages.SERVER_FAILURE
-      })
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
-  // Update Link (Note: THIS ROUTE WILL NOT WORK FOR ADMIN, RELIES ON REQ.USER)
-  update = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+  // Update Link
+  update = async (req: RequestLink, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, linkControllerParams)
     const { cardOne, cardTwo, status } = params
     try {
@@ -196,6 +178,16 @@ class LinkController extends BaseController {
           code: codes.BAD_REQUEST,
           message: messages.ACCESS_DENIED
         })
+      }
+
+      // Set current change
+      if (req.card === 'one') {
+        currentChange = cardOne
+      } else if (req.card === 'two') {
+        currentChange = cardTwo
+      } else {
+        // Should never be reached
+        return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
       }
 
       // Verify status change makes sense
@@ -266,10 +258,7 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({
-        code: codes.INTERNAL_SERVER_ERROR,
-        message: messages.SERVER_FAILURE
-      })
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 }

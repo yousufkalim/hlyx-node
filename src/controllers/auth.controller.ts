@@ -143,7 +143,7 @@ class AuthController extends BaseController {
     }
   }
 
-  sendVerificationCode = async (req: Request, res: Response): Promise<Response> => {
+  sendCodeEmail = async (req: Request, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, authControllerParams)
     const { email } = params
     try {
@@ -158,7 +158,7 @@ class AuthController extends BaseController {
 
       // Verify User exists
       const user = await prisma.userAuth.findUnique({ where: { email } })
-      if (user === null) {
+      if (user == null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: `User with "${email}" does not exist`
@@ -184,7 +184,10 @@ class AuthController extends BaseController {
       // Validate input
       const validationError = validateVerifyCode(params)
       if (validationError != null) {
-        return res.status(400).json({ code: codes.BAD_REQUEST, message: validationError })
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
       }
 
       // Verify User exists
@@ -315,6 +318,14 @@ class AuthController extends BaseController {
           isPhoneVerified: false
         }
       })
+      await prisma.userBio.update({
+        where: {
+          id: parseInt(req.params.id)
+        },
+        data: {
+          phone
+        }
+      })
       return res.status(200).json({
         code: codes.OK,
         message: messages.PHONE_UPDATED
@@ -437,7 +448,11 @@ class AuthController extends BaseController {
         for (let i = 0; i < user.userBio.cards.length; i++) {
           await prisma.cardPortfolio.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
           await prisma.cardServices.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
+          await prisma.cardBusinessNeeds.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
+          await prisma.cardBusinessGoals.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
           await prisma.cardAchievements.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
+          await prisma.cardAccolades.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
+          await prisma.cardEducations.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
           await prisma.cardAdditionalLinks.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
           await prisma.cardSocialMedias.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })
           await prisma.cardWebsites.deleteMany({ where: { cardId: user.userBio.cards[i].urlPath } })

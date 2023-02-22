@@ -32,7 +32,6 @@ export const messages = {
   CODE_SENT_PHONE_SUCCESS: 'Code texted to your phone, Please verify',
   VERIFIED_SUCCESS: 'Verified successfully',
   PASSWORD_FAILURE: 'Password fails to match the Minimum eight characters, at least one letter and one number',
-  INVALID_CARDTYPE: 'Invalid card type was submitted.',
   CARD_NOT_FOUND: 'Card not found',
   EXCEEDS_CARD_LIMIT: 'Adding another card would exceed the allotted amount allowed',
   EXCEEDS_PHOTO_LIMIT: 'Adding another photo would exceed the allotted amount allowed',

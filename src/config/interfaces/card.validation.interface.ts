@@ -1,9 +1,8 @@
 export interface ICard {
   urlPath: string
-  cardType: string
   userId: number
   userAvatar: string
-  coverPhoto: string
+  coverPhoto?: string
   fullName: string
   emails?: ICardEmails[]
   phones?: ICardPhones[]
@@ -33,8 +32,8 @@ export interface ICard {
   interests?: string[]
   skills?: string[]
   motto?: string
-  services: ICardServices[]
-  portfolio: ICardPortfolio[]
+  services?: ICardServices[]
+  portfolio?: ICardPortfolio[]
   qrCode: string
 }
 

@@ -65,7 +65,6 @@ model UserPhoto {
 
 model Card {
   urlPath         String    @id @default(uuid())
-  cardType        CardType
   User            UserBio   @relation(fields: [userId, userAvatar], references: [id, profileAvatar])
   userId          Int
   Links           Link[]    @relation("CardOneRef")
@@ -93,14 +92,12 @@ model Card {
   profTitle       String?
   occupation      String?
   industry        String?
-  educationLevel  String? // May want to enum later (Note: Prisma does not support spaces in enums)
-  schoolName      String?
-  academicFocus   String?
-  degreeType      DegreeType?
-  accolades       String[]
+  education       CardEducations[]
+  accolades       CardAccolades[]
   achievements    CardAchievements[]
-  businessGoals   String[]
-  needsAsks       String[]
+  businessGoals   CardBusinessGoals[] // INCOMPLETE
+  businessNeeds   CardBusinessNeeds[]
+  // Icebreakers
   hobbies         String[]
   interests       String[]
   skills          String[]
@@ -108,7 +105,7 @@ model Card {
   // Services
   services        CardServices[]
   // Portfolio
-  portfolio       CardPortfolio? // Not Implemented
+  portfolio       CardPortfolio[]
   // Misc
   qrCode          String?   @unique // Path to file
   createdAt       DateTime  @default(now())
@@ -165,6 +162,27 @@ model CardAdditionalLinks {
   cardId          String
 }
 
+model CardEducations {
+  id              Int      @id @default(autoincrement())
+  academicLevel   String
+  schoolName      String
+  graduationYear  String 
+  academicFocus   String
+  degreeType      DegreeType?
+  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  cardId          String
+}
+
+model CardAccolades {
+  id              Int      @id @default(autoincrement())
+  title           String
+  fromWho         String
+  startDate       DateTime
+  endDate         DateTime
+  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  cardId          String
+}
+
 model CardAchievements {
   id              Int      @id @default(autoincrement())
   title           String
@@ -174,9 +192,35 @@ model CardAchievements {
   cardId          String
 }
 
+// INCOMPLETE
+model CardBusinessGoals {
+  id              Int      @id @default(autoincrement())
+  status          BusinessGoalsStatus
+  title           String
+  subTitle        String
+  percentComplete Int
+  startDate       DateTime
+  endDate         DateTime
+  about           String
+  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  cardId          String
+}
+
+model CardBusinessNeeds {
+  id              Int      @id @default(autoincrement())
+  date            DateTime
+  title           String
+  subTitle        String
+  status          BusinessNeedsStatus
+  Card            Card     @relation(fields: [cardId], references: [urlPath])
+  cardId          String
+}
+
 model CardServices {
   id              Int      @id @default(autoincrement())
+  type            ServiceTypes
   title           String
+  subtitle        String
   icon            String  // Path to icon (Only required if allowing user to upload own icon)
   details         String
   Card            Card     @relation(fields: [cardId], references: [urlPath])
@@ -185,6 +229,10 @@ model CardServices {
 
 model CardPortfolio {
   id              Int      @id @default(autoincrement())
+  type            PortfolioType
+  image           String
+  title           String
+  subTitle        String
   Card            Card     @relation(fields: [cardId], references: [urlPath])
   cardId          String   @unique
 }
@@ -206,11 +254,6 @@ model Link {
 enum Role {
   USER
   ADMIN
-}
-
-enum CardType {
-  personal
-  professional
 }
 
 enum EmailType {
@@ -245,6 +288,28 @@ enum DegreeType {
   Bachelors
   Masters
   Doctorate
+}
+
+enum BusinessGoalsStatus {
+  Active
+  Achieved
+  Assist
+}
+
+enum BusinessNeedsStatus {
+  Active
+  Filled
+}
+
+enum ServiceTypes {
+  featured
+  main
+}
+
+enum PortfolioType {
+  featured
+  research
+  splicing
 }
 
 enum LinkType {

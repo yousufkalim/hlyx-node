@@ -5,7 +5,6 @@ import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { userControllerParams } from '../config/params'
 import { validateUserUpdate, validateProfileImage } from '../utils/validations/user.controller.validation'
-import { cardTypes } from '../config/enumTypes'
 import { arrayLimits } from '../config/arrayLimits'
 import BaseController from './base.controller'
 
@@ -62,9 +61,7 @@ class UserController extends BaseController {
         })
       }
 
-      // add check for null phone here
-
-      // Update UserBio table and return
+      // Update UserBio and return
       await prisma.userBio.update({
         where: { id: parseInt(req.params.id) },
         data: {
@@ -106,12 +103,19 @@ class UserController extends BaseController {
         })
       }
 
-      // Verify user exists
-      const user = await prisma.userBio.findUnique({ where: { id: parseInt(req.params.id) } })
-      if (user === null) {
+      // Verify user / photo exists
+      const image = await prisma.userPhoto.findUnique({
+        where: {
+          userId_pathToFile: {
+            userId: parseInt(req.params.id),
+            pathToFile: profileImage
+          }
+        }
+      })
+      if (image === null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
-          message: messages.USER_NOT_FOUND
+          message: messages.IMAGE_NOT_FOUND
         })
       }
 
@@ -120,6 +124,12 @@ class UserController extends BaseController {
         where: { id: parseInt(req.params.id) },
         data: {
           profileAvatar: profileImage
+        }
+      })
+      await prisma.card.updateMany({
+        where: { userId: parseInt(req.params.id) },
+        data: {
+          userAvatar: profileImage
         }
       })
       return res.status(200).json({
@@ -134,17 +144,7 @@ class UserController extends BaseController {
 
   // Add a card to user
   addCard = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    const params = this.filterParams(req.body, userControllerParams)
-    const { cardType } = params
     try {
-      // Validate Card Type
-      if (!cardTypes.includes(cardType)) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: messages.INVALID_CARDTYPE
-        })
-      }
-
       // Verify user exists
       const user = await prisma.userBio.findUnique({ where: { id: parseInt(req.params.id) } })
       if (user == null) {
@@ -165,7 +165,6 @@ class UserController extends BaseController {
 
       // Create Card data
       const cardData: any = {
-        cardType,
         fullName: `${user.firstName} ${user.middleInitial ?? ''} ${user.lastName}`.replace(/ +(?= )/g, ''),
         company: user.company ?? undefined,
         profTitle: user.profTitle ?? undefined,
@@ -183,7 +182,7 @@ class UserController extends BaseController {
 
       // Add optional fields if set
       if (user.phone !== null) {
-        cardData.phone = {
+        cardData.phones = {
           create: {
             phone: user.phone,
             type: 'main'
@@ -246,6 +245,22 @@ class UserController extends BaseController {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: messages.EXCEEDS_PHOTO_LIMIT
+        })
+      }
+
+      // Check for uniqueness
+      const image = await prisma.userPhoto.findUnique({
+        where: {
+          userId_pathToFile: {
+            userId: parseInt(req.params.id),
+            pathToFile: profileImage
+          }
+        }
+      })
+      if (image != null) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.DUPLICATE_IMAGE
         })
       }
 

@@ -19,8 +19,7 @@ export const userControllerParams = [
   'country',
   'city',
   'state',
-  'zipcode',
-  'cardType'
+  'zipcode'
 ]
 
 export const cardControllerParams = [

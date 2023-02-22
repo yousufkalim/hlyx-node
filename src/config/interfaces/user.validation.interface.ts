@@ -3,6 +3,7 @@ export interface IUser {
   email: string
   phone: string
   firstName: string
+  role: string
 }
 
 export interface IValidateUserUpdate {
@@ -14,6 +15,10 @@ export interface IValidateUserUpdate {
   industry: string
   profRole: string
   website: string
+  country: string
+  city: string
+  state: string
+  zipcode: string
 }
 
 export interface IValidateProfileImage {
