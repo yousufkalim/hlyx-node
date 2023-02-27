@@ -69,6 +69,8 @@ model Card {
   userId          Int
   Links           Link[]    @relation("CardOneRef")
   LinksDuplicate  Link[]    @relation("CardTwoRef") // IMPORTANT NOTE: This is only included to make prisma happy; however, this should not be referenced in any queries
+  // Auth
+  publicCard      Boolean   @default(true)
   // Header
   userAvatar      String
   coverPhoto      String?    // Path to file
@@ -155,19 +157,19 @@ model CardSocialMedias {
 model CardAdditionalLinks {
   id              Int      @id @default(autoincrement())
   website         String
-  icon            String  // Path to icon (Only required if allowing user to upload own icon)
+  icon            String?  // Path to icon (Only required if allowing user to upload own icon)
   title           String
-  description     String
+  description     String?
   Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
 
 model CardEducations {
   id              Int      @id @default(autoincrement())
-  academicLevel   String
+  academicLevel   String?
   schoolName      String
-  graduationYear  String 
-  academicFocus   String
+  graduationYear  String?
+  academicFocus   String?
   degreeType      DegreeType?
   Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
@@ -176,9 +178,9 @@ model CardEducations {
 model CardAccolades {
   id              Int      @id @default(autoincrement())
   title           String
-  fromWho         String
-  startDate       DateTime
-  endDate         DateTime
+  fromWho         String?
+  startDate       DateTime?
+  endDate         DateTime?
   Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
@@ -186,8 +188,8 @@ model CardAccolades {
 model CardAchievements {
   id              Int      @id @default(autoincrement())
   title           String
-  issuedBy        String
-  issuedYear      String
+  issuedBy        String?
+  issuedYear      String?
   Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
@@ -197,20 +199,20 @@ model CardBusinessGoals {
   id              Int      @id @default(autoincrement())
   status          BusinessGoalsStatus
   title           String
-  subTitle        String
+  subTitle        String?
   percentComplete Int
-  startDate       DateTime
-  endDate         DateTime
-  about           String
+  startDate       DateTime?
+  endDate         DateTime?
+  about           String?
   Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
 
 model CardBusinessNeeds {
   id              Int      @id @default(autoincrement())
-  date            DateTime
+  date            DateTime?
   title           String
-  subTitle        String
+  subTitle        String?
   status          BusinessNeedsStatus
   Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
@@ -220,9 +222,9 @@ model CardServices {
   id              Int      @id @default(autoincrement())
   type            ServiceTypes
   title           String
-  subtitle        String
-  icon            String  // Path to icon (Only required if allowing user to upload own icon)
-  details         String
+  subTitle        String?
+  icon            String?  // Path to icon (Only required if allowing user to upload own icon)
+  details         String?
   Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
@@ -230,11 +232,11 @@ model CardServices {
 model CardPortfolio {
   id              Int      @id @default(autoincrement())
   type            PortfolioType
-  image           String
+  image           String?
   title           String
-  subTitle        String
+  subTitle        String?
   Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
-  cardId          String   @unique
+  cardId          String
 }
 
 model Link {

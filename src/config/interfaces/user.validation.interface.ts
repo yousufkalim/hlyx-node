@@ -26,5 +26,7 @@ export interface IValidateProfileImage {
 }
 
 export interface IValidateAllImages {
-  allPhotos: string[]
+  allPhotos: {
+    pathToFile: string
+  }
 }

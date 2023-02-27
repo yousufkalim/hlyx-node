@@ -333,6 +333,16 @@ class UserController extends BaseController {
         })
       }
 
+      // Verify Images are unique
+      if (allPhotos[0]?.pathToFile === allPhotos[1]?.pathToFile ||
+          allPhotos[0]?.pathToFile === allPhotos[2]?.pathToFile ||
+          allPhotos[1]?.pathToFile === allPhotos[2]?.pathToFile) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.ARRAY_DUPLICATE_IMAGE
+        })
+      }
+
       // Delete existing images
       await prisma.userPhoto.deleteMany({ where: { userId: parseInt(req.params.id) } })
 

@@ -5,7 +5,7 @@ import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { arrayLimits } from '../config/arrayLimits'
 import { cardControllerParams } from '../config/params'
-import { validateCardFullName, validateCardContactPage, validateCardAboutPage, validateCardServices, validateCardPortfolio, validateCardCovePhoto, validateAllCoverImage } from '../utils/validations/card.controller.validation'
+import { validateCardFullName, validateCardContactPage, validateCardAboutPage, validateCardServices, validateCardPortfolio, validateCardCoverPhoto, validateAllCoverImage } from '../utils/validations/card.controller.validation'
 import BaseController from './base.controller'
 
 import { PrismaClient } from '@prisma/client'
@@ -106,7 +106,7 @@ class CardController extends BaseController {
             select: {
               type: true,
               title: true,
-              subtitle: true,
+              subTitle: true,
               icon: true,
               details: true
             }
@@ -184,6 +184,39 @@ class CardController extends BaseController {
           message: validationError
         })
       }
+
+      // Check one-to-many relations
+      if (params.emails != null) {
+        params.emails = {
+          create: params.emails
+        }
+        await prisma.cardEmails.deleteMany({ where: { cardId: req.params.urlPath } })
+      }
+      if (params.phones != null) {
+        params.phones = {
+          create: params.phones
+        }
+        await prisma.cardPhones.deleteMany({ where: { cardId: req.params.urlPath } })
+      }
+      if (params.websites != null) {
+        params.websites = {
+          create: params.websites
+        }
+        await prisma.cardWebsites.deleteMany({ where: { cardId: req.params.urlPath } })
+      }
+      if (params.socialMedias != null) {
+        params.socialMedias = {
+          create: params.socialMedias
+        }
+        await prisma.cardSocialMedias.deleteMany({ where: { cardId: req.params.urlPath } })
+      }
+      if (params.additionalLinks != null) {
+        params.additionalLinks = {
+          create: params.additionalLinks
+        }
+        await prisma.cardAdditionalLinks.deleteMany({ where: { cardId: req.params.urlPath } })
+      }
+
       // Update and return
       await prisma.card.update({
         where: {
@@ -205,9 +238,9 @@ class CardController extends BaseController {
 
   // Update About Page on Card
   updateAboutPage = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    const routeSpecificParams = ['about', 'company', 'profTitle', 'occupation', 'industry',
-      'educationLevel', 'schoolName', 'academicFocus', 'degreeType', 'accolades', 'achievements',
-      'businessGoals', 'needsAsks', 'hobbies', 'interests', 'skills', 'motto']
+    const routeSpecificParams = ['about', 'company', 'profTitle', 'occupation',
+      'industry', 'education', 'accolades', 'achievements', 'businessGoals',
+      'businessNeeds', 'hobbies', 'interests', 'skills', 'motto']
     const params = this.filterParams(req.body, routeSpecificParams)
     try {
       const validationError = validateCardAboutPage(params)
@@ -217,6 +250,60 @@ class CardController extends BaseController {
           message: validationError
         })
       }
+
+      // Check one-to-many relations
+      if (params.education != null) {
+        params.education = {
+          create: params.education
+        }
+        await prisma.cardEducations.deleteMany({ where: { cardId: req.params.urlPath } })
+      }
+      if (params.accolades != null) {
+        for (const accolade of params.accolades) {
+          if (accolade.startDate != null) {
+            accolade.startDate = new Date(accolade.startDate)
+          }
+          if (accolade.endDate != null) {
+            accolade.endDate = new Date(accolade.endDate)
+          }
+        }
+        params.accolades = {
+          create: params.accolades
+        }
+        await prisma.cardAccolades.deleteMany({ where: { cardId: req.params.urlPath } })
+      }
+      if (params.achievements != null) {
+        params.achievements = {
+          create: params.achievements
+        }
+        await prisma.cardAchievements.deleteMany({ where: { cardId: req.params.urlPath } })
+      }
+      if (params.businessGoals != null) {
+        for (const goal of params.businessGoals) {
+          if (goal.startDate != null) {
+            goal.startDate = new Date(goal.startDate)
+          }
+          if (goal.endDate != null) {
+            goal.endDate = new Date(goal.endDate)
+          }
+        }
+        params.businessGoals = {
+          create: params.businessGoals
+        }
+        await prisma.cardBusinessGoals.deleteMany({ where: { cardId: req.params.urlPath } })
+      }
+      if (params.businessNeeds != null) {
+        for (const need of params.businessNeeds) {
+          if (need.date != null) {
+            need.date = new Date(need.date)
+          }
+        }
+        params.businessNeeds = {
+          create: params.businessNeeds
+        }
+        await prisma.cardBusinessNeeds.deleteMany({ where: { cardId: req.params.urlPath } })
+      }
+
       // Update and return
       await prisma.card.update({
         where: {
@@ -248,13 +335,19 @@ class CardController extends BaseController {
           message: validationError
         })
       }
+
+      // Delete Existing Services
+      await prisma.cardServices.deleteMany({ where: { cardId: req.params.urlPath } })
+
       // Update and return
       await prisma.card.update({
         where: {
           urlPath: req.params.urlPath
         },
         data: {
-          services
+          services: {
+            create: services
+          }
         }
       })
       return res.status(200).json({
@@ -279,13 +372,19 @@ class CardController extends BaseController {
           message: validationError
         })
       }
+
+      // Delete existing
+      await prisma.cardPortfolio.deleteMany({ where: { cardId: req.params.urlPath } })
+
       // Update and return
       await prisma.card.update({
         where: {
           urlPath: req.params.urlPath
         },
         data: {
-          portfolio
+          portfolio: {
+            create: portfolio
+          }
         }
       })
       return res.status(200).json({
@@ -301,10 +400,10 @@ class CardController extends BaseController {
   // Set active Cover Photo
   updateCoverPhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, cardControllerParams)
-    const { profileImage } = params
+    const { coverPhoto } = params
     try {
       // Validate Input
-      const validationError = validateCardCovePhoto(params)
+      const validationError = validateCardCoverPhoto(params)
       if (validationError != null) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -317,7 +416,7 @@ class CardController extends BaseController {
         where: {
           cardId_pathToFile: {
             cardId: req.params.urlPath,
-            pathToFile: profileImage
+            pathToFile: coverPhoto
           }
         }
       })
@@ -334,7 +433,7 @@ class CardController extends BaseController {
           urlPath: req.params.urlPath
         },
         data: {
-          coverPhoto: profileImage
+          coverPhoto
         }
       })
       return res.status(200).json({
@@ -353,7 +452,7 @@ class CardController extends BaseController {
     const { coverPhoto } = params
     try {
       // Validate Input
-      const validationError = validateCardCovePhoto(params)
+      const validationError = validateCardCoverPhoto(params)
       if (validationError != null) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -412,7 +511,7 @@ class CardController extends BaseController {
     const { coverPhoto } = params
     try {
       // Validate Input
-      const validationError = validateCardCovePhoto(params)
+      const validationError = validateCardCoverPhoto(params)
       if (validationError != null) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -466,6 +565,16 @@ class CardController extends BaseController {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
+        })
+      }
+
+      // Verify Images are unique
+      if (allPhotos[0]?.pathToFile === allPhotos[1]?.pathToFile ||
+        allPhotos[0]?.pathToFile === allPhotos[2]?.pathToFile ||
+        allPhotos[1]?.pathToFile === allPhotos[2]?.pathToFile) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.ARRAY_DUPLICATE_IMAGE
         })
       }
 

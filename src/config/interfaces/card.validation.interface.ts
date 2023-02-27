@@ -82,7 +82,9 @@ export interface IValidateCardPhoto {
 }
 
 export interface IValidateCardAllPhotos {
-  allPhotos: string[]
+  allPhotos: {
+    pathToFile: string
+  }
 }
 
 interface ICardEmails {

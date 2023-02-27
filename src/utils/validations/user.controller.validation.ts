@@ -47,7 +47,9 @@ export const validateProfileImage = (validateProfileImagePaylaod: IValidateProfi
  */
 export const validateAllProfileImage = (validateAllProfileImagePaylaod: IValidateAllImages): string | undefined => {
   const allImageSchema = Joi.object({
-    allPhotos: Joi.array().max(arrayLimits.MAX_PROFILE_IMAGES).items(Joi.string().max(stringLengths.IMAGE_MAX)).required()
+    allPhotos: Joi.array().max(arrayLimits.MAX_PROFILE_IMAGES).items(Joi.object({
+      pathToFile: Joi.string().max(stringLengths.IMAGE_MAX).required()
+    })).required()
   })
 
   return (allImageSchema.validate(validateAllProfileImagePaylaod)?.error?.message)

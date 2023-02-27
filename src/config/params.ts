@@ -55,7 +55,8 @@ export const cardControllerParams = [
   'skills',
   'motto',
   'services',
-  'portfolio'
+  'portfolio',
+  'allPhotos'
 ]
 
 export const linkControllerParams = [

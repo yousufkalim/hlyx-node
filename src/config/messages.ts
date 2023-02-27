@@ -40,5 +40,6 @@ export const messages = {
   LINK_NOT_FOUND: 'Link not found',
   LINK_ARRAY_LENGTH: 'LinkedUsers array can only be length 2',
   IMAGE_NOT_FOUND: 'Image not found',
-  DUPLICATE_IMAGE: 'Image is a duplicate'
+  DUPLICATE_IMAGE: 'Image is a duplicate',
+  ARRAY_DUPLICATE_IMAGE: 'One or more of the provided images shares the same path to file'
 }

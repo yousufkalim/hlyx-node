@@ -150,9 +150,9 @@ export const validateCardPortfolio = (cardPortfolioPayload: IValidateCardPortfol
  * @param cardPhotoPayload
  * @returns Error message
  */
-export const validateCardCovePhoto = (cardPhotoPayload: IValidateCardPhoto): string | undefined => {
+export const validateCardCoverPhoto = (cardPhotoPayload: IValidateCardPhoto): string | undefined => {
   const photoSchema = Joi.object({
-    coverPhoto: Joi.string().max(stringLengths.IMAGE_MAX)
+    coverPhoto: Joi.string().max(stringLengths.IMAGE_MAX).required()
   })
   return (photoSchema.validate(cardPhotoPayload)?.error?.message)
 }
@@ -164,7 +164,9 @@ export const validateCardCovePhoto = (cardPhotoPayload: IValidateCardPhoto): str
  */
 export const validateAllCoverImage = (cardAllPhotosPayload: IValidateCardAllPhotos): string | undefined => {
   const allPhotosSchema = Joi.object({
-    allPhotos: Joi.array().max(arrayLimits.MAX_COVER_PHOTOS).items(Joi.string().max(stringLengths.IMAGE_MAX)).required()
+    allPhotos: Joi.array().max(arrayLimits.MAX_COVER_PHOTOS).items(Joi.object({
+      pathToFile: Joi.string().max(stringLengths.IMAGE_MAX).required()
+    }))
   })
   return (allPhotosSchema.validate(cardAllPhotosPayload)?.error?.message)
 }
