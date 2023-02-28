@@ -20,8 +20,8 @@ router.post('/auth/forgot-password', AuthController.forgotPassword)
 router.post('/auth/update-phone/:id', authenticate, userAuthorization, AuthController.updatePhone)
 router.post('/auth/send-code-phone/', authenticate, AuthController.sendCodePhone)
 router.post('/auth/verify-code-phone', authenticate, AuthController.verifyCodePhone)
-// Probably want this to be adminAuthorization when going live (NEEDS TESTING)
-router.post('/auth/delete/:id', authenticate, userAuthorization, AuthController.delete)
+router.post('/auth/pause-account/:id', authenticate, userAuthorization, AuthController.pauseAccount)
+router.post('/auth/delete-account/:id', authenticate, userAuthorization, AuthController.deleteAcount)
 
 // User Routes
 router.get('/user/find/me', authenticate, UserController.me)
@@ -47,6 +47,7 @@ router.post('/card/add/cover-photo/:urlPath', authenticate, cardAuthorization, C
 router.post('/card/delete/cover-photo/:urlPath', authenticate, cardAuthorization, CardController.deleteCoverPhoto)
 router.post('/card/update/cover-photos/:urlPath', authenticate, cardAuthorization, CardController.deleteExistingAddNewCoverPhotos)
 router.get('/card/find/cover-photos/:urlPath', authenticate, CardController.findCoverPhotos)
+router.post('/card/update/public-visibility/:urlPath', authenticate, cardAuthorization, CardController.updatePublicVisibility)
 // (NEEDS TESTING)
 router.get('/card/find/all-links/:urlPath', authenticate, CardController.cardAllLinks)
 router.post('/card/delete/:urlPath', authenticate, cardAuthorization, CardController.delete)

@@ -634,6 +634,37 @@ class CardController extends BaseController {
     }
   }
 
+  // Update visibility status
+  updatePublicVisibility = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const { publicCard } = req.body
+    try {
+      // Validate Input
+      if (publicCard !== true && publicCard !== false) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.BOOLEAN_FAIL
+        })
+      }
+
+      // Update and return
+      await prisma.card.update({
+        where: {
+          urlPath: req.params.urlPath
+        },
+        data: {
+          publicCard
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
   // Find all links associated with card
   cardAllLinks = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {

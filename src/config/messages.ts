@@ -41,5 +41,7 @@ export const messages = {
   LINK_ARRAY_LENGTH: 'LinkedUsers array can only be length 2',
   IMAGE_NOT_FOUND: 'Image not found',
   DUPLICATE_IMAGE: 'Image is a duplicate',
-  ARRAY_DUPLICATE_IMAGE: 'One or more of the provided images shares the same path to file'
+  ARRAY_DUPLICATE_IMAGE: 'One or more of the provided images shares the same path to file',
+  BOOLEAN_FAIL: 'Your input should be a boolean',
+  DELETED_30_DAYS: 'Your account has been deleted for over 30, please reach out to our support team if you would like to reactivate your account'
 }

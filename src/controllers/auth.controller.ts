@@ -39,6 +39,41 @@ class AuthController extends BaseController {
         })
       }
 
+      if (user.isPaused) {
+        if (user.isDeleted) {
+          const curretTime = new Date('3/29/2023')
+          let diff = curretTime.getTime() - user.createdAt.getTime()
+          // MIlisecond to day conversion
+          diff = diff / (86400000)
+          if (diff > 31) {
+            return res.status(400).json({
+              code: codes.BAD_REQUEST,
+              message: messages.DELETED_30_DAYS
+            })
+          }
+          // Update Deleted and Paused flags (reactivate account)
+          await prisma.userAuth.update({
+            where: {
+              email
+            },
+            data: {
+              isPaused: false,
+              isDeleted: false
+            }
+          })
+        } else {
+          // Update Paused Flag
+          await prisma.userAuth.update({
+            where: {
+              email
+            },
+            data: {
+              isPaused: false
+            }
+          })
+        }
+      }
+
       // Check passwords match
       const isMatch = await bcrypt.compare(password, user.password)
       if (!isMatch) {
@@ -429,7 +464,72 @@ class AuthController extends BaseController {
     }
   }
 
-  // Delete user
+  // Pause Account
+  pauseAccount = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      // Verify User exists
+      const user = await prisma.userAuth.findUnique({ where: { id: parseInt(req.params.id) } })
+      if (user == null) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.USER_NOT_FOUND
+        })
+      }
+
+      // Update User and return
+      await prisma.userAuth.update({
+        where: {
+          id: parseInt(req.params.id)
+        },
+        data: {
+          isPaused: true
+        }
+      })
+
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Delete Account (trigger boolean)
+  deleteAcount = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      // Verify User exists
+      const user = await prisma.userAuth.findUnique({ where: { id: parseInt(req.params.id) } })
+      if (user == null) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.USER_NOT_FOUND
+        })
+      }
+
+      // Update User and return
+      await prisma.userAuth.update({
+        where: {
+          id: parseInt(req.params.id)
+        },
+        data: {
+          isDeleted: true,
+          isPaused: true
+        }
+      })
+
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Delete user (UNUSED)
   delete = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify user exists

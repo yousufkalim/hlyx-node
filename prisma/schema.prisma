@@ -17,6 +17,8 @@ model UserAuth {
   password        String
   isEmailVerified Boolean   @default(false)
   isPhoneVerified Boolean   @default(false)
+  isPaused        Boolean   @default(false)
+  isDeleted       Boolean   @default(false)
   role            Role      @default(USER)
   userBio         UserBio?
   createdAt       DateTime  @default(now())
