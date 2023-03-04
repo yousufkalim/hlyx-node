@@ -11,10 +11,6 @@ export interface IValidateVerifyCode extends IValidateSendVerificationCode {
   code: string
 }
 
-export interface IValidateForgotPassword extends IValidateLoginRegister {
-  code: string
-}
-
 export interface IValidateAddPhone {
   phone: string
 }

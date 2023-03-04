@@ -5,12 +5,13 @@ import jwt from 'jsonwebtoken'
 import { RequestUserAuth } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
+import { expirationTimes } from '../config/expirationTime'
 import BaseController from './base.controller'
 import { authControllerParams } from '../config/params'
 import { config } from '../config/env.config.validations'
 import { sendCodeToEmail, sendCodeToPhone } from '../utils/helper'
 import { twilioClient } from '../utils/twilio'
-import { validateForgotPassword, validateLogin, validateRegister, validateSendVerificationCode, validateVerifyCode, validatePhone, validateVerifyPhone } from '../utils/validations/auth.controller.validation'
+import { validateLogin, validateRegister, validateSendVerificationCode, validateVerifyCode, validatePhone, validateVerifyPhone } from '../utils/validations/auth.controller.validation'
 
 import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
@@ -41,11 +42,11 @@ class AuthController extends BaseController {
 
       if (user.isPaused) {
         if (user.isDeleted) {
-          const curretTime = new Date('3/29/2023')
-          let diff = curretTime.getTime() - user.createdAt.getTime()
-          // MIlisecond to day conversion
+          const currentTime = new Date()
+          let diff = currentTime.getTime() - user.createdAt.getTime()
+          // Milisecond to day conversion
           diff = diff / (86400000)
-          if (diff > 31) {
+          if (diff > expirationTimes.DAYS_FOR_PERMA_DELETE) {
             return res.status(400).json({
               code: codes.BAD_REQUEST,
               message: messages.DELETED_30_DAYS
@@ -268,15 +269,18 @@ class AuthController extends BaseController {
     }
   }
 
-  // Update Password
-  forgotPassword = async (req: Request, res: Response): Promise<Response | undefined> => {
+  // Verify code prepare for password reset
+  verifyCodePassword = async (req: Request, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, authControllerParams)
-    const { email, code, password } = params
+    const { email, code } = params
     try {
-      // Verify Input
-      const validationError = validateForgotPassword(params)
+      // Validate input
+      const validationError = validateVerifyCode(params)
       if (validationError != null) {
-        return res.status(400).json({ code: codes.BAD_REQUEST, message: validationError })
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
       }
 
       // Verify User exists
@@ -292,6 +296,7 @@ class AuthController extends BaseController {
       const verification = await twilioClient.verify.v2
         .services(config.get('email_verification_sid') as string)
         .verificationChecks.create({ to: email, code })
+
       if (verification.status !== 'approved') {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -300,11 +305,69 @@ class AuthController extends BaseController {
       }
 
       // Update User and return
+      await prisma.userAuth.update({
+        where: { email },
+        data: {
+          passwordReset: new Date()
+        }
+      })
+
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.VERIFIED_SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Update Password
+  forgotPassword = async (req: Request, res: Response): Promise<Response | undefined> => {
+    const params = this.filterParams(req.body, authControllerParams)
+    const { email, password } = params
+    try {
+      // Verify Input
+      const validationError = validateRegister(params)
+      if (validationError != null) {
+        return res.status(400).json({ code: codes.BAD_REQUEST, message: validationError })
+      }
+
+      // Verify User exists
+      const user = await prisma.userAuth.findUnique({ where: { email } })
+      if (user == null) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: `User with "${email}" does not exist`
+        })
+      }
+
+      // Verify password reset flag has been set in last 5 minutes
+      if (user.passwordReset == null) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          messgae: messages.PASSWORD_RESET_FLAG
+        })
+      } else {
+        const currentTime = new Date()
+        let diff = currentTime.getTime() - user.createdAt.getTime()
+        // Milisecond to day minute
+        diff = diff / (60000)
+        if (diff > expirationTimes.MINUTES_FOR_PASSWORD_RESET) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            messgae: messages.PASSWORD_RESET_FLAG
+          })
+        }
+      }
+
+      // Update User and return
       const salt = await bcrypt.genSalt(10)
       await prisma.userAuth.update({
         where: { email },
         data: {
-          password: await bcrypt.hash(password, salt)
+          password: await bcrypt.hash(password, salt),
+          passwordReset: null
         }
       })
       return res.status(200).json({

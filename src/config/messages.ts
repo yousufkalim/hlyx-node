@@ -43,5 +43,6 @@ export const messages = {
   DUPLICATE_IMAGE: 'Image is a duplicate',
   ARRAY_DUPLICATE_IMAGE: 'One or more of the provided images shares the same path to file',
   BOOLEAN_FAIL: 'Your input should be a boolean',
-  DELETED_30_DAYS: 'Your account has been deleted for over 30, please reach out to our support team if you would like to reactivate your account'
+  DELETED_30_DAYS: 'Your account has been deleted for over 30, please reach out to our support team if you would like to reactivate your account',
+  PASSWORD_RESET_FLAG: 'You must verify a 6-digit code sent to your email within 5 minutes of requesting a password reset. Please return to the previous screen to do this.'
 }

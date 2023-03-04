@@ -19,6 +19,7 @@ model UserAuth {
   isPhoneVerified Boolean   @default(false)
   isPaused        Boolean   @default(false)
   isDeleted       Boolean   @default(false)
+  passwordReset   DateTime?
   role            Role      @default(USER)
   userBio         UserBio?
   createdAt       DateTime  @default(now())
