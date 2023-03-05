@@ -104,6 +104,8 @@ class AuthController extends BaseController {
           }
           return res.status(200).json({
             token,
+            isEmailVerified: user.isEmailVerified,
+            isPhoneVerified: user.isPhoneVerified,
             code: codes.OK,
             message: messages.USER_LOGGED_IN
           })
@@ -240,11 +242,22 @@ class AuthController extends BaseController {
       }
 
       // Twilio verify
+      let twilioFound = true
       const verification = await twilioClient.verify.v2
         .services(config.get('email_verification_sid') as string)
-        .verificationChecks.create({ to: email, code })
+        .verificationChecks.create({ to: email, code }).catch(error => {
+          console.log(error)
+          twilioFound = false
+        })
 
-      if (verification.status !== 'approved') {
+      if (!twilioFound) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.TWILIO_NOT_FOUND
+        })
+      }
+
+      if (verification?.status !== 'approved') {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: messages.INVALID_CODE
@@ -260,6 +273,7 @@ class AuthController extends BaseController {
       })
 
       return res.status(200).json({
+        isPhoneVerified: user.isPhoneVerified,
         code: codes.OK,
         message: messages.VERIFIED_SUCCESS
       })
@@ -293,11 +307,22 @@ class AuthController extends BaseController {
       }
 
       // Twilio verify
+      let twilioFound = true
       const verification = await twilioClient.verify.v2
         .services(config.get('email_verification_sid') as string)
-        .verificationChecks.create({ to: email, code })
+        .verificationChecks.create({ to: email, code }).catch(error => {
+          console.log(error)
+          twilioFound = false
+        })
 
-      if (verification.status !== 'approved') {
+      if (!twilioFound) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.TWILIO_NOT_FOUND
+        })
+      }
+
+      if (verification?.status !== 'approved') {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: messages.INVALID_CODE
@@ -350,13 +375,13 @@ class AuthController extends BaseController {
         })
       } else {
         const currentTime = new Date()
-        let diff = currentTime.getTime() - user.createdAt.getTime()
+        let diff = currentTime.getTime() - user.passwordReset.getTime()
         // Milisecond to day minute
         diff = diff / (60000)
         if (diff > expirationTimes.MINUTES_FOR_PASSWORD_RESET) {
           return res.status(400).json({
             code: codes.BAD_REQUEST,
-            messgae: messages.PASSWORD_RESET_FLAG
+            message: messages.PASSWORD_RESET_FLAG
           })
         }
       }
@@ -498,11 +523,22 @@ class AuthController extends BaseController {
       }
 
       // Twilio verify +1 is for USA only
+      let twilioFound = true
       const verification = await twilioClient.verify.v2
         .services(config.get('sms_verification_sid') as string)
-        .verificationChecks.create({ to: `+1${phone}`, code })
+        .verificationChecks.create({ to: `+1${phone}`, code }).catch(error => {
+          console.log(error)
+          twilioFound = false
+        })
 
-      if (verification.status !== 'approved') {
+      if (!twilioFound) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.TWILIO_NOT_FOUND
+        })
+      }
+
+      if (verification?.status !== 'approved') {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: messages.INVALID_CODE
