@@ -437,7 +437,7 @@ class AuthController extends BaseController {
         })
       }
 
-      // Update User and return
+      // Update User
       await prisma.userAuth.update({
         where: {
           id: parseInt(req.params.id)
@@ -455,9 +455,11 @@ class AuthController extends BaseController {
           phone
         }
       })
+      // Send SMS Code and return
+      await sendCodeToPhone(phone)
       return res.status(200).json({
         code: codes.OK,
-        message: messages.PHONE_UPDATED
+        message: messages.CODE_SENT_PHONE_SUCCESS
       })
     } catch (error: any) {
       console.error(error)
