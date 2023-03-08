@@ -8,7 +8,7 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 export const userAuthorization = (req: RequestUserAuth, res: Response, next: NextFunction): any => {
-  if (req.user?.role === roles.ADMIN ||
+  if (req.user?.role === roles.SUPER_ADMIN ||
       req.user?.id === parseInt(req.params?.id)) {
     next()
   } else {
@@ -20,7 +20,7 @@ export const userAuthorization = (req: RequestUserAuth, res: Response, next: Nex
 }
 
 export const adminAuthorization = (req: RequestUserAuth, res: Response, next: NextFunction): any => {
-  if (req.user?.role === roles.ADMIN) {
+  if (req.user?.role === roles.SUPER_ADMIN) {
     next()
   } else {
     return res.status(403).json({
@@ -39,7 +39,7 @@ export const cardAuthorization = async (req: RequestLink, res: Response, next: N
       message: messages.CARD_NOT_FOUND
     })
   }
-  if (card.userId === req.user?.id || req.user?.role === roles.ADMIN) {
+  if (card.userId === req.user?.id || req.user?.role === roles.SUPER_ADMIN) {
     next()
   } else {
     return res.status(403).json({

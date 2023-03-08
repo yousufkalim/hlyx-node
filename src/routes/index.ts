@@ -67,4 +67,6 @@ router.get('/health-check', (req: Request, res: Response) => {
   })
 })
 
+router.get('/test', AuthController.getNewAccessToken)
+
 export default router
