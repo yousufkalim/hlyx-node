@@ -1,0 +1,325 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model UserAuth {
+  id              Int       @id @default(autoincrement())
+  email           String    @unique
+  phone           String?   @unique
+  password        String
+  isEmailVerified Boolean   @default(false)
+  isPhoneVerified Boolean   @default(false)
+  isPaused        Boolean   @default(false)
+  isDeleted       Boolean   @default(false)
+  passwordReset   DateTime?
+  role            Role      @default(USER)
+  userBio         UserBio?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Required to pass to UserBio
+  @@unique([id, email, phone]) 
+}
+
+// Updated during onboarding process and used to initialize card creation
+model UserBio {
+  id              Int       @id
+  User            UserAuth? @relation(fields: [id, email, phone], references: [id, email, phone], onDelete: Cascade, onUpdate: Cascade)
+  profileAvatar   String    @default("routeToOurDefaultAvatar")
+  firstName       String?
+  middleInitial   String?  
+  lastName        String?
+  email           String
+  phone           String? 
+  company         String? 
+  profTitle       String?
+  industry        String?
+  profRole        String?
+  website         String?
+  country         String?
+  city            String?
+  state           String?
+  zipcode         String?
+  profilePhotos   UserPhoto[]
+  cards           Card[]
+  updatedAt       DateTime  @updatedAt
+
+  // Required to link with User
+  @@unique([id, email, phone])
+
+  // Required to link with Card
+  @@unique([id, profileAvatar])
+}
+
+model UserPhoto {
+  User          UserBio   @relation(fields: [userId], references: [id] , onDelete: Cascade, onUpdate: Cascade)
+  userId        Int
+  pathToFile    String
+  @@id([userId, pathToFile])
+}
+
+model Card {
+  urlPath         String    @id @default(uuid())
+  User            UserBio   @relation(fields: [userId, userAvatar], references: [id, profileAvatar], onDelete: Cascade, onUpdate: Cascade)
+  userId          Int
+  Links           Link[]    @relation("CardOneRef")
+  LinksDuplicate  Link[]    @relation("CardTwoRef") // IMPORTANT NOTE: This is only included to make prisma happy; however, this should not be referenced in any queries
+  // Auth
+  publicCard      Boolean   @default(true)
+  // Header
+  userAvatar      String
+  coverPhoto      String?    // Path to file
+  coverPhotos     CardPhotos[]
+  fullName        String    
+  // Contact Page
+  emails          CardEmails[]
+  phones          CardPhones[]
+  calendar        String?
+  websites        CardWebsites[]
+  country         String?
+  city            String?
+  state           String?
+  streetAddress   String?
+  zipcode         String?
+  socialMedias    CardSocialMedias[]
+  additionalLinks CardAdditionalLinks[]
+  // About Page
+  about           String?
+  company         String?
+  profTitle       String?
+  occupation      String?
+  industry        String?
+  education       CardEducations[]
+  accolades       CardAccolades[]
+  achievements    CardAchievements[]
+  businessGoals   CardBusinessGoals[] // INCOMPLETE
+  businessNeeds   CardBusinessNeeds[]
+  // Icebreakers
+  hobbies         String[]
+  interests       String[]
+  skills          String[]
+  motto           String?
+  // Services
+  services        CardServices[]
+  // Portfolio
+  portfolio       CardPortfolio[]
+  // Misc
+  qrCode          String?   @unique // Path to file
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model CardPhotos {
+  Card          Card   @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
+  cardId        String
+  pathToFile    String
+  @@id([cardId, pathToFile])
+}
+
+model CardEmails {
+  id              Int      @id @default(autoincrement())
+  email           String
+  type            EmailType?
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
+  cardId          String
+}
+
+model CardPhones {
+  id              Int      @id @default(autoincrement())
+  phone           String
+  extention       String?
+  type            PhoneType // Required to choose Icon
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
+  cardId          String
+}
+
+model CardWebsites {
+  id              Int      @id @default(autoincrement())
+  website         String
+  description     String?
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
+  cardId          String
+}
+
+model CardSocialMedias {
+  id              Int      @id @default(autoincrement())
+  platform        SocialMediaPlatforms
+  handle          String
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
+  cardId          String
+}
+
+model CardAdditionalLinks {
+  id              Int      @id @default(autoincrement())
+  website         String
+  icon            String?  // Path to icon (Only required if allowing user to upload own icon)
+  title           String
+  description     String?
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
+  cardId          String
+}
+
+model CardEducations {
+  id              Int      @id @default(autoincrement())
+  academicLevel   String?
+  schoolName      String
+  graduationYear  String?
+  academicFocus   String?
+  degreeType      DegreeType?
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
+  cardId          String
+}
+
+model CardAccolades {
+  id              Int      @id @default(autoincrement())
+  title           String
+  fromWho         String?
+  startDate       DateTime?
+  endDate         DateTime?
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
+  cardId          String
+}
+
+model CardAchievements {
+  id              Int      @id @default(autoincrement())
+  title           String
+  issuedBy        String?
+  issuedYear      String?
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
+  cardId          String
+}
+
+// INCOMPLETE
+model CardBusinessGoals {
+  id              Int      @id @default(autoincrement())
+  status          BusinessGoalsStatus
+  title           String
+  subTitle        String?
+  percentComplete Int
+  startDate       DateTime?
+  endDate         DateTime?
+  about           String?
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
+  cardId          String
+}
+
+model CardBusinessNeeds {
+  id              Int      @id @default(autoincrement())
+  date            DateTime?
+  title           String
+  subTitle        String?
+  status          BusinessNeedsStatus
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
+  cardId          String
+}
+
+model CardServices {
+  id              Int      @id @default(autoincrement())
+  type            ServiceTypes
+  title           String
+  subTitle        String?
+  icon            String?  // Path to icon (Only required if allowing user to upload own icon)
+  details         String?
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
+  cardId          String
+}
+
+model CardPortfolio {
+  id              Int      @id @default(autoincrement())
+  type            PortfolioType
+  image           String?
+  title           String
+  subTitle        String?
+  Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
+  cardId          String
+}
+
+model Link {
+  CardOneRef      Card     @relation("CardOneRef", fields: [cardOne], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
+  CardTwoRef      Card     @relation("CardTwoRef", fields: [cardTwo], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
+  cardOne         String
+  cardTwo         String
+  status          LinkType
+  recentChangeBy  String  // Useful for logical statements later (Ex. cannot change to 'accepted' unless other user set 'requested')
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  @@id([cardOne, cardTwo])
+}
+
+
+// Enums
+enum Role {
+  USER
+  ADMIN
+}
+
+enum EmailType {
+  work
+  personal
+}
+
+enum PhoneType {
+  home
+  work
+  mobile
+  main
+  fax
+  direct
+  office
+}
+
+enum SocialMediaPlatforms {
+  // Add more once list of supported platforms is finalized
+  linkedin
+  youtube
+  slack
+  reddit
+  discord
+  facebook
+  twitter
+  instagram
+}
+
+enum DegreeType {
+  Associates
+  Bachelors
+  Masters
+  Doctorate
+}
+
+enum BusinessGoalsStatus {
+  Active
+  Achieved
+  Assist
+}
+
+enum BusinessNeedsStatus {
+  Active
+  Filled
+}
+
+enum ServiceTypes {
+  featured
+  main
+}
+
+enum PortfolioType {
+  featured
+  research
+  splicing
+}
+
+enum LinkType {
+  requested
+  accepted
+  declined
+  blocked
+}

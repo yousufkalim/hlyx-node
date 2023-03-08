@@ -2,7 +2,7 @@ import { Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
-import { RequestUserAuth } from '../config/interface'
+import { RequestUserAuth } from '../config/interfaces/common.interface'
 import { config } from '../config/env.config.validations'
 
 export const authenticate = (req: RequestUserAuth, res: Response, next: NextFunction): any => {
