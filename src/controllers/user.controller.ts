@@ -3,7 +3,7 @@ import { Response } from 'express'
 import { RequestUserAuth } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
-import { userControllerParams } from '../config/params'
+import { userControllerParams, userBioUpdateParams } from '../config/params'
 import { validateUserUpdate, validateProfileImage, validateAllProfileImage } from '../utils/validations/user.controller.validation'
 import { arrayLimits } from '../config/arrayLimits'
 import BaseController from './base.controller'
@@ -37,9 +37,7 @@ class UserController extends BaseController {
 
   // Update user
   updateBio = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    const routeSpecificKeys = ['firstName', 'middleInitial', 'lastName', 'company', 'profTitle', 'industry', 'profRole',
-      'website', 'country', 'city', 'state', 'zipcode']
-    const params = this.filterParams(req.body, routeSpecificKeys)
+    const params = this.filterParams(req.body, userBioUpdateParams)
     try {
       // Validate input
       const validationError = validateUserUpdate(params)
@@ -111,13 +109,7 @@ class UserController extends BaseController {
           profileAvatar: profileImage
         }
       })
-      // Test if this is required anymore (shouldnt be after cascade change)
-      // await prisma.card.updateMany({
-      //   where: { userId: parseInt(req.params.id) },
-      //   data: {
-      //     userAvatar: profileImage
-      //   }
-      // })
+
       return res.status(200).json({
         code: codes.OK,
         message: messages.SUCCESS
@@ -320,6 +312,7 @@ class UserController extends BaseController {
     }
   }
 
+  // Deletes Existing Photos and Adds new ones
   deleteExistingAddNewProfilePhotos = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, userControllerParams)
     const { allPhotos } = params
@@ -367,6 +360,7 @@ class UserController extends BaseController {
     }
   }
 
+  // Find all photos associated with user
   findProfilePhotos = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify user exists

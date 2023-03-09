@@ -4,7 +4,7 @@ import { RequestUserAuth } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { arrayLimits } from '../config/arrayLimits'
-import { cardControllerParams } from '../config/params'
+import { cardAboutPageParams, cardContactPageParams, cardControllerParams } from '../config/params'
 import { validateCardFullName, validateCardContactPage, validateCardAboutPage, validateCardServices, validateCardPortfolio, validateCardCoverPhoto, validateAllCoverImage } from '../utils/validations/card.controller.validation'
 import BaseController from './base.controller'
 
@@ -63,6 +63,7 @@ class CardController extends BaseController {
             select: {
               academicLevel: true,
               schoolName: true,
+              startingYear: true,
               graduationYear: true,
               academicFocus: true,
               degreeType: true
@@ -79,6 +80,8 @@ class CardController extends BaseController {
           achievements: {
             select: {
               title: true,
+              description: true,
+              startYear: true,
               issuedBy: true,
               issuedYear: true
             }
@@ -87,18 +90,17 @@ class CardController extends BaseController {
             select: {
               status: true,
               title: true,
-              subTitle: true,
               percentComplete: true,
               startDate: true,
               endDate: true,
-              about: true
+              description: true
             }
           },
           businessNeeds: {
             select: {
               date: true,
               title: true,
-              subTitle: true,
+              description: true,
               status: true
             }
           },
@@ -106,7 +108,6 @@ class CardController extends BaseController {
             select: {
               type: true,
               title: true,
-              subTitle: true,
               icon: true,
               details: true
             }
@@ -116,7 +117,7 @@ class CardController extends BaseController {
               type: true,
               image: true,
               title: true,
-              subTitle: true
+              media: true
             }
           }
         }
@@ -173,9 +174,7 @@ class CardController extends BaseController {
 
   // Update Contact Page on Card
   updateContactPage = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    const routeSpecificParams = ['emails', 'phones', 'calendar', 'websites', 'country',
-      'city', 'state', 'streetAddress', 'zipcode', 'socialMedias', 'additionalLinks']
-    const params = this.filterParams(req.body, routeSpecificParams)
+    const params = this.filterParams(req.body, cardContactPageParams)
     try {
       const validationError = validateCardContactPage(params)
       if (validationError != null) {
@@ -186,30 +185,35 @@ class CardController extends BaseController {
       }
 
       // Check one-to-many relations
+      // Emails
       if (params.emails != null) {
         params.emails = {
           create: params.emails
         }
         await prisma.cardEmails.deleteMany({ where: { cardId: req.params.urlPath } })
       }
+      // Phones
       if (params.phones != null) {
         params.phones = {
           create: params.phones
         }
         await prisma.cardPhones.deleteMany({ where: { cardId: req.params.urlPath } })
       }
+      // Websites
       if (params.websites != null) {
         params.websites = {
           create: params.websites
         }
         await prisma.cardWebsites.deleteMany({ where: { cardId: req.params.urlPath } })
       }
+      // Social Medias
       if (params.socialMedias != null) {
         params.socialMedias = {
           create: params.socialMedias
         }
         await prisma.cardSocialMedias.deleteMany({ where: { cardId: req.params.urlPath } })
       }
+      // Additional Links
       if (params.additionalLinks != null) {
         params.additionalLinks = {
           create: params.additionalLinks
@@ -238,10 +242,7 @@ class CardController extends BaseController {
 
   // Update About Page on Card
   updateAboutPage = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    const routeSpecificParams = ['about', 'company', 'profTitle', 'occupation',
-      'industry', 'education', 'accolades', 'achievements', 'businessGoals',
-      'businessNeeds', 'hobbies', 'interests', 'skills', 'motto']
-    const params = this.filterParams(req.body, routeSpecificParams)
+    const params = this.filterParams(req.body, cardAboutPageParams)
     try {
       const validationError = validateCardAboutPage(params)
       if (validationError != null) {
@@ -252,12 +253,14 @@ class CardController extends BaseController {
       }
 
       // Check one-to-many relations
+      // Education
       if (params.education != null) {
         params.education = {
           create: params.education
         }
         await prisma.cardEducations.deleteMany({ where: { cardId: req.params.urlPath } })
       }
+      // Accolades
       if (params.accolades != null) {
         for (const accolade of params.accolades) {
           if (accolade.startDate != null) {
@@ -272,12 +275,14 @@ class CardController extends BaseController {
         }
         await prisma.cardAccolades.deleteMany({ where: { cardId: req.params.urlPath } })
       }
+      // Achievements
       if (params.achievements != null) {
         params.achievements = {
           create: params.achievements
         }
         await prisma.cardAchievements.deleteMany({ where: { cardId: req.params.urlPath } })
       }
+      // Business Goals
       if (params.businessGoals != null) {
         for (const goal of params.businessGoals) {
           if (goal.startDate != null) {
@@ -292,6 +297,7 @@ class CardController extends BaseController {
         }
         await prisma.cardBusinessGoals.deleteMany({ where: { cardId: req.params.urlPath } })
       }
+      // Business Needs
       if (params.businessNeeds != null) {
         for (const need of params.businessNeeds) {
           if (need.date != null) {

@@ -18,52 +18,6 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 class AuthController extends BaseController {
-  // Testing
-  getNewAccessToken = async (req: Request, res: Response): Promise<Response | undefined> => {
-    const params = this.filterParams(req.body, authControllerParams)
-    const { email, id, accessToken } = params
-    try {
-      const data = parseJwt(accessToken)
-      console.log(data)
-      console.log(email, id)
-      if (email !== data.user?.email || id !== data.user?.id) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: messages.INVALID_CREDENTIALS
-        })
-      }
-
-      // Generate new token
-      const payload = {
-        user: {
-          id,
-          email
-        }
-      }
-      jwt.sign(
-        payload,
-        config.get('jwt_secret_key') as string,
-        { expiresIn: config.get('jwt_secret_key_expiry') as string },
-        (err, token) => {
-          if (err != null) {
-            return res.status(400).json({
-              code: codes.BAD_REQUEST,
-              message: messages.TOKEN_FAILURE
-            })
-          }
-          return res.status(200).json({
-            token,
-            code: codes.OK,
-            message: messages.USER_LOGGED_IN
-          })
-        }
-      )
-    } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
-    }
-  }
-
   // Login in user
   login = async (req: Request, res: Response): Promise<Response | undefined> => {
     const params = this.filterParams(req.body, authControllerParams)
@@ -87,6 +41,8 @@ class AuthController extends BaseController {
         })
       }
 
+      // Newer logic based on conversation in Zoom
+      // Won't affect anything until we add options for pausing and deleting
       if (user.isPaused) {
         if (user.isDeleted) {
           const currentTime = new Date()
@@ -671,6 +627,52 @@ class AuthController extends BaseController {
         code: codes.OK,
         message: messages.SUCCESS
       })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Testing (UNUSED)
+  getNewAccessToken = async (req: Request, res: Response): Promise<Response | undefined> => {
+    const params = this.filterParams(req.body, authControllerParams)
+    const { email, id, accessToken } = params
+    try {
+      const data = parseJwt(accessToken)
+      console.log(data)
+      console.log(email, id)
+      if (email !== data.user?.email || id !== data.user?.id) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.INVALID_CREDENTIALS
+        })
+      }
+
+      // Generate new token
+      const payload = {
+        user: {
+          id,
+          email
+        }
+      }
+      jwt.sign(
+        payload,
+        config.get('jwt_secret_key') as string,
+        { expiresIn: config.get('jwt_secret_key_expiry') as string },
+        (err, token) => {
+          if (err != null) {
+            return res.status(400).json({
+              code: codes.BAD_REQUEST,
+              message: messages.TOKEN_FAILURE
+            })
+          }
+          return res.status(200).json({
+            token,
+            code: codes.OK,
+            message: messages.USER_LOGGED_IN
+          })
+        }
+      )
     } catch (error: any) {
       console.error(error)
       return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })

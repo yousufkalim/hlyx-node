@@ -25,6 +25,21 @@ export const userControllerParams = [
   'allPhotos'
 ]
 
+export const userBioUpdateParams = [
+  'firstName',
+  'middleInitial',
+  'lastName',
+  'company',
+  'profTitle',
+  'industry',
+  'profRole',
+  'website',
+  'country',
+  'city',
+  'state',
+  'zipcode'
+]
+
 export const cardControllerParams = [
   'fullName',
   'coverPhoto',
@@ -59,6 +74,37 @@ export const cardControllerParams = [
   'services',
   'portfolio',
   'allPhotos'
+]
+
+export const cardContactPageParams = [
+  'emails',
+  'phones',
+  'calendar',
+  'websites',
+  'country',
+  'city',
+  'state',
+  'streetAddress',
+  'zipcode',
+  'socialMedias',
+  'additionalLinks'
+]
+
+export const cardAboutPageParams = [
+  'about',
+  'company',
+  'profTitle',
+  'occupation',
+  'industry',
+  'education',
+  'accolades',
+  'achievements',
+  'businessGoals',
+  'businessNeeds',
+  'hobbies',
+  'interests',
+  'skills',
+  'motto'
 ]
 
 export const linkControllerParams = [
