@@ -34,16 +34,19 @@ model UserBio {
   id              Int       @id
   User            UserAuth? @relation(fields: [id, email, phone], references: [id, email, phone], onDelete: Cascade, onUpdate: Cascade)
   profileAvatar   String    @default("routeToOurDefaultAvatar")
+  // Personal Info
   firstName       String?
   middleInitial   String?  
   lastName        String?
   email           String
-  phone           String? 
+  phone           String?
+  // Profession
   company         String? 
   profTitle       String?
   industry        String?
   profRole        String?
   website         String?
+  // Location
   country         String?
   city            String?
   state           String?
@@ -74,10 +77,12 @@ model Card {
   LinksDuplicate  Link[]    @relation("CardTwoRef") // IMPORTANT NOTE: This is only included to make prisma happy; however, this should not be referenced in any queries
   // Auth
   publicCard      Boolean   @default(true)
+  templateID      TemplateIdentification    @default(DEFAULT)
   // Header
   userAvatar      String
-  coverPhoto      String?    // Path to file
+  coverPhoto      String?     // Path to file
   coverPhotos     CardPhotos[]
+  companyIcon     String?     // Path to file
   fullName        String    
   // Contact Page
   emails          CardEmails[]
@@ -110,6 +115,7 @@ model Card {
   // Services
   services        CardServices[]
   // Portfolio
+  portfolioTemplate PortfolioTemplateIdentification @default(DEFAULT)
   portfolio       CardPortfolio[]
   // Misc
   qrCode          String?   @unique // Path to file
@@ -171,6 +177,7 @@ model CardEducations {
   id              Int      @id @default(autoincrement())
   academicLevel   String?
   schoolName      String
+  startingYear    String?
   graduationYear  String?
   academicFocus   String?
   degreeType      DegreeType?
@@ -192,21 +199,21 @@ model CardAchievements {
   id              Int      @id @default(autoincrement())
   title           String
   issuedBy        String?
+  startYear       String?
   issuedYear      String?
+  description     String?
   Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
 
-// INCOMPLETE
 model CardBusinessGoals {
   id              Int      @id @default(autoincrement())
   status          BusinessGoalsStatus
   title           String
-  subTitle        String?
   percentComplete Int
   startDate       DateTime?
   endDate         DateTime?
-  about           String?
+  description     String?
   Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
@@ -215,7 +222,7 @@ model CardBusinessNeeds {
   id              Int      @id @default(autoincrement())
   date            DateTime?
   title           String
-  subTitle        String?
+  description     String?
   status          BusinessNeedsStatus
   Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
@@ -225,7 +232,6 @@ model CardServices {
   id              Int      @id @default(autoincrement())
   type            ServiceTypes
   title           String
-  subTitle        String?
   icon            String?  // Path to icon (Only required if allowing user to upload own icon)
   details         String?
   Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
@@ -235,9 +241,9 @@ model CardServices {
 model CardPortfolio {
   id              Int      @id @default(autoincrement())
   type            PortfolioType
-  image           String?
+  image           String?  // Cover photo
   title           String
-  subTitle        String?
+  media           String   // Path to media
   Card            Card     @relation(fields: [cardId], references: [urlPath], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
@@ -257,8 +263,14 @@ model Link {
 
 // Enums
 enum Role {
+  SUPER_ADMIN
   USER
-  ADMIN
+  COMPANY
+}
+
+enum TemplateIdentification {
+  DEFAULT
+  FULL
 }
 
 enum EmailType {
@@ -298,7 +310,6 @@ enum DegreeType {
 enum BusinessGoalsStatus {
   Active
   Achieved
-  Assist
 }
 
 enum BusinessNeedsStatus {
@@ -315,6 +326,10 @@ enum PortfolioType {
   featured
   research
   splicing
+}
+
+enum PortfolioTemplateIdentification {
+  DEFAULT
 }
 
 enum LinkType {

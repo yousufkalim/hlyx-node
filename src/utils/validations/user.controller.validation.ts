@@ -11,9 +11,9 @@ import { arrayLimits } from '../../config/arrayLimits'
  */
 export const validateUserUpdate = (userUpdatePayload: IValidateUserUpdate): string | undefined => {
   const userUpdateSchema = Joi.object({
-    firstName: Joi.string().min(stringLengths.NAME_MIN).max(stringLengths.NAME_MAX),
+    firstName: Joi.string().min(stringLengths.NAME_MIN).max(stringLengths.NAME_MAX).required(),
     middleInitial: Joi.string().max(stringLengths.MIDDLE_INITIAL_MAX),
-    lastName: Joi.string().min(stringLengths.NAME_MIN).max(stringLengths.NAME_MAX),
+    lastName: Joi.string().min(stringLengths.NAME_MIN).max(stringLengths.NAME_MAX).required(),
     company: Joi.string().max(stringLengths.COMPANY_MAX),
     profTitle: Joi.string().max(stringLengths.PROFESSIONAL_TITLE_MAX),
     industry: Joi.string().max(stringLengths.INDUSTRY_MAX),
