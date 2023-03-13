@@ -30,7 +30,7 @@ export const validateCardContactPage = (cardContactPagePayload: IValidateCardCon
     })),
     phones: Joi.array().max(arrayLimits.MAX_PHONES).items(Joi.object({
       phone: Joi.string().min(stringLengths.PHONE_MIN).max(stringLengths.PHONE_MAX).pattern(/^[0-9]+$/).required(),
-      extention: Joi.string().max(stringLengths.PHONE_EXT_MAX).pattern(/^[0-9]+$/),
+      extention: Joi.string().max(stringLengths.PHONE_EXT_MAX).pattern(/^[0-9]+$/).allow(''),
       type: Joi.string().valid(...Object.values(phoneTypes)).required()
     })),
     calendar: Joi.string().max(stringLengths.CALENDAR_MAX),
