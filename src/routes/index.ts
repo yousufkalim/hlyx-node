@@ -8,6 +8,7 @@ import { authenticate } from '../middleware/authentication'
 import { userAuthorization, cardAuthorization, linkAuthorization } from '../middleware/authorization'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
+import { config } from '../config/env.config.validations'
 
 const router = Router()
 
@@ -63,7 +64,7 @@ router.post('/link/update', authenticate, linkAuthorization, LinkController.upda
 router.get('/health-check', (req: Request, res: Response) => {
   return res.status(200).json({
     code: codes.OK,
-    message: messages.HEALTH_CHECK
+    message: `${messages.HEALTH_CHECK} on ${config.get('env')}`
   })
 })
 
