@@ -3,9 +3,7 @@ import { messages } from '../config/messages'
 import { roles } from '../config/roles'
 import { codes } from '../config/codes'
 import { RequestUserAuth, RequestLink } from '../config/interfaces/common.interface'
-
-import { PrismaClient } from '@prisma/client'
-const prisma = new PrismaClient()
+import { db } from '../utils/db'
 
 export const userAuthorization = (req: RequestUserAuth, res: Response, next: NextFunction): any => {
   if (req.user?.role === roles.SUPER_ADMIN ||
@@ -32,7 +30,7 @@ export const adminAuthorization = (req: RequestUserAuth, res: Response, next: Ne
 
 export const cardAuthorization = async (req: RequestLink, res: Response, next: NextFunction): Promise<any> => {
   // Verify card exists
-  const card = await prisma.card.findUnique({ where: { urlPath: req.params.urlPath } })
+  const card = await db.card.findUnique({ where: { urlPath: req.params.urlPath } })
   if (card === null) {
     return res.status(404).json({
       code: codes.NOT_FOUND,
@@ -52,8 +50,8 @@ export const cardAuthorization = async (req: RequestLink, res: Response, next: N
 export const linkAuthorization = async (req: RequestLink, res: Response, next: NextFunction): Promise<any> => {
   if (req.body.cardOne != null || req.body.cardTwo != null) {
     // Verify Cards exist
-    const foundCardOne = await prisma.card.findUnique({ where: { urlPath: req.body.cardOne } })
-    const foundCardTwo = await prisma.card.findUnique({ where: { urlPath: req.body.cardTwo } })
+    const foundCardOne = await db.card.findUnique({ where: { urlPath: req.body.cardOne } })
+    const foundCardTwo = await db.card.findUnique({ where: { urlPath: req.body.cardTwo } })
     if (foundCardOne === null || foundCardTwo === null) {
       return res.status(404).json({
         code: codes.NOT_FOUND,

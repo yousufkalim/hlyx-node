@@ -5,9 +5,7 @@ import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { linkControllerParams } from '../config/params'
 import BaseController from './base.controller'
-
-import { PrismaClient } from '@prisma/client'
-const prisma = new PrismaClient()
+import { db } from '../utils/db'
 
 class LinkController extends BaseController {
   // Create a link
@@ -24,7 +22,7 @@ class LinkController extends BaseController {
       }
 
       // Verify Link does not already exist
-      const uniqueness = await prisma.link.findUnique({
+      const uniqueness = await db.link.findUnique({
         where: {
           cardOne_cardTwo: {
             cardOne,
@@ -40,7 +38,7 @@ class LinkController extends BaseController {
       }
 
       // Create Link and return
-      await prisma.link.create({
+      await db.link.create({
         data: {
           cardOne,
           cardTwo,
@@ -64,7 +62,7 @@ class LinkController extends BaseController {
     const { cardOne, cardTwo } = params
     try {
       // Verify Link exists
-      const link = await prisma.link.findUnique({
+      const link = await db.link.findUnique({
         where: {
           cardOne_cardTwo: {
             cardOne,
@@ -80,7 +78,7 @@ class LinkController extends BaseController {
       }
 
       // Delete Link and return
-      await prisma.link.delete({
+      await db.link.delete({
         where: {
           cardOne_cardTwo: {
             cardOne,
@@ -104,7 +102,7 @@ class LinkController extends BaseController {
     const { cardOne, cardTwo } = params
     try {
       // Find Link
-      const link = await prisma.link.findUnique({
+      const link = await db.link.findUnique({
         where: {
           cardOne_cardTwo: {
             cardOne,
@@ -142,8 +140,8 @@ class LinkController extends BaseController {
     const { cardOne, cardTwo, status } = params
     try {
       // Verify Cards exist
-      const foundCardOne = await prisma.card.findUnique({ where: { urlPath: cardOne } })
-      const foundCardTwo = await prisma.card.findUnique({ where: { urlPath: cardTwo } })
+      const foundCardOne = await db.card.findUnique({ where: { urlPath: cardOne } })
+      const foundCardTwo = await db.card.findUnique({ where: { urlPath: cardTwo } })
       if (foundCardOne === null || foundCardTwo === null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -152,7 +150,7 @@ class LinkController extends BaseController {
       }
 
       // Verify link exists
-      const updateMe = await prisma.link.findUnique({
+      const updateMe = await db.link.findUnique({
         where: {
           cardOne_cardTwo: {
             cardOne,
@@ -239,7 +237,7 @@ class LinkController extends BaseController {
       }
 
       // Update link status and return
-      await prisma.link.update({
+      await db.link.update({
         where: {
           cardOne_cardTwo: {
             cardOne,

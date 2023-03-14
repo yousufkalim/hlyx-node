@@ -7,16 +7,14 @@ import { userControllerParams, userBioUpdateParams } from '../config/params'
 import { validateUserUpdate, validateProfileImage, validateAllProfileImage } from '../utils/validations/user.controller.validation'
 import { arrayLimits } from '../config/arrayLimits'
 import BaseController from './base.controller'
-
-import { PrismaClient } from '@prisma/client'
-const prisma = new PrismaClient()
+import { db } from '../utils/db'
 
 class UserController extends BaseController {
   // Return logged in User's Bio
   me = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify user exists
-      const user = await prisma.userBio.findUnique({ where: { id: req.user?.id } })
+      const user = await db.userBio.findUnique({ where: { id: req.user?.id } })
       if (user === null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -49,7 +47,7 @@ class UserController extends BaseController {
       }
 
       // Verify user exists
-      const user = await prisma.userAuth.findUnique({ where: { id: parseInt(req.params.id) } })
+      const user = await db.userAuth.findUnique({ where: { id: parseInt(req.params.id) } })
       if (user === null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -58,7 +56,7 @@ class UserController extends BaseController {
       }
 
       // Update UserBio and return
-      await prisma.userBio.update({
+      await db.userBio.update({
         where: { id: parseInt(req.params.id) },
         data: params
       })
@@ -87,7 +85,7 @@ class UserController extends BaseController {
       }
 
       // Verify user / photo exists
-      const image = await prisma.userPhoto.findUnique({
+      const image = await db.userPhoto.findUnique({
         where: {
           userId_pathToFile: {
             userId: parseInt(req.params.id),
@@ -103,7 +101,7 @@ class UserController extends BaseController {
       }
 
       // Update and return
-      await prisma.userBio.update({
+      await db.userBio.update({
         where: { id: parseInt(req.params.id) },
         data: {
           profileAvatar: profileImage
@@ -124,7 +122,7 @@ class UserController extends BaseController {
   addCard = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify user exists
-      const user = await prisma.userBio.findUnique({ where: { id: parseInt(req.params.id) } })
+      const user = await db.userBio.findUnique({ where: { id: parseInt(req.params.id) } })
       if (user == null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -133,7 +131,7 @@ class UserController extends BaseController {
       }
 
       // Verify under maximum amount of Cards
-      const cards = await prisma.card.findMany({ where: { userId: parseInt(req.params.id) } })
+      const cards = await db.card.findMany({ where: { userId: parseInt(req.params.id) } })
       if (cards.length >= arrayLimits.MAX_CARDS) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -176,7 +174,7 @@ class UserController extends BaseController {
       }
 
       // Update UserBio, create Card, and return
-      await prisma.userBio.update({
+      await db.userBio.update({
         where: { id: parseInt(req.params.id) },
         data: {
           cards: {
@@ -209,7 +207,7 @@ class UserController extends BaseController {
       }
 
       // Verify user exists
-      const user = await prisma.userBio.findUnique({ where: { id: parseInt(req.params.id) } })
+      const user = await db.userBio.findUnique({ where: { id: parseInt(req.params.id) } })
       if (user === null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -218,7 +216,7 @@ class UserController extends BaseController {
       }
 
       // Verify under maximum amount Profile Images
-      const photos = await prisma.userPhoto.findMany({ where: { userId: parseInt(req.params.id) } })
+      const photos = await db.userPhoto.findMany({ where: { userId: parseInt(req.params.id) } })
       if (photos.length >= arrayLimits.MAX_PROFILE_IMAGES) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -227,7 +225,7 @@ class UserController extends BaseController {
       }
 
       // Check for uniqueness
-      const image = await prisma.userPhoto.findUnique({
+      const image = await db.userPhoto.findUnique({
         where: {
           userId_pathToFile: {
             userId: parseInt(req.params.id),
@@ -243,7 +241,7 @@ class UserController extends BaseController {
       }
 
       // Update and return
-      await prisma.userBio.update({
+      await db.userBio.update({
         where: { id: parseInt(req.params.id) },
         data: {
           profilePhotos: {
@@ -278,7 +276,7 @@ class UserController extends BaseController {
       }
 
       // Verify user / photo exists
-      const image = await prisma.userPhoto.findUnique({
+      const image = await db.userPhoto.findUnique({
         where: {
           userId_pathToFile: {
             userId: parseInt(req.params.id),
@@ -294,7 +292,7 @@ class UserController extends BaseController {
       }
 
       // Delete and return
-      await prisma.userPhoto.delete({
+      await db.userPhoto.delete({
         where: {
           userId_pathToFile: {
             userId: parseInt(req.params.id),
@@ -337,10 +335,10 @@ class UserController extends BaseController {
       }
 
       // Delete existing images
-      await prisma.userPhoto.deleteMany({ where: { userId: parseInt(req.params.id) } })
+      await db.userPhoto.deleteMany({ where: { userId: parseInt(req.params.id) } })
 
       // Add all listed images
-      await prisma.userBio.update({
+      await db.userBio.update({
         where: {
           id: parseInt(req.params.id)
         },
@@ -364,7 +362,7 @@ class UserController extends BaseController {
   findProfilePhotos = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify user exists
-      const user = await prisma.userBio.findUnique({ where: { id: parseInt(req.params.id) } })
+      const user = await db.userBio.findUnique({ where: { id: parseInt(req.params.id) } })
       if (user === null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -373,7 +371,7 @@ class UserController extends BaseController {
       }
 
       // Grab images and return
-      const images = await prisma.userPhoto.findMany({
+      const images = await db.userPhoto.findMany({
         where: {
           userId: parseInt(req.params.id)
         },
@@ -396,7 +394,7 @@ class UserController extends BaseController {
   userAllLinks = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify user exists
-      const user = await prisma.userBio.findUnique({ where: { id: parseInt(req.params.id) } })
+      const user = await db.userBio.findUnique({ where: { id: parseInt(req.params.id) } })
       if (user === null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -405,7 +403,7 @@ class UserController extends BaseController {
       }
 
       // Find all cards associated with user
-      const cards = await prisma.card.findMany({
+      const cards = await db.card.findMany({
         where: {
           userId: parseInt(req.params.id)
         },
