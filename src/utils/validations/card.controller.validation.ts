@@ -35,7 +35,7 @@ export const validateCardContactPage = (cardContactPagePayload: IValidateCardCon
     })),
     calendar: Joi.string().max(stringLengths.CALENDAR_MAX),
     websites: Joi.array().max(arrayLimits.MAX_WEBSITES).items(Joi.object({
-      website: Joi.string().max(stringLengths.WEBSITES_MAX).hostname().required(),
+      url: Joi.string().max(stringLengths.WEBSITES_MAX).hostname().required(),
       description: Joi.string().max(stringLengths.WEBSITES_DESC_MAX)
     })),
     country: Joi.string().max(stringLengths.COUNTRY_MAX),
@@ -48,8 +48,7 @@ export const validateCardContactPage = (cardContactPagePayload: IValidateCardCon
       handle: Joi.string().max(stringLengths.HANDLES_MAX).required()
     })),
     additionalLinks: Joi.array().max(arrayLimits.MAX_ADDITIONAL_LINKS).items(Joi.object({
-      website: Joi.string().max(stringLengths.WEBSITES_MAX).hostname().required(),
-      icon: Joi.string().max(stringLengths.IMAGE_MAX),
+      url: Joi.string().max(stringLengths.WEBSITES_MAX).hostname().required(),
       title: Joi.string().max(stringLengths.SERVICES_TITLE).required(),
       description: Joi.string().max(stringLengths.LINK_DESC_MAX)
     }))
@@ -72,7 +71,7 @@ export const validateCardAboutPage = (cardAboutPagePayload: IValidateCardAboutPa
     education: Joi.array().max(arrayLimits.MAX_EDUCATIONS).items(Joi.object({
       academicLevel: Joi.string().valid(...Object.values(academicLevels)),
       schoolName: Joi.string().max(stringLengths.SCHOOL_NAME_MAX).required(),
-      startingYear: Joi.string().min(4).max(4).pattern(/^[0-9]+$/),
+      startYear: Joi.string().min(4).max(4).pattern(/^[0-9]+$/),
       graduationYear: Joi.string().min(4).max(4).pattern(/^[0-9]+$/),
       academicFocus: Joi.string().max(stringLengths.SCHOOL_ACADEMIC_CONC_MAX),
       degreeType: Joi.string().valid(...Object.values(degreeTypes))

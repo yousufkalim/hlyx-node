@@ -140,8 +140,8 @@ class LinkController extends BaseController {
     const { cardOne, cardTwo, status } = params
     try {
       // Verify Cards exist
-      const foundCardOne = await db.card.findUnique({ where: { urlPath: cardOne } })
-      const foundCardTwo = await db.card.findUnique({ where: { urlPath: cardTwo } })
+      const foundCardOne = await db.card.findUnique({ where: { cardId: cardOne } })
+      const foundCardTwo = await db.card.findUnique({ where: { cardId: cardTwo } })
       if (foundCardOne === null || foundCardTwo === null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
