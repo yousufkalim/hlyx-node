@@ -1,9 +1,12 @@
 export interface ICard {
   cardId: string
   userId: string
+  publicCard: boolean
+  templateID: string
   userAvatar: string
   coverPhoto?: string
   coverPhotos: ICardCoverPhotos[]
+  companyIcon: string
   fullName: string
   emails?: ICardEmails[]
   phones?: ICardPhones[]
@@ -25,12 +28,13 @@ export interface ICard {
   accolades?: string[]
   achievements?: ICardAchievements[]
   businessGoals?: string[]
-  needsAsks?: string[]
+  businessNeeds?: string[]
   hobbies?: string[]
   interests?: string[]
   skills?: string[]
   motto?: string
   services?: ICardServices[]
+  portfolioTemplate: string
   portfolio?: ICardPortfolio[]
   qrCode: string
 }
@@ -86,6 +90,10 @@ export interface IValidateCardAllPhotos {
   allPhotos: {
     pathToFile: string
   }
+}
+
+export interface IValidateCompanyIcon {
+  companyIcon: string
 }
 
 interface ICardCoverPhotos {

@@ -48,6 +48,8 @@ router.put('/card/update/cover-photos/:cardId', authenticate, cardAuthorization,
 router.put('/card/update/active-cover-photo/:cardId', authenticate, cardAuthorization, CardController.updateCoverPhoto)
 router.get('/card/find/cover-photos/:cardId', authenticate, CardController.findCoverPhotos)
 router.put('/card/update/public-visibility/:cardId', authenticate, cardAuthorization, CardController.updatePublicVisibility)
+router.put('/card/update/company-icon/:cardId', authenticate, cardAuthorization, CardController.updateCompanyIcon)
+router.put('/card/update/template/:cardId', authenticate, cardAuthorization, CardController.updateTemplateId)
 router.delete('/card/delete/:cardId', authenticate, cardAuthorization, CardController.delete)
 
 // (NEEDS TESTING)

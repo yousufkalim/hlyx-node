@@ -5,9 +5,10 @@ import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { arrayLimits } from '../config/arrayLimits'
 import { cardAboutPageParams, cardContactPageParams, cardControllerParams } from '../config/params'
-import { validateCardFullName, validateCardContactPage, validateCardAboutPage, validateCardServices, validateCardPortfolio, validateCardCoverPhoto, validateAllCoverImage } from '../utils/validations/card.controller.validation'
+import { validateCardFullName, validateCardContactPage, validateCardAboutPage, validateCardServices, validateCardPortfolio, validateCardCoverPhoto, validateAllCoverImage, validateCardCompanyIcon } from '../utils/validations/card.controller.validation'
 import BaseController from './base.controller'
 import { db } from '../utils/db'
+import { templateIds } from '../config/enumTypes'
 
 class CardController extends BaseController {
   // Find a Card
@@ -656,6 +657,70 @@ class CardController extends BaseController {
         },
         data: {
           publicCard
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Update Company Icon
+  updateCompanyIcon = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const params = this.filterParams(req.body, cardControllerParams)
+    const { companyIcon } = params
+    try {
+      // Validate Input
+      const validationError = validateCardCompanyIcon(params)
+      if (validationError != null) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+
+      // Update and return
+      await db.card.update({
+        where: {
+          cardId: req.params.cardId
+        },
+        data: {
+          companyIcon
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Update Template
+  updateTemplateId = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const { templateId } = req.body
+    try {
+      // Validate Input
+      if (!templateIds.includes(templateId)) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.TEMPLATE_ID_FAIL
+        })
+      }
+
+      // Update and return
+      await db.card.update({
+        where: {
+          cardId: req.params.cardId
+        },
+        data: {
+          templateId
         }
       })
       return res.status(200).json({

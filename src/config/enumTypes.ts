@@ -17,3 +17,5 @@ export const businessNeedsStatus = ['Active', 'Filled']
 export const servicesTypes = ['featured', 'main']
 
 export const portfolioTypes = ['featured', 'research', 'splicing']
+
+export const templateIds = ['DEFAULT', 'PAID']

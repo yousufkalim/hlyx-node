@@ -1,5 +1,5 @@
 import Joi from 'joi'
-import { IValidateCardPhoto, IValidateCardFullName, IValidateCardContactPage, IValidateCardAboutPage, IValidateCardServices, IValidateCardPortfolio, IValidateCardAllPhotos } from '../../config/interfaces/card.validation.interface'
+import { IValidateCardPhoto, IValidateCardFullName, IValidateCardContactPage, IValidateCardAboutPage, IValidateCardServices, IValidateCardPortfolio, IValidateCardAllPhotos, IValidateCompanyIcon } from '../../config/interfaces/card.validation.interface'
 import { stringLengths } from '../../config/stringLengths'
 import { emailTypes, phoneTypes, academicLevels, degreeTypes, businessGoalsStatus, businessNeedsStatus, servicesTypes, portfolioTypes } from '../../config/enumTypes'
 import { stateAbbreviations } from '../../config/stateAbbreviations'
@@ -169,4 +169,16 @@ export const validateAllCoverImage = (cardAllPhotosPayload: IValidateCardAllPhot
     })).required()
   })
   return (allPhotosSchema.validate(cardAllPhotosPayload)?.error?.message)
+}
+
+/**
+ *
+ * @param companyIconPayload
+ * @returns Error message
+ */
+export const validateCardCompanyIcon = (companyIconPayload: IValidateCompanyIcon): string | undefined => {
+  const companyIconSchema = Joi.object({
+    companyIcon: Joi.string().max(stringLengths.IMAGE_MAX).required()
+  })
+  return (companyIconSchema.validate(companyIconPayload)?.error?.message)
 }

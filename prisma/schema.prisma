@@ -77,7 +77,7 @@ model Card {
   LinksDuplicate  Link[]    @relation("CardTwoRef") // IMPORTANT NOTE: This is only included to make prisma happy; however, this should not be referenced in any queries
   // Auth
   publicCard      Boolean   @default(true)
-  templateID      TemplateIdentification    @default(DEFAULT)
+  templateId      TemplateIdentification    @default(DEFAULT)
   // Header
   userAvatar      String
   coverPhoto      String?     // Path to file
