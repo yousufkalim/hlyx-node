@@ -7,16 +7,14 @@ import { userControllerParams, userBioUpdateParams } from '../config/params'
 import { validateUserUpdate, validateProfileImage, validateAllProfileImage } from '../utils/validations/user.controller.validation'
 import { arrayLimits } from '../config/arrayLimits'
 import BaseController from './base.controller'
-
-import { PrismaClient } from '@prisma/client'
-const prisma = new PrismaClient()
+import { db } from '../utils/db'
 
 class UserController extends BaseController {
   // Return logged in User's Bio
   me = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify user exists
-      const user = await prisma.userBio.findUnique({ where: { id: req.user?.id } })
+      const user = await db.userBio.findUnique({ where: { id: req.user?.id } })
       if (user === null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -49,7 +47,7 @@ class UserController extends BaseController {
       }
 
       // Verify user exists
-      const user = await prisma.userAuth.findUnique({ where: { id: parseInt(req.params.id) } })
+      const user = await db.userAuth.findUnique({ where: { id: req.params.id } })
       if (user === null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -58,8 +56,8 @@ class UserController extends BaseController {
       }
 
       // Update UserBio and return
-      await prisma.userBio.update({
-        where: { id: parseInt(req.params.id) },
+      await db.userBio.update({
+        where: { id: req.params.id },
         data: params
       })
       return res.status(200).json({
@@ -87,10 +85,10 @@ class UserController extends BaseController {
       }
 
       // Verify user / photo exists
-      const image = await prisma.userPhoto.findUnique({
+      const image = await db.userPhoto.findUnique({
         where: {
           userId_pathToFile: {
-            userId: parseInt(req.params.id),
+            userId: req.params.id,
             pathToFile: profileImage
           }
         }
@@ -103,8 +101,8 @@ class UserController extends BaseController {
       }
 
       // Update and return
-      await prisma.userBio.update({
-        where: { id: parseInt(req.params.id) },
+      await db.userBio.update({
+        where: { id: req.params.id },
         data: {
           profileAvatar: profileImage
         }
@@ -124,7 +122,7 @@ class UserController extends BaseController {
   addCard = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify user exists
-      const user = await prisma.userBio.findUnique({ where: { id: parseInt(req.params.id) } })
+      const user = await db.userBio.findUnique({ where: { id: req.params.id } })
       if (user == null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -133,7 +131,7 @@ class UserController extends BaseController {
       }
 
       // Verify under maximum amount of Cards
-      const cards = await prisma.card.findMany({ where: { userId: parseInt(req.params.id) } })
+      const cards = await db.card.findMany({ where: { userId: req.params.id } })
       if (cards.length >= arrayLimits.MAX_CARDS) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -170,14 +168,14 @@ class UserController extends BaseController {
       if (user.website !== null) {
         cardData.websites = {
           create: {
-            website: user.website
+            url: user.website
           }
         }
       }
 
       // Update UserBio, create Card, and return
-      await prisma.userBio.update({
-        where: { id: parseInt(req.params.id) },
+      await db.userBio.update({
+        where: { id: req.params.id },
         data: {
           cards: {
             create: cardData
@@ -209,7 +207,7 @@ class UserController extends BaseController {
       }
 
       // Verify user exists
-      const user = await prisma.userBio.findUnique({ where: { id: parseInt(req.params.id) } })
+      const user = await db.userBio.findUnique({ where: { id: req.params.id } })
       if (user === null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -218,7 +216,7 @@ class UserController extends BaseController {
       }
 
       // Verify under maximum amount Profile Images
-      const photos = await prisma.userPhoto.findMany({ where: { userId: parseInt(req.params.id) } })
+      const photos = await db.userPhoto.findMany({ where: { userId: req.params.id } })
       if (photos.length >= arrayLimits.MAX_PROFILE_IMAGES) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -227,10 +225,10 @@ class UserController extends BaseController {
       }
 
       // Check for uniqueness
-      const image = await prisma.userPhoto.findUnique({
+      const image = await db.userPhoto.findUnique({
         where: {
           userId_pathToFile: {
-            userId: parseInt(req.params.id),
+            userId: req.params.id,
             pathToFile: profileImage
           }
         }
@@ -243,8 +241,8 @@ class UserController extends BaseController {
       }
 
       // Update and return
-      await prisma.userBio.update({
-        where: { id: parseInt(req.params.id) },
+      await db.userBio.update({
+        where: { id: req.params.id },
         data: {
           profilePhotos: {
             create: {
@@ -278,10 +276,10 @@ class UserController extends BaseController {
       }
 
       // Verify user / photo exists
-      const image = await prisma.userPhoto.findUnique({
+      const image = await db.userPhoto.findUnique({
         where: {
           userId_pathToFile: {
-            userId: parseInt(req.params.id),
+            userId: req.params.id,
             pathToFile: profileImage
           }
         }
@@ -294,10 +292,10 @@ class UserController extends BaseController {
       }
 
       // Delete and return
-      await prisma.userPhoto.delete({
+      await db.userPhoto.delete({
         where: {
           userId_pathToFile: {
-            userId: parseInt(req.params.id),
+            userId: req.params.id,
             pathToFile: profileImage
           }
         }
@@ -337,12 +335,12 @@ class UserController extends BaseController {
       }
 
       // Delete existing images
-      await prisma.userPhoto.deleteMany({ where: { userId: parseInt(req.params.id) } })
+      await db.userPhoto.deleteMany({ where: { userId: req.params.id } })
 
       // Add all listed images
-      await prisma.userBio.update({
+      await db.userBio.update({
         where: {
-          id: parseInt(req.params.id)
+          id: req.params.id
         },
         data: {
           profilePhotos: {
@@ -364,7 +362,7 @@ class UserController extends BaseController {
   findProfilePhotos = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify user exists
-      const user = await prisma.userBio.findUnique({ where: { id: parseInt(req.params.id) } })
+      const user = await db.userBio.findUnique({ where: { id: req.params.id } })
       if (user === null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -373,9 +371,9 @@ class UserController extends BaseController {
       }
 
       // Grab images and return
-      const images = await prisma.userPhoto.findMany({
+      const images = await db.userPhoto.findMany({
         where: {
-          userId: parseInt(req.params.id)
+          userId: req.params.id
         },
         select: {
           pathToFile: true
@@ -396,7 +394,7 @@ class UserController extends BaseController {
   userAllLinks = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify user exists
-      const user = await prisma.userBio.findUnique({ where: { id: parseInt(req.params.id) } })
+      const user = await db.userBio.findUnique({ where: { id: req.params.id } })
       if (user === null) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -405,9 +403,9 @@ class UserController extends BaseController {
       }
 
       // Find all cards associated with user
-      const cards = await prisma.card.findMany({
+      const cards = await db.card.findMany({
         where: {
-          userId: parseInt(req.params.id)
+          userId: req.params.id
         },
         include: {
           Links: true
@@ -418,7 +416,7 @@ class UserController extends BaseController {
       const returnArray: string[] = []
       for (const card of cards) {
         for (const link of card.Links) {
-          if (link.cardOne === card.urlPath) {
+          if (link.cardOne === card.cardId) {
             returnArray.push(link.cardTwo)
           } else {
             returnArray.push(link.cardOne)
