@@ -8,7 +8,7 @@ on:
 
 
 env:
-  AWS_REGION: us-east-1                  
+  AWS_REGION: us-west-1                  
   ECR_REPOSITORY: hlyx-dev-node          
   ECS_SERVICE: hlyx-dev-service                 
   ECS_CLUSTER: hlyx-dev-cluster            
