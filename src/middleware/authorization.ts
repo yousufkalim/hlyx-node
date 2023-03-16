@@ -6,8 +6,11 @@ import { RequestUserAuth, RequestLink } from '../config/interfaces/common.interf
 import { db } from '../utils/db'
 
 export const userAuthorization = (req: RequestUserAuth, res: Response, next: NextFunction): any => {
+  console.log(req.user?.id)
+  console.log(req.params?.id)
+
   if (req.user?.role === roles.SUPER_ADMIN ||
-      req.user?.id === parseInt(req.params?.id)) {
+      req.user?.id === req.params?.id) {
     next()
   } else {
     return res.status(403).json({
@@ -30,7 +33,7 @@ export const adminAuthorization = (req: RequestUserAuth, res: Response, next: Ne
 
 export const cardAuthorization = async (req: RequestLink, res: Response, next: NextFunction): Promise<any> => {
   // Verify card exists
-  const card = await db.card.findUnique({ where: { urlPath: req.params.urlPath } })
+  const card = await db.card.findUnique({ where: { cardId: req.params.cardId } })
   if (card === null) {
     return res.status(404).json({
       code: codes.NOT_FOUND,
@@ -50,8 +53,8 @@ export const cardAuthorization = async (req: RequestLink, res: Response, next: N
 export const linkAuthorization = async (req: RequestLink, res: Response, next: NextFunction): Promise<any> => {
   if (req.body.cardOne != null || req.body.cardTwo != null) {
     // Verify Cards exist
-    const foundCardOne = await db.card.findUnique({ where: { urlPath: req.body.cardOne } })
-    const foundCardTwo = await db.card.findUnique({ where: { urlPath: req.body.cardTwo } })
+    const foundCardOne = await db.card.findUnique({ where: { cardId: req.body.cardOne } })
+    const foundCardTwo = await db.card.findUnique({ where: { cardId: req.body.cardTwo } })
     if (foundCardOne === null || foundCardTwo === null) {
       return res.status(404).json({
         code: codes.NOT_FOUND,

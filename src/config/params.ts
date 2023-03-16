@@ -73,7 +73,9 @@ export const cardControllerParams = [
   'motto',
   'services',
   'portfolio',
-  'allPhotos'
+  'allPhotos',
+  'companyIcon',
+  'templateId'
 ]
 
 export const cardContactPageParams = [
