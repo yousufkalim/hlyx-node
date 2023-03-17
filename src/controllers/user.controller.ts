@@ -1,4 +1,5 @@
 import { Response } from 'express'
+import { UploadedFile } from 'express-fileupload'
 
 import { RequestUserAuth } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
@@ -6,6 +7,9 @@ import { messages } from '../config/messages'
 import { userControllerParams, userBioUpdateParams } from '../config/params'
 import { validateUserUpdate, validateProfileImage, validateAllProfileImage } from '../utils/validations/user.controller.validation'
 import { arrayLimits } from '../config/arrayLimits'
+import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
+import { awsUploadFile } from '../utils/aws-image'
+
 import BaseController from './base.controller'
 import { db } from '../utils/db'
 
@@ -425,6 +429,34 @@ class UserController extends BaseController {
       }
       return res.status(200).json({
         returnArray,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Testing req.file
+  testing = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      if (req.files) {
+        const file = req.files.profileImage as UploadedFile
+        console.log(file)
+        // Verify Acceptable MIME Type
+        if (!ACCEPTABLE_MIME_TYPES.includes(file.mimetype)) {
+          // return error
+        }
+        // Verify Image Size
+        if (file.size > MAX_BYTES) {
+          // return error
+        }
+        // AWS API Call
+        const profileImage = await awsUploadFile(file.data, req.params.id, file.name, file.mimetype)
+        console.log(profileImage)
+      }
+      return res.status(200).json({
         code: codes.OK,
         message: messages.SUCCESS
       })

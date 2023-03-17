@@ -34,6 +34,7 @@ router.delete('/user/delete/profile-photo/:id', authenticate, userAuthorization,
 router.put('/user/update/profile-photos/:id', authenticate, userAuthorization, UserController.deleteExistingAddNewProfilePhotos)
 router.put('/user/update/avatar/:id', authenticate, userAuthorization, UserController.updateProfileAvatar)
 router.get('/user/find/profile-photos/:id', authenticate, userAuthorization, UserController.findProfilePhotos)
+router.post('/test', UserController.testing)
 
 // Card Routes
 router.get('/card/find/:cardId', authenticate, CardController.find)

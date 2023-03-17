@@ -73,6 +73,30 @@ const config = convict({
     format: 'String',
     default: process.env.EMAIL_VERIFICATION_SID,
     env: 'EMAIL_VERIFICATION_SID'
+  },
+  aws_region: {
+    doc: 'Aws region',
+    format: 'String',
+    default: process.env.AWS_REGION,
+    env: 'AWS_REGION'
+  },
+  aws_access_key_id: {
+    doc: 'Aws access key id',
+    format: 'String',
+    default: process.env.AWS_ACCESS_KEY_ID,
+    env: 'AWS_ACCESS_KEY_ID'
+  },
+  aws_secret_access_key: {
+    doc: 'Aws secret access key',
+    format: 'String',
+    default: process.env.AWS_SECRET_ACCESS_KEY,
+    env: 'AWS_SECRET_ACCESS_KEY'
+  },
+  aws_bucket_name: {
+    doc: 'Aws bucket name',
+    format: 'String',
+    default: process.env.AWS_BUCKET_NAME,
+    env: 'AWS_BUCKET_NAME'
   }
 })
 
