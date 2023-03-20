@@ -180,7 +180,12 @@ class AuthController extends BaseController {
       )
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      if (error.status) {
+        return res.status(error.status).json({ code: error.status, message: error.message })
+      }
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -215,7 +220,12 @@ class AuthController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      if (error.status) {
+        return res.status(error.status).json({ code: error.status, message: error.message })
+      }
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -280,7 +290,12 @@ class AuthController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      if (error.status) {
+        return res.status(error.status).json({ code: error.status, message: error.message })
+      }
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -344,7 +359,12 @@ class AuthController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      if (error.status) {
+        return res.status(error.status).json({ code: error.status, message: error.message })
+      }
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -464,7 +484,12 @@ class AuthController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      if (error.status) {
+        return res.status(error.status).json({ code: error.status, message: error.message })
+      }
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -498,7 +523,12 @@ class AuthController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      if (error.status) {
+        return res.status(error.status).json({ code: error.status, message: error.message })
+      }
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -562,7 +592,12 @@ class AuthController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      if (error.status) {
+        return res.status(error.status).json({ code: error.status, message: error.message })
+      }
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
