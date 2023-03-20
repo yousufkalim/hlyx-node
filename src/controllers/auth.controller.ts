@@ -23,7 +23,7 @@ class AuthController extends BaseController {
     try {
       // Validate input
       const validationError = validateLogin(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -32,7 +32,7 @@ class AuthController extends BaseController {
 
       // Verify User exists
       const user = await db.userAuth.findUnique({ where: { email } })
-      if (user === null) {
+      if (!user) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: messages.INVALID_CREDENTIALS
@@ -97,7 +97,7 @@ class AuthController extends BaseController {
         config.get('jwt_secret_key') as string,
         { expiresIn: config.get('jwt_secret_key_expiry') as string },
         (err, token) => {
-          if (err != null) {
+          if (err) {
             return res.status(400).json({
               code: codes.BAD_REQUEST,
               message: messages.TOKEN_FAILURE
@@ -125,7 +125,7 @@ class AuthController extends BaseController {
     try {
       // Validate input
       const validationError = validateRegister(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -134,7 +134,7 @@ class AuthController extends BaseController {
 
       // Check if email is already registered
       const userWithEmail = await db.userAuth.findUnique({ where: { email } })
-      if (userWithEmail != null) {
+      if (userWithEmail) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: `${messages.USER_ALREADY_EXIST} with email "${email}"`
@@ -164,7 +164,7 @@ class AuthController extends BaseController {
         config.get('jwt_secret_key') as string,
         { expiresIn: config.get('jwt_secret_key_expiry') as string },
         async (err, token) => {
-          if (err != null) {
+          if (err) {
             return res.status(400).json({
               code: codes.BAD_REQUEST,
               message: messages.TOKEN_FAILURE
@@ -180,7 +180,12 @@ class AuthController extends BaseController {
       )
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      if (error.status) {
+        return res.status(error.status).json({ code: error.status, message: error.message })
+      }
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -191,7 +196,7 @@ class AuthController extends BaseController {
     try {
       // Validate input
       const validationError = validateSendVerificationCode(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -200,7 +205,7 @@ class AuthController extends BaseController {
 
       // Verify User exists
       const user = await db.userAuth.findUnique({ where: { email } })
-      if (user == null) {
+      if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: `User with "${email}" does not exist`
@@ -215,7 +220,12 @@ class AuthController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      if (error.status) {
+        return res.status(error.status).json({ code: error.status, message: error.message })
+      }
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -226,7 +236,7 @@ class AuthController extends BaseController {
     try {
       // Validate input
       const validationError = validateVerifyCode(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -235,7 +245,7 @@ class AuthController extends BaseController {
 
       // Verify User exists
       const user = await db.userAuth.findUnique({ where: { email } })
-      if (user == null) {
+      if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: `User with "${email}" does not exist`
@@ -280,7 +290,12 @@ class AuthController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      if (error.status) {
+        return res.status(error.status).json({ code: error.status, message: error.message })
+      }
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -291,7 +306,7 @@ class AuthController extends BaseController {
     try {
       // Validate input
       const validationError = validateVerifyCode(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -300,7 +315,7 @@ class AuthController extends BaseController {
 
       // Verify User exists
       const user = await db.userAuth.findUnique({ where: { email } })
-      if (user == null) {
+      if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: `User with "${email}" does not exist`
@@ -344,7 +359,12 @@ class AuthController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      if (error.status) {
+        return res.status(error.status).json({ code: error.status, message: error.message })
+      }
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -355,13 +375,13 @@ class AuthController extends BaseController {
     try {
       // Verify Input
       const validationError = validateRegister(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({ code: codes.BAD_REQUEST, message: validationError })
       }
 
       // Verify User exists
       const user = await db.userAuth.findUnique({ where: { email } })
-      if (user == null) {
+      if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: `User with "${email}" does not exist`
@@ -413,7 +433,7 @@ class AuthController extends BaseController {
     try {
       // Verify Input
       const validationError = validatePhone(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -422,7 +442,7 @@ class AuthController extends BaseController {
 
       // Verify User exists
       const user = await db.userAuth.findUnique({ where: { id: req.params.id } })
-      if (user == null) {
+      if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: messages.USER_NOT_FOUND
@@ -464,7 +484,12 @@ class AuthController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      if (error.status) {
+        return res.status(error.status).json({ code: error.status, message: error.message })
+      }
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -475,7 +500,7 @@ class AuthController extends BaseController {
     try {
       // Validate input
       const validationError = validatePhone(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -484,7 +509,7 @@ class AuthController extends BaseController {
 
       // Verify User exists
       const user = await db.userAuth.findUnique({ where: { phone } })
-      if (user === null) {
+      if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: `User with "${phone}" does not exist`
@@ -498,7 +523,12 @@ class AuthController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      if (error.status) {
+        return res.status(error.status).json({ code: error.status, message: error.message })
+      }
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -509,7 +539,7 @@ class AuthController extends BaseController {
     try {
       // Validate input
       const validationError = validateVerifyPhone(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -518,7 +548,7 @@ class AuthController extends BaseController {
 
       // Verify User exists
       const user = await db.userAuth.findUnique({ where: { phone } })
-      if (user == null) {
+      if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: `User with "${phone}" does not exist`
@@ -562,7 +592,12 @@ class AuthController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      if (error.status) {
+        return res.status(error.status).json({ code: error.status, message: error.message })
+      }
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -571,7 +606,7 @@ class AuthController extends BaseController {
     try {
       // Verify User exists
       const user = await db.userAuth.findUnique({ where: { id: req.params.id } })
-      if (user == null) {
+      if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: messages.USER_NOT_FOUND
@@ -603,7 +638,7 @@ class AuthController extends BaseController {
     try {
       // Verify User exists
       const user = await db.userAuth.findUnique({ where: { id: req.params.id } })
-      if (user == null) {
+      if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: messages.USER_NOT_FOUND
@@ -682,7 +717,7 @@ class AuthController extends BaseController {
     try {
       // Verify user exists
       const user = await db.userAuth.findUnique({ where: { id: req.params.id } })
-      if (user === null) {
+      if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: messages.USER_NOT_FOUND
