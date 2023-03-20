@@ -19,7 +19,7 @@ class UserController extends BaseController {
     try {
       // Verify user exists
       const user = await db.userBio.findUnique({ where: { id: req.user?.id } })
-      if (user === null) {
+      if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: messages.USER_NOT_FOUND
@@ -43,7 +43,7 @@ class UserController extends BaseController {
     try {
       // Validate input
       const validationError = validateUserUpdate(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -52,7 +52,7 @@ class UserController extends BaseController {
 
       // Verify user exists
       const user = await db.userAuth.findUnique({ where: { id: req.params.id } })
-      if (user === null) {
+      if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: messages.USER_NOT_FOUND
@@ -108,7 +108,7 @@ class UserController extends BaseController {
     try {
       // Validate Input
       const validationError = validateProfileImage(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -124,7 +124,7 @@ class UserController extends BaseController {
           }
         }
       })
-      if (image === null) {
+      if (!image) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: messages.IMAGE_NOT_FOUND
@@ -154,7 +154,7 @@ class UserController extends BaseController {
     try {
       // Verify user exists
       const user = await db.userBio.findUnique({ where: { id: req.params.id } })
-      if (user == null) {
+      if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: messages.USER_NOT_FOUND
@@ -188,7 +188,7 @@ class UserController extends BaseController {
       }
 
       // Add optional fields if set
-      if (user.phone !== null) {
+      if (user.phone) {
         cardData.phones = {
           create: {
             phone: user.phone,
@@ -196,7 +196,7 @@ class UserController extends BaseController {
           }
         }
       }
-      if (user.website !== null) {
+      if (user.website) {
         cardData.websites = {
           create: {
             url: user.website
@@ -230,7 +230,7 @@ class UserController extends BaseController {
     try {
       // Validate Input
       const validationError = validateProfileImage(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -239,7 +239,7 @@ class UserController extends BaseController {
 
       // Verify user exists
       const user = await db.userBio.findUnique({ where: { id: req.params.id } })
-      if (user === null) {
+      if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: messages.USER_NOT_FOUND
@@ -264,7 +264,7 @@ class UserController extends BaseController {
           }
         }
       })
-      if (image != null) {
+      if (image) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: messages.DUPLICATE_IMAGE
@@ -299,7 +299,7 @@ class UserController extends BaseController {
     try {
       // Validate Input
       const validationError = validateProfileImage(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -315,7 +315,7 @@ class UserController extends BaseController {
           }
         }
       })
-      if (image === null) {
+      if (!image) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: messages.IMAGE_NOT_FOUND
@@ -348,7 +348,7 @@ class UserController extends BaseController {
     try {
       // Validate Input
       const validationError = validateAllProfileImage(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -394,7 +394,7 @@ class UserController extends BaseController {
     try {
       // Verify user exists
       const user = await db.userBio.findUnique({ where: { id: req.params.id } })
-      if (user === null) {
+      if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: messages.USER_NOT_FOUND
@@ -426,7 +426,7 @@ class UserController extends BaseController {
     try {
       // Verify user exists
       const user = await db.userBio.findUnique({ where: { id: req.params.id } })
-      if (user === null) {
+      if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: messages.USER_NOT_FOUND
@@ -456,33 +456,6 @@ class UserController extends BaseController {
       }
       return res.status(200).json({
         returnArray,
-        code: codes.OK,
-        message: messages.SUCCESS
-      })
-    } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
-    }
-  }
-
-  // Testing req.file
-  testing = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    try {
-      if (req.files) {
-        const file = req.files.profileImage as UploadedFile
-        // Verify Acceptable MIME Type
-        if (!ACCEPTABLE_MIME_TYPES.includes(file.mimetype)) {
-          // return error
-        }
-        // Verify Image Size
-        if (file.size > MAX_BYTES) {
-          // return error
-        }
-        // AWS API Call
-        const profileImage = await awsUploadFile(file.data, req.params.id, file.name, file.mimetype)
-        console.log(profileImage)
-      }
-      return res.status(200).json({
         code: codes.OK,
         message: messages.SUCCESS
       })
