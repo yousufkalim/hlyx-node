@@ -59,6 +59,33 @@ class UserController extends BaseController {
         })
       }
 
+      if (req.files) {
+        const file = req.files.profileImage as UploadedFile
+        // Verify Acceptable MIME Type
+        if (!ACCEPTABLE_MIME_TYPES.includes(file.mimetype)) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.INVALID_MIME_TYPE
+          })
+        }
+        // Verify Image Size
+        if (file.size > MAX_BYTES) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.FILE_SIZE_OVER_10
+          })
+        }
+        // AWS API Call
+        const profileImage = await awsUploadFile(file.data, req.params.id, file.name, file.mimetype)
+        // Prepare params for update
+        params.profileAvatar = profileImage
+        params.profilePhotos = {
+          create: {
+            pathToFile: profileImage
+          }
+        }
+      }
+
       // Update UserBio and return
       await db.userBio.update({
         where: { id: req.params.id },
@@ -443,7 +470,6 @@ class UserController extends BaseController {
     try {
       if (req.files) {
         const file = req.files.profileImage as UploadedFile
-        console.log(file)
         // Verify Acceptable MIME Type
         if (!ACCEPTABLE_MIME_TYPES.includes(file.mimetype)) {
           // return error
