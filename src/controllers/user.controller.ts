@@ -4,8 +4,8 @@ import { UploadedFile } from 'express-fileupload'
 import { RequestUserAuth } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
-import { userControllerParams, userBioUpdateParams } from '../config/params'
-import { validateUserUpdate, validateProfileImage, validateAllProfileImage } from '../utils/validations/user.controller.validation'
+import { userControllerParams } from '../config/params'
+import { validateUserUpdate } from '../utils/validations/user.controller.validation'
 import { arrayLimits } from '../config/arrayLimits'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
 import { awsUploadFile } from '../utils/aws-image'
@@ -39,7 +39,7 @@ class UserController extends BaseController {
 
   // Update user
   updateBio = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    const params = this.filterParams(req.body, userBioUpdateParams)
+    const params = this.filterParams(req.body, userControllerParams)
     try {
       // Validate input
       const validationError = validateUserUpdate(params)
@@ -76,7 +76,7 @@ class UserController extends BaseController {
           })
         }
         // AWS API Call
-        const profileImage = await awsUploadFile(file.data, req.params.id, file.name, file.mimetype)
+        const profileImage = await awsUploadFile(file.data, req.params.id, 'profile', file.name, file.mimetype)
         // Prepare params for update
         params.profileAvatar = profileImage
         params.profilePhotos = {
@@ -101,26 +101,16 @@ class UserController extends BaseController {
     }
   }
 
-  // Set active profile avatar
+  // Set active profile avatar (pathToFile should already be a file within our database)
   updateProfileAvatar = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    const params = this.filterParams(req.body, userControllerParams)
-    const { profileImage } = params
+    const { pathToFile } = req.body
     try {
-      // Validate Input
-      const validationError = validateProfileImage(params)
-      if (validationError) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: validationError
-        })
-      }
-
       // Verify user / photo exists
       const image = await db.userPhoto.findUnique({
         where: {
           userId_pathToFile: {
             userId: req.params.id,
-            pathToFile: profileImage
+            pathToFile
           }
         }
       })
@@ -135,7 +125,7 @@ class UserController extends BaseController {
       await db.userBio.update({
         where: { id: req.params.id },
         data: {
-          profileAvatar: profileImage
+          profileAvatar: pathToFile
         }
       })
 
@@ -223,17 +213,13 @@ class UserController extends BaseController {
     }
   }
 
-  // Adds new photo to set of availble ones
+  // Adds new photo
   addProfilePhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    const params = this.filterParams(req.body, userControllerParams)
-    const { profileImage } = params
     try {
-      // Validate Input
-      const validationError = validateProfileImage(params)
-      if (validationError) {
+      if (!req.files) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
-          message: validationError
+          message: messages.FILE_REQUIRED
         })
       }
 
@@ -246,30 +232,23 @@ class UserController extends BaseController {
         })
       }
 
-      // Verify under maximum amount Profile Images
-      const photos = await db.userPhoto.findMany({ where: { userId: req.params.id } })
-      if (photos.length >= arrayLimits.MAX_PROFILE_IMAGES) {
+      const file = req.files.profileImage as UploadedFile
+      // Verify Acceptable MIME Type
+      if (!ACCEPTABLE_MIME_TYPES.includes(file.mimetype)) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
-          message: messages.EXCEEDS_PHOTO_LIMIT
+          message: messages.INVALID_MIME_TYPE
         })
       }
-
-      // Check for uniqueness
-      const image = await db.userPhoto.findUnique({
-        where: {
-          userId_pathToFile: {
-            userId: req.params.id,
-            pathToFile: profileImage
-          }
-        }
-      })
-      if (image) {
+      // Verify Image Size
+      if (file.size > MAX_BYTES) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
-          message: messages.DUPLICATE_IMAGE
+          message: messages.FILE_SIZE_OVER_10
         })
       }
+      // AWS API Call
+      const profileImage = await awsUploadFile(file.data, req.params.id, 'profile', file.name, file.mimetype)
 
       // Update and return
       await db.userBio.update({
@@ -292,108 +271,11 @@ class UserController extends BaseController {
     }
   }
 
-  // Removes specified profile image
-  deleteProfilePhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    const params = this.filterParams(req.body, userControllerParams)
-    const { profileImage } = params
-    try {
-      // Validate Input
-      const validationError = validateProfileImage(params)
-      if (validationError) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: validationError
-        })
-      }
-
-      // Verify user / photo exists
-      const image = await db.userPhoto.findUnique({
-        where: {
-          userId_pathToFile: {
-            userId: req.params.id,
-            pathToFile: profileImage
-          }
-        }
-      })
-      if (!image) {
-        return res.status(404).json({
-          code: codes.NOT_FOUND,
-          message: messages.IMAGE_NOT_FOUND
-        })
-      }
-
-      // Delete and return
-      await db.userPhoto.delete({
-        where: {
-          userId_pathToFile: {
-            userId: req.params.id,
-            pathToFile: profileImage
-          }
-        }
-      })
-      return res.status(200).json({
-        code: codes.OK,
-        message: messages.SUCCESS
-      })
-    } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
-    }
-  }
-
-  // Deletes Existing Photos and Adds new ones
-  deleteExistingAddNewProfilePhotos = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    const params = this.filterParams(req.body, userControllerParams)
-    const { allPhotos } = params
-    try {
-      // Validate Input
-      const validationError = validateAllProfileImage(params)
-      if (validationError) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: validationError
-        })
-      }
-
-      // Verify Images are unique
-      if (allPhotos[0]?.pathToFile === allPhotos[1]?.pathToFile ||
-          allPhotos[0]?.pathToFile === allPhotos[2]?.pathToFile ||
-          allPhotos[1]?.pathToFile === allPhotos[2]?.pathToFile) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: messages.ARRAY_DUPLICATE_IMAGE
-        })
-      }
-
-      // Delete existing images
-      await db.userPhoto.deleteMany({ where: { userId: req.params.id } })
-
-      // Add all listed images
-      await db.userBio.update({
-        where: {
-          id: req.params.id
-        },
-        data: {
-          profilePhotos: {
-            create: allPhotos
-          }
-        }
-      })
-      return res.status(200).json({
-        code: codes.OK,
-        message: messages.SUCCESS
-      })
-    } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
-    }
-  }
-
-  // Find all photos associated with user
+  // Find all photos associated with logged in user
   findProfilePhotos = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify user exists
-      const user = await db.userBio.findUnique({ where: { id: req.params.id } })
+      const user = await db.userBio.findUnique({ where: { id: req.user?.id } })
       if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,

@@ -48,5 +48,6 @@ export const messages = {
   TWILIO_NOT_FOUND: 'We could not find a valid verification code request associated with this email, please request another.',
   TEMPLATE_ID_FAIL: 'Invalid template id',
   INVALID_MIME_TYPE: 'Invalid file type: Please submit jpg, png, or jpeg only',
-  FILE_SIZE_OVER_10: 'The file you have entered is over the 10 MB limit'
+  FILE_SIZE_OVER_10: 'The file you have entered is over the 10 MB limit',
+  FILE_REQUIRED: 'A file is required.'
 }

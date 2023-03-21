@@ -1,5 +1,12 @@
 import { Request } from 'express'
-import { IUser } from './user.validation.interface'
+
+export interface IUser {
+  id: string
+  email: string
+  phone: string
+  firstName: string
+  role: string
+}
 
 export interface RequestUserAuth extends Request {
   user?: IUser

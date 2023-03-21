@@ -1,8 +1,7 @@
 import Joi from 'joi'
-import { IValidateUserUpdate, IValidateProfileImage, IValidateAllImages } from '../../config/interfaces/user.validation.interface'
+import { IValidateUserUpdate } from '../../config/interfaces/user.validation.interface'
 import { stringLengths } from '../../config/stringLengths'
 import { stateAbbreviations } from '../../config/stateAbbreviations'
-import { arrayLimits } from '../../config/arrayLimits'
 
 /**
  *
@@ -25,32 +24,4 @@ export const validateUserUpdate = (userUpdatePayload: IValidateUserUpdate): stri
     zipcode: Joi.string().min(stringLengths.ZIPCODE_MIN).max(stringLengths.ZIPCODE_MAX).pattern(/^[0-9]+$/)
   })
   return (userUpdateSchema.validate(userUpdatePayload)?.error?.message)
-}
-
-/**
- *
- * @param validateProfileImagePaylaod
- * @returns Error message
- */
-export const validateProfileImage = (validateProfileImagePaylaod: IValidateProfileImage): string | undefined => {
-  const profileImageSchema = Joi.object({
-    profileImage: Joi.string().max(stringLengths.IMAGE_MAX).required()
-  })
-
-  return (profileImageSchema.validate(validateProfileImagePaylaod)?.error?.message)
-}
-
-/**
- *
- * @param validateAllProfileImagePaylaod
- * @returns Error message
- */
-export const validateAllProfileImage = (validateAllProfileImagePaylaod: IValidateAllImages): string | undefined => {
-  const allImageSchema = Joi.object({
-    allPhotos: Joi.array().max(arrayLimits.MAX_PROFILE_IMAGES).items(Joi.object({
-      pathToFile: Joi.string().max(stringLengths.IMAGE_MAX).required()
-    })).required()
-  })
-
-  return (allImageSchema.validate(validateAllProfileImagePaylaod)?.error?.message)
 }

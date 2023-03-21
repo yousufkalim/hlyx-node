@@ -9,20 +9,17 @@ const s3 = new AWS.S3({
 export const awsUploadFile = async (
   dataBuffer: Buffer,
   id: string,
+  classifier: string,
   fileName: string,
   fileType: string
 ): Promise<string> => {
-  // Error if not checked to be defined
-  const Bucket = config.get('aws_bucket_name')
-  if (Bucket === undefined) {
-    return 'Bucket not found in env, should never be reached'
-  }
+  const Bucket = config.get('aws_bucket_name') as string
 
   const uploadResult = await s3
     .upload({
       Bucket,
       Body: dataBuffer,
-      Key: `${id}-${fileName}`,
+      Key: `${id}-${classifier}-${fileName}`,
       ContentType: fileType,
       ACL: 'public-read'
     })
