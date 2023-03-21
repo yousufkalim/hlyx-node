@@ -1,30 +1,30 @@
 import { Request, Response } from 'express'
+import { UploadedFile } from 'express-fileupload'
 
 import { RequestUserAuth } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
-import { arrayLimits } from '../config/arrayLimits'
 import { cardAboutPageParams, cardContactPageParams, cardControllerParams } from '../config/params'
-import { validateCardFullName, validateCardContactPage, validateCardAboutPage, validateCardServices, validateCardPortfolio, validateCardCoverPhoto, validateAllCoverImage, validateCardCompanyIcon } from '../utils/validations/card.controller.validation'
+import { validateCardFullName, validateCardContactPage, validateCardAboutPage, validateCardServices, validateCardPortfolio } from '../utils/validations/card.controller.validation'
+import { templateIds } from '../config/enumTypes'
+import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
+import { awsUploadFile } from '../utils/aws-image'
+
 import BaseController from './base.controller'
 import { db } from '../utils/db'
-import { templateIds } from '../config/enumTypes'
 
 class CardController extends BaseController {
-  // Find a Card
-  find = async (req: Request, res: Response): Promise<Response> => {
+  getContact = async (req: Request, res: Response): Promise<Response> => {
     try {
-      // Find Card and return
       const card = await db.card.findUnique({
         where: {
           cardId: req.params.cardId
         },
-        include: {
-          coverPhotos: {
-            select: {
-              pathToFile: true
-            }
-          },
+        select: {
+          coverPhoto: true,
+          companyIcon: true,
+          fullName: true,
+          profTitle: true,
           emails: {
             select: {
               email: true,
@@ -38,12 +38,18 @@ class CardController extends BaseController {
               type: true
             }
           },
+          calendar: true,
           websites: {
             select: {
               url: true,
               description: true
             }
           },
+          country: true,
+          city: true,
+          state: true,
+          streetAddress: true,
+          zipcode: true,
           socialMedias: {
             select: {
               platform: true,
@@ -56,7 +62,44 @@ class CardController extends BaseController {
               title: true,
               description: true
             }
-          },
+          }
+        }
+      })
+
+      // Check if null and return
+      if (!card) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.CARD_NOT_FOUND
+        })
+      }
+      return res.status(200).json({
+        card,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  getAbout = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const card = await db.card.findUnique({
+        where: {
+          cardId: req.params.cardId
+        },
+        select: {
+          fullName: true,
+          userAvatar: true,
+          city: true,
+          state: true,
+          about: true,
+          company: true,
+          profTitle: true,
+          occupation: true,
+          industry: true,
           education: {
             select: {
               academicLevel: true,
@@ -80,7 +123,6 @@ class CardController extends BaseController {
               title: true,
               description: true,
               startYear: true,
-              issuedBy: true,
               issuedYear: true
             }
           },
@@ -102,20 +144,45 @@ class CardController extends BaseController {
               status: true
             }
           },
+          hobbies: true,
+          interests: true,
+          skills: true,
+          motto: true
+        }
+      })
+
+      // Check if null and return
+      if (!card) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.CARD_NOT_FOUND
+        })
+      }
+      return res.status(200).json({
+        card,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  getServices = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const card = await db.card.findUnique({
+        where: {
+          cardId: req.params.cardId
+        },
+        select: {
           services: {
             select: {
               type: true,
               title: true,
-              icon: true,
-              details: true
-            }
-          },
-          portfolio: {
-            select: {
-              type: true,
-              image: true,
-              title: true,
-              media: true
+              subtitle: true,
+              details: true,
+              positioning: true
             }
           }
         }
@@ -130,6 +197,286 @@ class CardController extends BaseController {
       }
       return res.status(200).json({
         card,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  getPortfolio = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const card = await db.card.findUnique({
+        where: {
+          cardId: req.params.cardId
+        },
+        select: {
+          portfolioTemplate: true,
+          portfolio: {
+            select: {
+              image: true,
+              title: true,
+              details: true,
+              positioning: true
+            }
+          }
+        }
+      })
+
+      // Check if null and return
+      if (!card) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.CARD_NOT_FOUND
+        })
+      }
+      return res.status(200).json({
+        card,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Adds new cover photo to set of availble ones
+  addCoverPhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      if (!req.files) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.FILE_REQUIRED
+        })
+      }
+
+      // Verify user exists
+      const user = await db.userBio.findUnique({ where: { id: req.params.id } })
+      if (!user) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.USER_NOT_FOUND
+        })
+      }
+
+      const file = req.files.coverPhoto as UploadedFile
+      // Verify Acceptable MIME Type
+      if (!ACCEPTABLE_MIME_TYPES.includes(file.mimetype)) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.INVALID_MIME_TYPE
+        })
+      }
+      // Verify Image Size
+      if (file.size > MAX_BYTES) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.FILE_SIZE_OVER_10
+        })
+      }
+      // AWS API Call
+      const pathToFile = await awsUploadFile(file.data, req.params.id, 'cover-photo', file.name, file.mimetype)
+
+      // Update and return
+      await db.card.update({
+        where: { cardId: req.params.id },
+        data: {
+          coverPhotos: {
+            create: {
+              pathToFile
+            }
+          }
+        }
+      })
+      return res.status(200).json({
+        pathToFile,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Update active Cover Photo
+  updateCoverPhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const params = this.filterParams(req.body, cardControllerParams)
+    const { coverPhoto } = params
+    try {
+      // Verify card / photo exists
+      const image = await db.cardCoverPhotos.findUnique({
+        where: {
+          cardId_pathToFile: {
+            cardId: req.params.cardId,
+            pathToFile: coverPhoto
+          }
+        }
+      })
+      if (!image) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.IMAGE_NOT_FOUND
+        })
+      }
+
+      // Update and return
+      await db.card.update({
+        where: {
+          cardId: req.params.cardId
+        },
+        data: {
+          coverPhoto
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Find all Cover Photos
+  findCoverPhotos = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      // Grab images and return
+      const images = await db.cardCoverPhotos.findMany({
+        where: {
+          cardId: req.params.cardId
+        },
+        select: {
+          pathToFile: true
+        }
+      })
+      return res.status(200).json({
+        images,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Add Company Icon
+  addCompanyIcon = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      if (!req.files) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.FILE_REQUIRED
+        })
+      }
+
+      // Verify user exists
+      const user = await db.userBio.findUnique({ where: { id: req.params.id } })
+      if (!user) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.USER_NOT_FOUND
+        })
+      }
+
+      const file = req.files.companyIcon as UploadedFile
+      // Verify Acceptable MIME Type
+      if (!ACCEPTABLE_MIME_TYPES.includes(file.mimetype)) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.INVALID_MIME_TYPE
+        })
+      }
+      // Verify Image Size
+      if (file.size > MAX_BYTES) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.FILE_SIZE_OVER_10
+        })
+      }
+      // AWS API Call
+      const pathToFile = await awsUploadFile(file.data, req.params.id, 'company-icon', file.name, file.mimetype)
+
+      // Update and return
+      await db.card.update({
+        where: { cardId: req.params.id },
+        data: {
+          companyIcons: {
+            create: {
+              pathToFile
+            }
+          }
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Update Company Icon
+  updateCompanyIcon = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const params = this.filterParams(req.body, cardControllerParams)
+    const { companyIcon } = params
+    try {
+      // Verify card / photo exists
+      const image = await db.cardCompanyIcons.findUnique({
+        where: {
+          cardId_pathToFile: {
+            cardId: req.params.cardId,
+            pathToFile: companyIcon
+          }
+        }
+      })
+      if (!image) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.IMAGE_NOT_FOUND
+        })
+      }
+
+      // Update and return
+      await db.card.update({
+        where: {
+          cardId: req.params.cardId
+        },
+        data: {
+          companyIcon
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Find all Company Icons
+  findCompanyIcons = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      // Grab images and return
+      const images = await db.cardCompanyIcons.findMany({
+        where: {
+          cardId: req.params.cardId
+        },
+        select: {
+          pathToFile: true
+        }
+      })
+      return res.status(200).json({
+        images,
         code: codes.OK,
         message: messages.SUCCESS
       })
@@ -340,6 +687,31 @@ class CardController extends BaseController {
         })
       }
 
+      // Verify Uniqueness / Accuracy of Positioning
+      /*  1. Filter
+          2. Sort ascending
+          3. First conditional, checks for uniqueness
+          4. Second conditional checks that the last element is the same as the legnth
+      */
+      const featured: any = services.filter((service: any) => service.type === 'featured')
+      featured.sort((a: any, b: any) => { return a.positioning - b.positioning })
+      if (featured.length !== new Set(featured).size ||
+          featured.length !== featured[featured.length - 1]) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.POSITIONING_ERROR_SERVICE
+        })
+      }
+      const main: any = services.filter((service: any) => service.type === 'main')
+      main.sort((a: any, b: any) => { return a.positioning - b.positioning })
+      if (main.length !== new Set(main).size ||
+          main.length !== main[main.length - 1]) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.POSITIONING_ERROR_SERVICE
+        })
+      }
+
       // Delete Existing Services
       await db.cardServices.deleteMany({ where: { cardId: req.params.cardId } })
 
@@ -351,6 +723,55 @@ class CardController extends BaseController {
         data: {
           services: {
             create: services
+          }
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Add Portfolio Image
+  addPortfolioImage = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      if (!req.files) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.FILE_REQUIRED
+        })
+      }
+
+      const file = req.files.portfolioImage as UploadedFile
+      // Verify Acceptable MIME Type
+      if (!ACCEPTABLE_MIME_TYPES.includes(file.mimetype)) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.INVALID_MIME_TYPE
+        })
+      }
+      // Verify Image Size
+      if (file.size > MAX_BYTES) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.FILE_SIZE_OVER_10
+        })
+      }
+      // AWS API Call
+      const pathToFile = await awsUploadFile(file.data, req.params.id, 'portfolio-image', file.name, file.mimetype)
+
+      // Update and return
+      await db.card.update({
+        where: { cardId: req.params.id },
+        data: {
+          portfolioImages: {
+            create: {
+              pathToFile
+            }
           }
         }
       })
@@ -377,6 +798,34 @@ class CardController extends BaseController {
         })
       }
 
+      // Verify all Images are in our database
+      portfolio.forEach(async (element: any) => {
+        const image = await db.cardPortfolioImages.findUnique({
+          where: {
+            cardId_pathToFile: {
+              cardId: req.params.cardId,
+              pathToFile: element.image
+            }
+          }
+        })
+        if (!image) {
+          return res.status(404).json({
+            code: codes.NOT_FOUND,
+            message: messages.IMAGE_NOT_FOUND
+          })
+        }
+      })
+
+      // Verify Uniqueness / Accuracy of Positioning
+      portfolio.sort((a: any, b: any) => { return a.positioning - b.positioning })
+      if (portfolio.length !== new Set(portfolio).size ||
+          portfolio.length !== portfolio[portfolio.length - 1]) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.POSITIONING_ERROR_SERVICE
+        })
+      }
+
       // Delete existing
       await db.cardPortfolio.deleteMany({ where: { cardId: req.params.cardId } })
 
@@ -392,243 +841,6 @@ class CardController extends BaseController {
         }
       })
       return res.status(200).json({
-        code: codes.OK,
-        message: messages.SUCCESS
-      })
-    } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
-    }
-  }
-
-  // Set active Cover Photo
-  updateCoverPhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    const params = this.filterParams(req.body, cardControllerParams)
-    const { coverPhoto } = params
-    try {
-      // Validate Input
-      const validationError = validateCardCoverPhoto(params)
-      if (validationError) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: validationError
-        })
-      }
-
-      // Verify card / photo exists
-      const image = await db.cardPhotos.findUnique({
-        where: {
-          cardId_pathToFile: {
-            cardId: req.params.cardId,
-            pathToFile: coverPhoto
-          }
-        }
-      })
-      if (!image) {
-        return res.status(404).json({
-          code: codes.NOT_FOUND,
-          message: messages.IMAGE_NOT_FOUND
-        })
-      }
-
-      // Update and return
-      await db.card.update({
-        where: {
-          cardId: req.params.cardId
-        },
-        data: {
-          coverPhoto
-        }
-      })
-      return res.status(200).json({
-        code: codes.OK,
-        message: messages.SUCCESS
-      })
-    } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
-    }
-  }
-
-  // Adds new cover photo to set of availble ones
-  addCoverPhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    const params = this.filterParams(req.body, cardControllerParams)
-    const { coverPhoto } = params
-    try {
-      // Validate Input
-      const validationError = validateCardCoverPhoto(params)
-      if (validationError) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: validationError
-        })
-      }
-
-      // Verify under maximum amount Profile Images
-      const photos = await db.cardPhotos.findMany({ where: { cardId: req.params.cardId } })
-      if (photos.length >= arrayLimits.MAX_COVER_PHOTOS) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: messages.EXCEEDS_PHOTO_LIMIT
-        })
-      }
-
-      // Verify Uniqueness
-      let uniqueTest = true
-      for (const photo of photos) {
-        if (photo.pathToFile === coverPhoto) {
-          uniqueTest = false
-          break
-        }
-      }
-      if (!uniqueTest) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: messages.DUPLICATE_IMAGE
-        })
-      }
-
-      // Update and return
-      await db.card.update({
-        where: { cardId: req.params.cardId },
-        data: {
-          coverPhotos: {
-            create: {
-              pathToFile: coverPhoto
-            }
-          }
-        }
-      })
-      return res.status(200).json({
-        code: codes.OK,
-        message: messages.SUCCESS
-      })
-    } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
-    }
-  }
-
-  // Removes specified cover photo
-  deleteCoverPhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    const params = this.filterParams(req.body, cardControllerParams)
-    const { coverPhoto } = params
-    try {
-      // Validate Input
-      const validationError = validateCardCoverPhoto(params)
-      if (validationError) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: validationError
-        })
-      }
-
-      // Verify photo exists
-      const image = await db.cardPhotos.findUnique({
-        where: {
-          cardId_pathToFile: {
-            cardId: req.params.cardId,
-            pathToFile: coverPhoto
-          }
-        }
-      })
-      if (!image) {
-        return res.status(404).json({
-          code: codes.NOT_FOUND,
-          message: messages.IMAGE_NOT_FOUND
-        })
-      }
-
-      // Delete and return
-      await db.cardPhotos.delete({
-        where: {
-          cardId_pathToFile: {
-            cardId: req.params.cardId,
-            pathToFile: coverPhoto
-          }
-        }
-      })
-      return res.status(200).json({
-        code: codes.OK,
-        message: messages.SUCCESS
-      })
-    } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
-    }
-  }
-
-  // Delete all existing cover photos and add new ones
-  deleteExistingAddNewCoverPhotos = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    const params = this.filterParams(req.body, cardControllerParams)
-    const { allPhotos } = params
-    try {
-      // Validate Input
-      const validationError = validateAllCoverImage(params)
-      if (validationError) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: validationError
-        })
-      }
-
-      // Verify Images are unique
-      if (allPhotos[0]?.pathToFile === allPhotos[1]?.pathToFile ||
-        allPhotos[0]?.pathToFile === allPhotos[2]?.pathToFile ||
-        allPhotos[1]?.pathToFile === allPhotos[2]?.pathToFile) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: messages.ARRAY_DUPLICATE_IMAGE
-        })
-      }
-
-      // Delete existing images
-      await db.cardPhotos.deleteMany({ where: { cardId: req.params.cardId } })
-
-      // Add all listed images
-      await db.card.update({
-        where: {
-          cardId: req.params.cardId
-        },
-        data: {
-          coverPhotos: {
-            create: allPhotos
-          }
-        }
-      })
-      return res.status(200).json({
-        code: codes.OK,
-        message: messages.SUCCESS
-      })
-    } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
-    }
-  }
-
-  // Find all cover photos associated with card
-  findCoverPhotos = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    try {
-      // Verify card exists
-      const card = await db.card.findUnique({ where: { cardId: req.params.cardId } })
-      if (!card) {
-        return res.status(404).json({
-          code: codes.NOT_FOUND,
-          message: messages.CARD_NOT_FOUND
-        })
-      }
-
-      // Grab images and return
-      const images = await db.cardPhotos.findMany({
-        where: {
-          cardId: req.params.cardId
-        },
-        select: {
-          pathToFile: true
-        }
-      })
-      return res.status(200).json({
-        images,
         code: codes.OK,
         message: messages.SUCCESS
       })
@@ -657,39 +869,6 @@ class CardController extends BaseController {
         },
         data: {
           publicCard
-        }
-      })
-      return res.status(200).json({
-        code: codes.OK,
-        message: messages.SUCCESS
-      })
-    } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
-    }
-  }
-
-  // Update Company Icon
-  updateCompanyIcon = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    const params = this.filterParams(req.body, cardControllerParams)
-    const { companyIcon } = params
-    try {
-      // Validate Input
-      const validationError = validateCardCompanyIcon(params)
-      if (validationError) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: validationError
-        })
-      }
-
-      // Update and return
-      await db.card.update({
-        where: {
-          cardId: req.params.cardId
-        },
-        data: {
-          companyIcon
         }
       })
       return res.status(200).json({
@@ -733,7 +912,7 @@ class CardController extends BaseController {
     }
   }
 
-  // Find all links associated with card
+  // Find all links associated with card (Unused Currently)
   cardAllLinks = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify card exists

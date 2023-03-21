@@ -82,20 +82,6 @@ export interface IValidateCardPortfolio {
   portfolio: ICardPortfolio[]
 }
 
-export interface IValidateCardPhoto {
-  coverPhoto: string
-}
-
-export interface IValidateCardAllPhotos {
-  allPhotos: {
-    pathToFile: string
-  }
-}
-
-export interface IValidateCompanyIcon {
-  companyIcon: string
-}
-
 interface ICardCoverPhotos {
   cardId: string
   pathToFile: string
@@ -192,16 +178,17 @@ interface ICardServices {
   id: string
   type: string
   title: string
-  icon?: string
+  subtitle?: string
   details?: string
+  positioning: number
   cardId: string
 }
 
 interface ICardPortfolio {
   id: string
-  type: string
-  image?: string
-  title: string
-  media: string
+  image: string
+  title?: string
+  details?: string
+  positioning: number
   cardId: string
 }

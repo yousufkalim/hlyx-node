@@ -49,5 +49,7 @@ export const messages = {
   TEMPLATE_ID_FAIL: 'Invalid template id',
   INVALID_MIME_TYPE: 'Invalid file type: Please submit jpg, png, or jpeg only',
   FILE_SIZE_OVER_10: 'The file you have entered is over the 10 MB limit',
-  FILE_REQUIRED: 'A file is required.'
+  FILE_REQUIRED: 'A file is required.',
+  POSITIONING_ERROR_SERVICE: 'Positionings should begin at 0 and go up by 1 (main and featured treated separately)',
+  POSITIONING_ERROR_PORTFOLIO: 'Positionings should begin at 0 and go up by 1'
 }

@@ -80,9 +80,10 @@ model Card {
   templateId      TemplateIdentification    @default(DEFAULT)
   // Header
   userAvatar      String
-  coverPhoto      String?     // Path to file
-  coverPhotos     CardPhotos[]
-  companyIcon     String?     // Path to file
+  coverPhoto      String?
+  coverPhotos     CardCoverPhotos[]
+  companyIcon     String?
+  companyIcons    CardCompanyIcons[]
   fullName        String    
   // Contact Page
   emails          CardEmails[]
@@ -105,9 +106,8 @@ model Card {
   education       CardEducations[]
   accolades       CardAccolades[]
   achievements    CardAchievements[]
-  businessGoals   CardBusinessGoals[] // INCOMPLETE
+  businessGoals   CardBusinessGoals[]
   businessNeeds   CardBusinessNeeds[]
-  // Icebreakers
   hobbies         String[]
   interests       String[]
   skills          String[]
@@ -117,13 +117,19 @@ model Card {
   // Portfolio
   portfolioTemplate PortfolioTemplateIdentification @default(DEFAULT)
   portfolio       CardPortfolio[]
-  // Misc
-  qrCode          String?   @unique // Path to file
+  portfolioImages CardPortfolioImages[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }
 
-model CardPhotos {
+model CardCoverPhotos {
+  Card          Card   @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
+  cardId        String
+  pathToFile    String
+  @@id([cardId, pathToFile])
+}
+
+model CardCompanyIcons {
   Card          Card   @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
   cardId        String
   pathToFile    String
@@ -176,7 +182,7 @@ model CardEducations {
   id              String    @id @default(uuid())
   academicLevel   String?
   schoolName      String
-  startYear    String?
+  startYear       String?
   graduationYear  String?
   academicFocus   String?
   degreeType      DegreeType?
@@ -197,7 +203,6 @@ model CardAccolades {
 model CardAchievements {
   id              String    @id @default(uuid())
   title           String
-  issuedBy        String?
   startYear       String?
   issuedYear      String?
   description     String?
@@ -209,8 +214,8 @@ model CardBusinessGoals {
   id              String    @id @default(uuid())
   status          BusinessGoalsStatus
   title           String
-  percentComplete Int
-  startDate       DateTime?
+  percentComplete Int       @default(0)
+  startDate       DateTime  @default(now())
   endDate         DateTime?
   description     String?
   Card            Card     @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
@@ -228,23 +233,31 @@ model CardBusinessNeeds {
 }
 
 model CardServices {
-  id              String    @id @default(uuid())
+  id              String   @id @default(uuid())
   type            ServiceTypes
   title           String
-  icon            String?  // Path to icon (Only required if allowing user to upload own icon)
+  subtitle        String?
   details         String?
+  positioning     Int
   Card            Card     @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
 
 model CardPortfolio {
-  id              String    @id @default(uuid())
-  type            PortfolioType
-  image           String?  // Cover photo
-  title           String
-  media           String   // Path to media
+  id              String   @id @default(uuid())
+  image           String 
+  title           String?
+  details         String?
+  positioning     Int
   Card            Card     @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
+}
+
+model CardPortfolioImages {
+  Card          Card   @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
+  cardId        String
+  pathToFile    String
+  @@id([cardId, pathToFile])
 }
 
 model Link {
@@ -319,12 +332,6 @@ enum BusinessNeedsStatus {
 enum ServiceTypes {
   featured
   main
-}
-
-enum PortfolioType {
-  featured
-  research
-  splicing
 }
 
 enum PortfolioTemplateIdentification {

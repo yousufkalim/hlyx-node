@@ -76,12 +76,12 @@ class UserController extends BaseController {
           })
         }
         // AWS API Call
-        const profileImage = await awsUploadFile(file.data, req.params.id, 'profile', file.name, file.mimetype)
+        const pathToFile = await awsUploadFile(file.data, req.params.id, 'profile', file.name, file.mimetype)
         // Prepare params for update
-        params.profileAvatar = profileImage
+        params.profileAvatar = pathToFile
         params.profilePhotos = {
           create: {
-            pathToFile: profileImage
+            pathToFile
           }
         }
       }
@@ -213,7 +213,7 @@ class UserController extends BaseController {
     }
   }
 
-  // Adds new photo
+  // Adds new Profile Photo
   addProfilePhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       if (!req.files) {
@@ -248,7 +248,7 @@ class UserController extends BaseController {
         })
       }
       // AWS API Call
-      const profileImage = await awsUploadFile(file.data, req.params.id, 'profile', file.name, file.mimetype)
+      const pathToFile = await awsUploadFile(file.data, req.params.id, 'profile-photo', file.name, file.mimetype)
 
       // Update and return
       await db.userBio.update({
@@ -256,12 +256,13 @@ class UserController extends BaseController {
         data: {
           profilePhotos: {
             create: {
-              pathToFile: profileImage
+              pathToFile
             }
           }
         }
       })
       return res.status(200).json({
+        pathToFile,
         code: codes.OK,
         message: messages.SUCCESS
       })
@@ -303,7 +304,7 @@ class UserController extends BaseController {
     }
   }
 
-  // Find all links associated with user
+  // Find all links associated with user (Currently Unusued)
   userAllLinks = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify user exists
