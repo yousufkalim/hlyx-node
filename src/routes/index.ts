@@ -29,9 +29,7 @@ router.delete('/auth/delete-account/:id', authenticate, userAuthorization, AuthC
 router.get('/user/find/me', authenticate, UserController.me)
 router.put('/user/update/bio/:id', authenticate, userAuthorization, UserController.updateBio)
 router.post('/user/add/card/:id', authenticate, userAuthorization, UserController.addCard)
-router.post('/user/add/profile-photo/:id', authenticate, userAuthorization, UserController.addProfilePhoto)
-router.delete('/user/delete/profile-photo/:id', authenticate, userAuthorization, UserController.deleteProfilePhoto)
-router.put('/user/update/profile-photos/:id', authenticate, userAuthorization, UserController.deleteExistingAddNewProfilePhotos)
+router.put('/user/add/profile-photo/:id', authenticate, userAuthorization, UserController.addProfilePhoto)
 router.put('/user/update/avatar/:id', authenticate, userAuthorization, UserController.updateProfileAvatar)
 router.get('/user/find/profile-photos/:id', authenticate, userAuthorization, UserController.findProfilePhotos)
 
@@ -69,7 +67,5 @@ router.get('/health-check', (req: Request, res: Response) => {
     message: `${messages.HEALTH_CHECK} on ${config.get('env')}`
   })
 })
-
-router.get('/test', AuthController.getNewAccessToken)
 
 export default router

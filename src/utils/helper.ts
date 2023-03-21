@@ -1,7 +1,6 @@
 import { VerificationInstance } from 'twilio/lib/rest/verify/v2/service/verification'
 import { config } from '../config/env.config.validations'
-import { IUser } from '../config/interfaces/user.validation.interface'
-import { IEmail } from '../config/interfaces/common.interface'
+import { IUser, IEmail } from '../config/interfaces/common.interface'
 import { messages } from '../config/messages'
 import { twilioClient } from './twilio'
 

@@ -1,11 +1,3 @@
-export interface IUser {
-  id: string
-  email: string
-  phone: string
-  firstName: string
-  role: string
-}
-
 export interface IValidateUserUpdate {
   firstName?: string
   middleInitial?: string
@@ -19,14 +11,4 @@ export interface IValidateUserUpdate {
   city?: string
   state?: string
   zipcode?: string
-}
-
-export interface IValidateProfileImage {
-  profileImage: string
-}
-
-export interface IValidateAllImages {
-  allPhotos: {
-    pathToFile: string
-  }
 }

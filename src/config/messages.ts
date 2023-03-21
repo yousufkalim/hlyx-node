@@ -46,5 +46,8 @@ export const messages = {
   DELETED_30_DAYS: 'Your account has been deleted for over 30, please reach out to our support team if you would like to reactivate your account',
   PASSWORD_RESET_FLAG: 'You must verify a 6-digit code sent to your email within 5 minutes of requesting a password reset. Please return to the previous screen to do this.',
   TWILIO_NOT_FOUND: 'We could not find a valid verification code request associated with this email, please request another.',
-  TEMPLATE_ID_FAIL: 'Invalid template id'
+  TEMPLATE_ID_FAIL: 'Invalid template id',
+  INVALID_MIME_TYPE: 'Invalid file type: Please submit jpg, png, or jpeg only',
+  FILE_SIZE_OVER_10: 'The file you have entered is over the 10 MB limit',
+  FILE_REQUIRED: 'A file is required.'
 }

@@ -122,7 +122,7 @@ class CardController extends BaseController {
       })
 
       // Check if null and return
-      if (card === null) {
+      if (!card) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: messages.CARD_NOT_FOUND
@@ -145,7 +145,7 @@ class CardController extends BaseController {
     const { fullName } = params
     try {
       const validationError = validateCardFullName(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -175,7 +175,7 @@ class CardController extends BaseController {
     const params = this.filterParams(req.body, cardContactPageParams)
     try {
       const validationError = validateCardContactPage(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -184,35 +184,35 @@ class CardController extends BaseController {
 
       // Check one-to-many relations
       // Emails
-      if (params.emails != null) {
+      if (params.emails) {
         params.emails = {
           create: params.emails
         }
         await db.cardEmails.deleteMany({ where: { cardId: req.params.cardId } })
       }
       // Phones
-      if (params.phones != null) {
+      if (params.phones) {
         params.phones = {
           create: params.phones
         }
         await db.cardPhones.deleteMany({ where: { cardId: req.params.cardId } })
       }
       // Websites
-      if (params.websites != null) {
+      if (params.websites) {
         params.websites = {
           create: params.websites
         }
         await db.cardWebsites.deleteMany({ where: { cardId: req.params.cardId } })
       }
       // Social Medias
-      if (params.socialMedias != null) {
+      if (params.socialMedias) {
         params.socialMedias = {
           create: params.socialMedias
         }
         await db.cardSocialMedias.deleteMany({ where: { cardId: req.params.cardId } })
       }
       // Additional Links
-      if (params.additionalLinks != null) {
+      if (params.additionalLinks) {
         params.additionalLinks = {
           create: params.additionalLinks
         }
@@ -243,7 +243,7 @@ class CardController extends BaseController {
     const params = this.filterParams(req.body, cardAboutPageParams)
     try {
       const validationError = validateCardAboutPage(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -252,19 +252,19 @@ class CardController extends BaseController {
 
       // Check one-to-many relations
       // Education
-      if (params.education != null) {
+      if (params.education) {
         params.education = {
           create: params.education
         }
         await db.cardEducations.deleteMany({ where: { cardId: req.params.cardId } })
       }
       // Accolades
-      if (params.accolades != null) {
+      if (params.accolades) {
         for (const accolade of params.accolades) {
-          if (accolade.startDate != null) {
+          if (accolade.startDate) {
             accolade.startDate = new Date(accolade.startDate)
           }
-          if (accolade.endDate != null) {
+          if (accolade.endDate) {
             accolade.endDate = new Date(accolade.endDate)
           }
         }
@@ -274,19 +274,19 @@ class CardController extends BaseController {
         await db.cardAccolades.deleteMany({ where: { cardId: req.params.cardId } })
       }
       // Achievements
-      if (params.achievements != null) {
+      if (params.achievements) {
         params.achievements = {
           create: params.achievements
         }
         await db.cardAchievements.deleteMany({ where: { cardId: req.params.cardId } })
       }
       // Business Goals
-      if (params.businessGoals != null) {
+      if (params.businessGoals) {
         for (const goal of params.businessGoals) {
-          if (goal.startDate != null) {
+          if (goal.startDate) {
             goal.startDate = new Date(goal.startDate)
           }
-          if (goal.endDate != null) {
+          if (goal.endDate) {
             goal.endDate = new Date(goal.endDate)
           }
         }
@@ -296,9 +296,9 @@ class CardController extends BaseController {
         await db.cardBusinessGoals.deleteMany({ where: { cardId: req.params.cardId } })
       }
       // Business Needs
-      if (params.businessNeeds != null) {
+      if (params.businessNeeds) {
         for (const need of params.businessNeeds) {
-          if (need.date != null) {
+          if (need.date) {
             need.date = new Date(need.date)
           }
         }
@@ -333,7 +333,7 @@ class CardController extends BaseController {
     const { services } = params
     try {
       const validationError = validateCardServices(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -370,7 +370,7 @@ class CardController extends BaseController {
     const { portfolio } = params
     try {
       const validationError = validateCardPortfolio(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -408,7 +408,7 @@ class CardController extends BaseController {
     try {
       // Validate Input
       const validationError = validateCardCoverPhoto(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -424,7 +424,7 @@ class CardController extends BaseController {
           }
         }
       })
-      if (image === null) {
+      if (!image) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: messages.IMAGE_NOT_FOUND
@@ -457,7 +457,7 @@ class CardController extends BaseController {
     try {
       // Validate Input
       const validationError = validateCardCoverPhoto(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -516,7 +516,7 @@ class CardController extends BaseController {
     try {
       // Validate Input
       const validationError = validateCardCoverPhoto(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -532,7 +532,7 @@ class CardController extends BaseController {
           }
         }
       })
-      if (image === null) {
+      if (!image) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: messages.IMAGE_NOT_FOUND
@@ -565,7 +565,7 @@ class CardController extends BaseController {
     try {
       // Validate Input
       const validationError = validateAllCoverImage(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -611,7 +611,7 @@ class CardController extends BaseController {
     try {
       // Verify card exists
       const card = await db.card.findUnique({ where: { cardId: req.params.cardId } })
-      if (card === null) {
+      if (!card) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: messages.CARD_NOT_FOUND
@@ -676,7 +676,7 @@ class CardController extends BaseController {
     try {
       // Validate Input
       const validationError = validateCardCompanyIcon(params)
-      if (validationError != null) {
+      if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
@@ -745,7 +745,7 @@ class CardController extends BaseController {
           Links: true
         }
       })
-      if (card === null) {
+      if (!card) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: messages.CARD_NOT_FOUND

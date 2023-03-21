@@ -11,24 +11,6 @@ export const userControllerParams = [
   'firstName',
   'middleInitial',
   'lastName',
-  'profileImage',
-  'phone',
-  'company',
-  'profTitle',
-  'industry',
-  'profRole',
-  'website',
-  'country',
-  'city',
-  'state',
-  'zipcode',
-  'allPhotos'
-]
-
-export const userBioUpdateParams = [
-  'firstName',
-  'middleInitial',
-  'lastName',
   'company',
   'profTitle',
   'industry',
