@@ -1,7 +1,7 @@
 import Joi from 'joi'
-import { IValidateCardPhoto, IValidateCardFullName, IValidateCardContactPage, IValidateCardAboutPage, IValidateCardServices, IValidateCardPortfolio, IValidateCardAllPhotos, IValidateCompanyIcon } from '../../config/interfaces/card.validation.interface'
+import { IValidateCardFullName, IValidateCardContactPage, IValidateCardAboutPage, IValidateCardServices, IValidateCardPortfolio } from '../../config/interfaces/card.validation.interface'
 import { stringLengths } from '../../config/stringLengths'
-import { emailTypes, phoneTypes, academicLevels, degreeTypes, businessGoalsStatus, businessNeedsStatus, servicesTypes, portfolioTypes } from '../../config/enumTypes'
+import { emailTypes, phoneTypes, academicLevels, degreeTypes, businessGoalsStatus, businessNeedsStatus, servicesTypes } from '../../config/enumTypes'
 import { stateAbbreviations } from '../../config/stateAbbreviations'
 import { arrayLimits } from '../../config/arrayLimits'
 
@@ -72,7 +72,7 @@ export const validateCardAboutPage = (cardAboutPagePayload: IValidateCardAboutPa
       academicLevel: Joi.string().valid(...Object.values(academicLevels)),
       schoolName: Joi.string().max(stringLengths.SCHOOL_NAME_MAX).required(),
       startYear: Joi.string().min(4).max(4).pattern(/^[0-9]+$/),
-      graduationYear: Joi.string().min(4).max(4).pattern(/^[0-9]+$/),
+      graduationYear: Joi.string().min(4).max(4).pattern(/^[0-9]+$/).allow('Present'),
       academicFocus: Joi.string().max(stringLengths.SCHOOL_ACADEMIC_CONC_MAX),
       degreeType: Joi.string().valid(...Object.values(degreeTypes))
     })),
@@ -80,13 +80,12 @@ export const validateCardAboutPage = (cardAboutPagePayload: IValidateCardAboutPa
       title: Joi.string().max(stringLengths.AWARDS_TITLES_MAX).required(),
       fromWho: Joi.string().max(stringLengths.AWARDS_ISSUED_BY_MAX),
       startDate: Joi.date(),
-      endDate: Joi.date()
+      endDate: Joi.date().allow('Present')
     })),
     achievements: Joi.array().max(arrayLimits.MAX_ACHIEVEMENTS).items(Joi.object({
       title: Joi.string().max(stringLengths.AWARDS_TITLES_MAX).required(),
-      issuedBy: Joi.string().max(stringLengths.AWARDS_ISSUED_BY_MAX),
       startYear: Joi.string().min(4).max(4).pattern(/^[0-9]+$/),
-      issuedYear: Joi.string().min(4).max(4).pattern(/^[0-9]+$/),
+      issuedYear: Joi.string().min(4).max(4).pattern(/^[0-9]+$/).allow('Present'),
       description: Joi.string().max(stringLengths.AWARDS_DESCRIPTION_MAX)
     })),
     businessGoals: Joi.array().max(arrayLimits.MAX_BUSINESSGOALS).items(Joi.object({
@@ -121,8 +120,9 @@ export const validateCardServices = (cardServicesPayload: IValidateCardServices)
     services: Joi.array().max(arrayLimits.MAX_SERVICES).items(Joi.object({
       type: Joi.string().valid(...Object.values(servicesTypes)).required(),
       title: Joi.string().max(stringLengths.SERVICES_TITLE).required(),
-      icon: Joi.string().max(stringLengths.IMAGE_MAX),
-      details: Joi.string().max(stringLengths.SERVICES_DETAILS)
+      subtitle: Joi.string().max(stringLengths.SERVICES_SUBTITLE),
+      details: Joi.string().max(stringLengths.SERVICES_DETAILS),
+      positioning: Joi.number().integer().min(0).max(arrayLimits.MAX_SERVICES).required()
     })).required()
   })
   return (servicesSchema.validate(cardServicesPayload)?.error?.message)
@@ -136,49 +136,11 @@ export const validateCardServices = (cardServicesPayload: IValidateCardServices)
 export const validateCardPortfolio = (cardPortfolioPayload: IValidateCardPortfolio): string | undefined => {
   const portfolioSchema = Joi.object({
     portfolio: Joi.array().max(arrayLimits.MAX_PORTFOLIO).items(Joi.object({
-      type: Joi.string().valid(...Object.values(portfolioTypes)).required(),
-      image: Joi.string().max(stringLengths.IMAGE_MAX),
-      title: Joi.string().max(stringLengths.PORTFOLIO_TITLE).required(),
-      media: Joi.string().max(stringLengths.PORTFOLIO_MEDIA).required()
+      image: Joi.string().max(stringLengths.IMAGE_MAX).required(),
+      title: Joi.string().max(stringLengths.PORTFOLIO_TITLE),
+      details: Joi.string().max(stringLengths.PORTFOLIO_DETAILS),
+      positioning: Joi.number().integer().min(0).max(arrayLimits.MAX_PORTFOLIO).required()
     })).required()
   })
   return (portfolioSchema.validate(cardPortfolioPayload)?.error?.message)
-}
-
-/**
- *
- * @param cardPhotoPayload
- * @returns Error message
- */
-export const validateCardCoverPhoto = (cardPhotoPayload: IValidateCardPhoto): string | undefined => {
-  const photoSchema = Joi.object({
-    coverPhoto: Joi.string().max(stringLengths.IMAGE_MAX).required()
-  })
-  return (photoSchema.validate(cardPhotoPayload)?.error?.message)
-}
-
-/**
- *
- * @param cardAllPhotosPayload
- * @returns Error message
- */
-export const validateAllCoverImage = (cardAllPhotosPayload: IValidateCardAllPhotos): string | undefined => {
-  const allPhotosSchema = Joi.object({
-    allPhotos: Joi.array().max(arrayLimits.MAX_COVER_PHOTOS).items(Joi.object({
-      pathToFile: Joi.string().max(stringLengths.IMAGE_MAX).required()
-    })).required()
-  })
-  return (allPhotosSchema.validate(cardAllPhotosPayload)?.error?.message)
-}
-
-/**
- *
- * @param companyIconPayload
- * @returns Error message
- */
-export const validateCardCompanyIcon = (companyIconPayload: IValidateCompanyIcon): string | undefined => {
-  const companyIconSchema = Joi.object({
-    companyIcon: Joi.string().max(stringLengths.IMAGE_MAX).required()
-  })
-  return (companyIconSchema.validate(companyIconPayload)?.error?.message)
 }

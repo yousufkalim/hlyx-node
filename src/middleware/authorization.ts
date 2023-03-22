@@ -6,9 +6,6 @@ import { RequestUserAuth, RequestLink } from '../config/interfaces/common.interf
 import { db } from '../utils/db'
 
 export const userAuthorization = (req: RequestUserAuth, res: Response, next: NextFunction): any => {
-  console.log(req.user?.id)
-  console.log(req.params?.id)
-
   if (req.user?.role === roles.SUPER_ADMIN ||
       req.user?.id === req.params?.id) {
     next()

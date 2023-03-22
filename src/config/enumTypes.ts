@@ -6,16 +6,12 @@ export const academicLevels = ['High School', 'Vocational Degree', 'College Degr
 
 export const degreeTypes = ['Associates', 'Bachelors', 'Masters', 'Doctorate']
 
-export const linksTypes = ['requested', 'accepted', 'declined', 'blocked']
-
-export const monthList = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-
 export const businessGoalsStatus = ['Active', 'Achieved']
 
 export const businessNeedsStatus = ['Active', 'Filled']
 
 export const servicesTypes = ['featured', 'main']
 
-export const portfolioTypes = ['featured', 'research', 'splicing']
-
 export const templateIds = ['DEFAULT', 'PAID']
+
+export const linksTypes = ['requested', 'accepted', 'declined', 'blocked']

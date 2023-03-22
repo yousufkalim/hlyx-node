@@ -255,7 +255,7 @@ class AuthController extends BaseController {
       const verification = await twilioClient.verify.v2
         .services(config.get('email_verification_sid') as string)
         .verificationChecks.create({ to: email, code }).catch(error => {
-          console.log(error)
+          console.error(error)
           twilioFound = false
         })
 
@@ -325,7 +325,7 @@ class AuthController extends BaseController {
       const verification = await twilioClient.verify.v2
         .services(config.get('email_verification_sid') as string)
         .verificationChecks.create({ to: email, code }).catch(error => {
-          console.log(error)
+          console.error(error)
           twilioFound = false
         })
 
@@ -558,7 +558,7 @@ class AuthController extends BaseController {
       const verification = await twilioClient.verify.v2
         .services(config.get('sms_verification_sid') as string)
         .verificationChecks.create({ to: `+1${phone}`, code }).catch(error => {
-          console.log(error)
+          console.error(error)
           twilioFound = false
         })
 
