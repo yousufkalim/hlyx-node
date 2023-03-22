@@ -51,5 +51,6 @@ export const messages = {
   FILE_SIZE_OVER_10: 'The file you have entered is over the 10 MB limit',
   FILE_REQUIRED: 'A file is required.',
   POSITIONING_ERROR_SERVICE: 'Positionings should begin at 0 and go up by 1 (main and featured treated separately)',
-  POSITIONING_ERROR_PORTFOLIO: 'Positionings should begin at 0 and go up by 1'
+  POSITIONING_ERROR_PORTFOLIO: 'Positionings should begin at 0 and go up by 1',
+  INVALID_FILE_LABEL: 'File should be labelled '
 }

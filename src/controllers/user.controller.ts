@@ -61,6 +61,12 @@ class UserController extends BaseController {
 
       if (req.files) {
         const file = req.files.profileImage as UploadedFile
+        if (!file) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.INVALID_FILE_LABEL + 'profileImage'
+          })
+        }
         // Verify Acceptable MIME Type
         if (!ACCEPTABLE_MIME_TYPES.includes(file.mimetype)) {
           return res.status(400).json({
@@ -75,8 +81,9 @@ class UserController extends BaseController {
             message: messages.FILE_SIZE_OVER_10
           })
         }
+
         // AWS API Call
-        const pathToFile = await awsUploadFile(file.data, req.params.id, 'profile', file.name, file.mimetype)
+        const pathToFile = await awsUploadFile(file.data, req.params.id, 'profile-photo', file.name, file.mimetype)
         // Prepare params for update
         params.profileAvatar = pathToFile
         params.profilePhotos = {
@@ -105,6 +112,13 @@ class UserController extends BaseController {
   updateProfileAvatar = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const { pathToFile } = req.body
     try {
+      if (!pathToFile) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: 'pathToFile required'
+        })
+      }
+
       // Verify user / photo exists
       const image = await db.userPhoto.findUnique({
         where: {
@@ -233,6 +247,12 @@ class UserController extends BaseController {
       }
 
       const file = req.files.profileImage as UploadedFile
+      if (!file) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.INVALID_FILE_LABEL + 'profileImage'
+        })
+      }
       // Verify Acceptable MIME Type
       if (!ACCEPTABLE_MIME_TYPES.includes(file.mimetype)) {
         return res.status(400).json({

@@ -84,7 +84,6 @@ export const validateCardAboutPage = (cardAboutPagePayload: IValidateCardAboutPa
     })),
     achievements: Joi.array().max(arrayLimits.MAX_ACHIEVEMENTS).items(Joi.object({
       title: Joi.string().max(stringLengths.AWARDS_TITLES_MAX).required(),
-      issuedBy: Joi.string().max(stringLengths.AWARDS_ISSUED_BY_MAX),
       startYear: Joi.string().min(4).max(4).pattern(/^[0-9]+$/),
       issuedYear: Joi.string().min(4).max(4).pattern(/^[0-9]+$/).allow('Present'),
       description: Joi.string().max(stringLengths.AWARDS_DESCRIPTION_MAX)

@@ -13,7 +13,7 @@ export const stringLengths = {
   PHONE_EXT_MAX: 6,
   PASSWORD_MIN: 8,
   PASSWORD_MAX: 255,
-  IMAGE_MAX: 100,
+  IMAGE_MAX: 200,
   COUNTRY_MAX: 50,
   CITY_MAX: 50,
   ACCOLADES_MAX: 50,

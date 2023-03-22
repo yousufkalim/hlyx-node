@@ -253,16 +253,13 @@ class CardController extends BaseController {
         })
       }
 
-      // Verify user exists
-      const user = await db.userBio.findUnique({ where: { id: req.params.id } })
-      if (!user) {
-        return res.status(404).json({
-          code: codes.NOT_FOUND,
-          message: messages.USER_NOT_FOUND
+      const file = req.files.coverPhoto as UploadedFile
+      if (!file) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.INVALID_FILE_LABEL + 'coverPhoto'
         })
       }
-
-      const file = req.files.coverPhoto as UploadedFile
       // Verify Acceptable MIME Type
       if (!ACCEPTABLE_MIME_TYPES.includes(file.mimetype)) {
         return res.status(400).json({
@@ -278,11 +275,11 @@ class CardController extends BaseController {
         })
       }
       // AWS API Call
-      const pathToFile = await awsUploadFile(file.data, req.params.id, 'cover-photo', file.name, file.mimetype)
+      const pathToFile = await awsUploadFile(file.data, req.params.cardId, 'cover-photo', file.name, file.mimetype)
 
       // Update and return
       await db.card.update({
-        where: { cardId: req.params.id },
+        where: { cardId: req.params.cardId },
         data: {
           coverPhotos: {
             create: {
@@ -307,6 +304,12 @@ class CardController extends BaseController {
     const params = this.filterParams(req.body, cardControllerParams)
     const { coverPhoto } = params
     try {
+      if (!coverPhoto) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: 'coverPhoto is required'
+        })
+      }
       // Verify card / photo exists
       const image = await db.cardCoverPhotos.findUnique({
         where: {
@@ -375,16 +378,13 @@ class CardController extends BaseController {
         })
       }
 
-      // Verify user exists
-      const user = await db.userBio.findUnique({ where: { id: req.params.id } })
-      if (!user) {
-        return res.status(404).json({
-          code: codes.NOT_FOUND,
-          message: messages.USER_NOT_FOUND
+      const file = req.files.companyIcon as UploadedFile
+      if (!file) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.INVALID_FILE_LABEL + 'companyIcon'
         })
       }
-
-      const file = req.files.companyIcon as UploadedFile
       // Verify Acceptable MIME Type
       if (!ACCEPTABLE_MIME_TYPES.includes(file.mimetype)) {
         return res.status(400).json({
@@ -400,11 +400,11 @@ class CardController extends BaseController {
         })
       }
       // AWS API Call
-      const pathToFile = await awsUploadFile(file.data, req.params.id, 'company-icon', file.name, file.mimetype)
+      const pathToFile = await awsUploadFile(file.data, req.params.cardId, 'company-icon', file.name, file.mimetype)
 
       // Update and return
       await db.card.update({
-        where: { cardId: req.params.id },
+        where: { cardId: req.params.cardId },
         data: {
           companyIcons: {
             create: {
@@ -428,6 +428,12 @@ class CardController extends BaseController {
     const params = this.filterParams(req.body, cardControllerParams)
     const { companyIcon } = params
     try {
+      if (!companyIcon) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: 'companyIcon is required'
+        })
+      }
       // Verify card / photo exists
       const image = await db.cardCompanyIcons.findUnique({
         where: {
@@ -679,6 +685,12 @@ class CardController extends BaseController {
     const params = this.filterParams(req.body, cardControllerParams)
     const { services } = params
     try {
+      if (!services) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: 'services is required'
+        })
+      }
       const validationError = validateCardServices(params)
       if (validationError) {
         return res.status(400).json({
@@ -693,19 +705,22 @@ class CardController extends BaseController {
           3. First conditional, checks for uniqueness
           4. Second conditional checks that the last element is the same as the legnth
       */
-      const featured: any = services.filter((service: any) => service.type === 'featured')
-      featured.sort((a: any, b: any) => { return a.positioning - b.positioning })
-      if (featured.length !== new Set(featured).size ||
-          featured.length !== featured[featured.length - 1]) {
+      const featuredServices: any = services.filter((service: any) => service.type === 'featured')
+      const featuredPositionings = featuredServices.map((a: any) => a.positioning)
+      featuredPositionings.sort((a: any, b: any) => { return a - b })
+      if (featuredPositionings.length !== new Set(featuredPositionings).size ||
+          featuredPositionings.length - 1 !== featuredPositionings[featuredPositionings.length - 1]) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: messages.POSITIONING_ERROR_SERVICE
         })
       }
-      const main: any = services.filter((service: any) => service.type === 'main')
-      main.sort((a: any, b: any) => { return a.positioning - b.positioning })
-      if (main.length !== new Set(main).size ||
-          main.length !== main[main.length - 1]) {
+
+      const mainServices: any = services.filter((service: any) => service.type === 'main')
+      const mainPositionings = mainServices.map((a: any) => a.positioning)
+      mainPositionings.sort((a: any, b: any) => { return a - b })
+      if (mainPositionings.length !== new Set(mainPositionings).size ||
+          mainPositionings.length - 1 !== mainPositionings[mainPositionings.length - 1]) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: messages.POSITIONING_ERROR_SERVICE
@@ -747,6 +762,12 @@ class CardController extends BaseController {
       }
 
       const file = req.files.portfolioImage as UploadedFile
+      if (!file) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.INVALID_FILE_LABEL + 'portfolioImage'
+        })
+      }
       // Verify Acceptable MIME Type
       if (!ACCEPTABLE_MIME_TYPES.includes(file.mimetype)) {
         return res.status(400).json({
@@ -762,11 +783,11 @@ class CardController extends BaseController {
         })
       }
       // AWS API Call
-      const pathToFile = await awsUploadFile(file.data, req.params.id, 'portfolio-image', file.name, file.mimetype)
+      const pathToFile = await awsUploadFile(file.data, req.params.cardId, 'portfolio-image', file.name, file.mimetype)
 
       // Update and return
       await db.card.update({
-        where: { cardId: req.params.id },
+        where: { cardId: req.params.cardId },
         data: {
           portfolioImages: {
             create: {
@@ -818,8 +839,9 @@ class CardController extends BaseController {
 
       // Verify Uniqueness / Accuracy of Positioning
       portfolio.sort((a: any, b: any) => { return a.positioning - b.positioning })
-      if (portfolio.length !== new Set(portfolio).size ||
-          portfolio.length !== portfolio[portfolio.length - 1]) {
+      const positionings = portfolio.map((a: any) => a.positioning)
+      if (positionings.length !== new Set(positionings).size ||
+          positionings.length - 1 !== positionings[positionings.length - 1]) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: messages.POSITIONING_ERROR_SERVICE
@@ -881,7 +903,7 @@ class CardController extends BaseController {
     }
   }
 
-  // Update Template
+  // Update Template (Unused Currently)
   updateTemplateId = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const { templateId } = req.body
     try {

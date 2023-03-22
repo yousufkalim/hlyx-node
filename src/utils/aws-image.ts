@@ -1,5 +1,6 @@
 import AWS from 'aws-sdk'
 import { config } from '../config/env.config.validations'
+import { randomUUID } from 'crypto'
 
 const s3 = new AWS.S3({
   accessKeyId: config.get('aws_access_key_id'),
@@ -19,7 +20,7 @@ export const awsUploadFile = async (
     .upload({
       Bucket,
       Body: dataBuffer,
-      Key: `${id}-${classifier}-${fileName}`,
+      Key: `${id}-${randomUUID()}-${classifier}-${fileName}`,
       ContentType: fileType,
       ACL: 'public-read'
     })
