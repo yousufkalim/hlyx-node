@@ -157,7 +157,14 @@ class UserController extends BaseController {
   addCard = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify user exists
-      const user = await db.userBio.findUnique({ where: { id: req.params.id } })
+      const user = await db.userBio.findUnique({
+        where: {
+          id: req.params.id
+        },
+        include: {
+          cards: true
+        }
+      })
       if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -209,15 +216,32 @@ class UserController extends BaseController {
       }
 
       // Update UserBio, create Card, and return
-      await db.userBio.update({
+      const createdCard = await db.userBio.update({
         where: { id: req.params.id },
         data: {
           cards: {
             create: cardData
           }
+        },
+        select: {
+          cards: {
+            select: {
+              cardId: true
+            }
+          }
         }
       })
+
+      const allCardIds = user.cards.map(a => a.cardId)
+      let cardId = ''
+      // Isolate newly create id from previous
+      for (const id of createdCard.cards) {
+        if (!allCardIds.includes(id.cardId)) {
+          cardId = id.cardId
+        }
+      }
       return res.status(200).json({
+        cardId,
         code: codes.OK,
         message: messages.SUCCESS
       })

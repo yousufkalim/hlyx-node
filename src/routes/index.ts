@@ -56,9 +56,9 @@ router.put('/card/update/portfolio/:cardId', authenticate, cardAuthorization, Ca
 
 router.put('/card/update/public-visibility/:cardId', authenticate, cardAuthorization, CardController.updatePublicVisibility)
 router.put('/card/update/template/:cardId', authenticate, cardAuthorization, CardController.updateTemplateId)
-router.delete('/card/delete/:cardId', authenticate, cardAuthorization, CardController.delete)
 
 // (Currently Unused)
+router.delete('/card/delete/:cardId', authenticate, cardAuthorization, CardController.delete)
 router.get('/user/find/all-links/:id', authenticate, userAuthorization, UserController.userAllLinks)
 router.get('/card/find/all-links/:cardId', authenticate, CardController.cardAllLinks)
 
