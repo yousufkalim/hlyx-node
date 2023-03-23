@@ -60,6 +60,7 @@ class CardController extends BaseController {
             select: {
               url: true,
               title: true,
+              typeContent: true,
               description: true
             }
           }

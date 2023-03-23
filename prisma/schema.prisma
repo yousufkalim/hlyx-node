@@ -173,6 +173,7 @@ model CardAdditionalLinks {
   id              String    @id @default(uuid())
   url             String
   title           String
+  typeContent     AdditionalLinksType
   description     String?
   Card            Card     @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
@@ -317,6 +318,13 @@ enum DegreeType {
   Bachelors
   Masters
   Doctorate
+}
+
+enum AdditionalLinksType {
+  article
+  audio
+  video
+  website
 }
 
 enum BusinessGoalsStatus {

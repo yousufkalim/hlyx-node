@@ -120,6 +120,7 @@ interface ICardAdditionalLinks {
   id: string
   url: string
   title: string
+  typeContent: string
   description?: string
   cardId: string
 }
