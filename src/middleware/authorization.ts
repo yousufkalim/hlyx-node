@@ -31,7 +31,7 @@ export const adminAuthorization = (req: RequestUserAuth, res: Response, next: Ne
 export const cardAuthorization = async (req: RequestLink, res: Response, next: NextFunction): Promise<any> => {
   // Verify card exists
   const card = await db.card.findUnique({ where: { cardId: req.params.cardId } })
-  if (card === null) {
+  if (!card) {
     return res.status(404).json({
       code: codes.NOT_FOUND,
       message: messages.CARD_NOT_FOUND
@@ -52,7 +52,7 @@ export const linkAuthorization = async (req: RequestLink, res: Response, next: N
     // Verify Cards exist
     const foundCardOne = await db.card.findUnique({ where: { cardId: req.body.cardOne } })
     const foundCardTwo = await db.card.findUnique({ where: { cardId: req.body.cardTwo } })
-    if (foundCardOne === null || foundCardTwo === null) {
+    if (!foundCardOne || !foundCardTwo) {
       return res.status(404).json({
         code: codes.NOT_FOUND,
         message: messages.CARD_NOT_FOUND

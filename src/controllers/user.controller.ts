@@ -66,7 +66,7 @@ class UserController extends BaseController {
         if (!file) {
           return res.status(400).json({
             code: codes.BAD_REQUEST,
-            message: messages.INVALID_FILE_LABEL + 'profileImage'
+            message: `${messages.INVALID_FILE_LABEL} profileImage`
           })
         }
         // Verify Acceptable MIME Type
@@ -267,7 +267,7 @@ class UserController extends BaseController {
       if (!file) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
-          message: messages.INVALID_FILE_LABEL + 'profileImage'
+          message: `${messages.INVALID_FILE_LABEL} profileImage`
         })
       }
       // Verify Acceptable MIME Type

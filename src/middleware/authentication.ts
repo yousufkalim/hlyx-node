@@ -10,7 +10,7 @@ export const authenticate = (req: RequestUserAuth, res: Response, next: NextFunc
   const token = req.header(messages?.AUTHORIZATION)
 
   // Check if no token
-  if (token == null) {
+  if (!token) {
     return res.status(401).json({
       code: codes.UNAUTHORIZED,
       message: messages.NO_TOKEN
