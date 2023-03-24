@@ -34,7 +34,7 @@ router.post('/user/add/profile-photo/:id', authenticate, userAuthorization, User
 router.get('/user/find/profile-photos/:id', authenticate, userAuthorization, UserController.findProfilePhotos)
 
 // Card Routes
-router.get('/card/find/base-info/:cardId', authenticate, cardAuthorization, CardController.getBaseInfo)
+router.get('/card/find/base-info/:cardId', CardController.getBaseInfo)
 router.get('/card/find/contact-page/:cardId', CardController.getContact)
 router.get('/card/find/about-page/:cardId', CardController.getAbout)
 router.get('/card/find/services-page/:cardId', CardController.getServices)
