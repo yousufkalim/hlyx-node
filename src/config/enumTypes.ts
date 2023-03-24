@@ -6,6 +6,8 @@ export const academicLevels = ['High School', 'Vocational Degree', 'College Degr
 
 export const degreeTypes = ['Associates', 'Bachelors', 'Masters', 'Doctorate']
 
+export const additionalLinksType = ['article', 'audio', 'video', 'website']
+
 export const businessGoalsStatus = ['Active', 'Achieved']
 
 export const businessNeedsStatus = ['Active', 'Filled']

@@ -14,6 +14,42 @@ import BaseController from './base.controller'
 import { db } from '../utils/db'
 
 class CardController extends BaseController {
+  getBaseInfo = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const card = await db.card.findUnique({
+        where: {
+          cardId: req.params.cardId
+        },
+        select: {
+          publicCard: true,
+          templateId: true,
+          userAvatar: true,
+          fullName: true,
+          profTitle: true,
+          company: true,
+          city: true,
+          state: true
+        }
+      })
+
+      // Check if null and return
+      if (!card) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.CARD_NOT_FOUND
+        })
+      }
+      return res.status(200).json({
+        card,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
   getContact = async (req: Request, res: Response): Promise<Response> => {
     try {
       const card = await db.card.findUnique({
@@ -60,6 +96,7 @@ class CardController extends BaseController {
             select: {
               url: true,
               title: true,
+              typeContent: true,
               description: true
             }
           }

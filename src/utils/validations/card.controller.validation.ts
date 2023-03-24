@@ -1,7 +1,7 @@
 import Joi from 'joi'
 import { IValidateCardFullName, IValidateCardContactPage, IValidateCardAboutPage, IValidateCardServices, IValidateCardPortfolio } from '../../config/interfaces/card.validation.interface'
 import { stringLengths } from '../../config/stringLengths'
-import { emailTypes, phoneTypes, academicLevels, degreeTypes, businessGoalsStatus, businessNeedsStatus, servicesTypes } from '../../config/enumTypes'
+import { emailTypes, phoneTypes, academicLevels, additionalLinksType, degreeTypes, businessGoalsStatus, businessNeedsStatus, servicesTypes } from '../../config/enumTypes'
 import { stateAbbreviations } from '../../config/stateAbbreviations'
 import { arrayLimits } from '../../config/arrayLimits'
 
@@ -50,6 +50,7 @@ export const validateCardContactPage = (cardContactPagePayload: IValidateCardCon
     additionalLinks: Joi.array().max(arrayLimits.MAX_ADDITIONAL_LINKS).items(Joi.object({
       url: Joi.string().max(stringLengths.WEBSITES_MAX).hostname().required(),
       title: Joi.string().max(stringLengths.SERVICES_TITLE).required(),
+      typeContent: Joi.string().valid(...Object.values(additionalLinksType)),
       description: Joi.string().max(stringLengths.LINK_DESC_MAX)
     }))
   })

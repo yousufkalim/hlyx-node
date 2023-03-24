@@ -18,7 +18,18 @@ class UserController extends BaseController {
   me = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify user exists
-      const user = await db.userBio.findUnique({ where: { id: req.user?.id } })
+      const user = await db.userBio.findUnique({
+        where: {
+          id: req.user?.id
+        },
+        include: {
+          cards: {
+            select: {
+              cardId: true
+            }
+          }
+        }
+      })
       if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -47,15 +58,6 @@ class UserController extends BaseController {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
-        })
-      }
-
-      // Verify user exists
-      const user = await db.userAuth.findUnique({ where: { id: req.params.id } })
-      if (!user) {
-        return res.status(404).json({
-          code: codes.NOT_FOUND,
-          message: messages.USER_NOT_FOUND
         })
       }
 
@@ -157,7 +159,14 @@ class UserController extends BaseController {
   addCard = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify user exists
-      const user = await db.userBio.findUnique({ where: { id: req.params.id } })
+      const user = await db.userBio.findUnique({
+        where: {
+          id: req.params.id
+        },
+        include: {
+          cards: true
+        }
+      })
       if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -209,15 +218,32 @@ class UserController extends BaseController {
       }
 
       // Update UserBio, create Card, and return
-      await db.userBio.update({
+      const createdCard = await db.userBio.update({
         where: { id: req.params.id },
         data: {
           cards: {
             create: cardData
           }
+        },
+        select: {
+          cards: {
+            select: {
+              cardId: true
+            }
+          }
         }
       })
+
+      const allCardIds = user.cards.map(a => a.cardId)
+      let cardId = ''
+      // Isolate newly create id from previous
+      for (const id of createdCard.cards) {
+        if (!allCardIds.includes(id.cardId)) {
+          cardId = id.cardId
+        }
+      }
       return res.status(200).json({
+        cardId,
         code: codes.OK,
         message: messages.SUCCESS
       })
@@ -234,15 +260,6 @@ class UserController extends BaseController {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: messages.FILE_REQUIRED
-        })
-      }
-
-      // Verify user exists
-      const user = await db.userBio.findUnique({ where: { id: req.params.id } })
-      if (!user) {
-        return res.status(404).json({
-          code: codes.NOT_FOUND,
-          message: messages.USER_NOT_FOUND
         })
       }
 
@@ -295,15 +312,6 @@ class UserController extends BaseController {
   // Find all photos associated with logged in user
   findProfilePhotos = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
-      // Verify user exists
-      const user = await db.userBio.findUnique({ where: { id: req.user?.id } })
-      if (!user) {
-        return res.status(404).json({
-          code: codes.NOT_FOUND,
-          message: messages.USER_NOT_FOUND
-        })
-      }
-
       // Grab images and return
       const images = await db.userPhoto.findMany({
         where: {
