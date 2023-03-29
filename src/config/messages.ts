@@ -53,5 +53,6 @@ export const messages = {
   FILE_REQUIRED: 'A file is required.',
   POSITIONING_ERROR_SERVICE: 'Positionings should begin at 0 and go up by 1 (main and featured treated separately)',
   POSITIONING_ERROR_PORTFOLIO: 'Positionings should begin at 0 and go up by 1',
-  INVALID_FILE_LABEL: 'File should be labelled '
+  INVALID_FILE_LABEL: 'File should be labelled ',
+  CARD_SLUG_ERROR: 'This URL has already been taken. Please try again'
 }

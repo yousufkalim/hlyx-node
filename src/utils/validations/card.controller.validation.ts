@@ -1,5 +1,5 @@
 import Joi from 'joi'
-import { IValidateCardFullName, IValidateCardContactPage, IValidateCardAboutPage, IValidateCardServices, IValidateCardPortfolio } from '../../config/interfaces/card.validation.interface'
+import { IValidateCardFullName, IValidateCardContactPage, IValidateCardAboutPage, IValidateCardServices, IValidateCardPortfolio, IValidateCardSlug } from '../../config/interfaces/card.validation.interface'
 import { stringLengths } from '../../config/stringLengths'
 import { emailTypes, phoneTypes, academicLevels, additionalLinksType, degreeTypes, businessGoalsStatus, businessNeedsStatus, servicesTypes } from '../../config/enumTypes'
 import { stateAbbreviations } from '../../config/stateAbbreviations'
@@ -144,4 +144,16 @@ export const validateCardPortfolio = (cardPortfolioPayload: IValidateCardPortfol
     })).required()
   })
   return (portfolioSchema.validate(cardPortfolioPayload)?.error?.message)
+}
+
+/**
+ *
+ * @param cardSlugPayload
+ * @returns Error message
+ */
+export const validateCardSlug = (cardSlugPayload: IValidateCardSlug): string | undefined => {
+  const slugSchema = Joi.object({
+    slug: Joi.string().min(stringLengths.SLUG_MIN).max(stringLengths.SLUG_MAX).required()
+  })
+  return (slugSchema.validate(cardSlugPayload)?.error?.message)
 }

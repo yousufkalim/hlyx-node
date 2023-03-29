@@ -94,6 +94,8 @@ class UserController extends BaseController {
           }
         }
       }
+      // Set onboarding to true
+      params.isOnBoardingComplete = true
 
       // Update UserBio and return
       await db.userBio.update({

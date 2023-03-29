@@ -34,6 +34,7 @@ model UserBio {
   id              String    @id
   User            UserAuth? @relation(fields: [id, email, phone], references: [id, email, phone], onDelete: Cascade, onUpdate: Cascade)
   profileAvatar   String    @default("routeToOurDefaultAvatar")
+  isOnBoardingComplete Boolean @default(false)
   // Personal Info
   firstName       String?
   middleInitial   String?  
@@ -76,6 +77,7 @@ model Card {
   Links           Link[]    @relation("CardOneRef")
   LinksDuplicate  Link[]    @relation("CardTwoRef") // IMPORTANT NOTE: This is only included to make prisma happy; however, this should not be referenced in any queries
   // Auth
+  slug            String?   @unique
   publicCard      Boolean   @default(true)
   templateId      TemplateIdentification    @default(DEFAULT)
   // Header
