@@ -54,5 +54,6 @@ export const stringLengths = {
   PORTFOLIO_TITLE: 50,
   PORTFOLIO_DETAILS: 100,
   SLUG_MIN: 5,
-  SLUG_MAX: 50
+  SLUG_MAX: 50,
+  NOTE_MAX: 200
 }

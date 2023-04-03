@@ -1,4 +1,5 @@
 import { Request } from 'express'
+import { ILinks } from './link.interface'
 
 export interface IUser {
   id: string
@@ -13,7 +14,11 @@ export interface RequestUserAuth extends Request {
 }
 
 export interface RequestLink extends RequestUserAuth {
-  card?: string
+  card?: {
+    requester: string
+    recipient: string
+  }
+  link?: ILinks
 }
 
 export interface IEmail {

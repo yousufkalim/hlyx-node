@@ -221,6 +221,9 @@ class CardController extends BaseController {
               subtitle: true,
               details: true,
               positioning: true
+            },
+            orderBy: {
+              positioning: 'asc'
             }
           }
         }
@@ -258,6 +261,9 @@ class CardController extends BaseController {
               title: true,
               details: true,
               positioning: true
+            },
+            orderBy: {
+              positioning: 'asc'
             }
           }
         }
@@ -295,7 +301,7 @@ class CardController extends BaseController {
       if (!file) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
-          message: messages.INVALID_FILE_LABEL + 'coverPhoto'
+          message: `${messages.INVALID_FILE_LABEL} coverPhoto`
         })
       }
       // Verify Acceptable MIME Type
@@ -420,7 +426,7 @@ class CardController extends BaseController {
       if (!file) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
-          message: messages.INVALID_FILE_LABEL + 'companyIcon'
+          message: `${messages.INVALID_FILE_LABEL} companyIcon`
         })
       }
       // Verify Acceptable MIME Type
@@ -803,7 +809,7 @@ class CardController extends BaseController {
       if (!file) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
-          message: messages.INVALID_FILE_LABEL + 'portfolioImage'
+          message: `${messages.INVALID_FILE_LABEL} portfolioImage`
         })
       }
       // Verify Acceptable MIME Type
@@ -1007,45 +1013,6 @@ class CardController extends BaseController {
         }
       })
       return res.status(200).json({
-        code: codes.OK,
-        message: messages.SUCCESS
-      })
-    } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
-    }
-  }
-
-  // Find all links associated with card (Unused Currently)
-  cardAllLinks = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    try {
-      // Verify card exists
-      const card = await db.card.findUnique({
-        where: {
-          cardId: req.params.cardId
-        },
-        include: {
-          Links: true
-        }
-      })
-      if (!card) {
-        return res.status(404).json({
-          code: codes.NOT_FOUND,
-          message: messages.CARD_NOT_FOUND
-        })
-      }
-
-      // Set array and return
-      const returnArray: string[] = []
-      for (let i = 0; i < card?.Links.length; i++) {
-        if (card.Links[i].cardOne === card.cardId) {
-          returnArray.push(card.Links[i].cardTwo)
-        } else {
-          returnArray.push(card.Links[i].cardOne)
-        }
-      }
-      return res.status(200).json({
-        returnArray,
         code: codes.OK,
         message: messages.SUCCESS
       })

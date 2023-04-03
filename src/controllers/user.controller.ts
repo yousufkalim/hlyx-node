@@ -85,7 +85,7 @@ class UserController extends BaseController {
         }
 
         // AWS API Call
-        const pathToFile = await awsUploadFile(file.data, req.params.id, 'profile-photo', file.name, file.mimetype)
+        const pathToFile = await awsUploadFile(file.data, req.params.userId, 'profile-photo', file.name, file.mimetype)
         // Prepare params for update
         params.profileAvatar = pathToFile
         params.profilePhotos = {
@@ -99,7 +99,7 @@ class UserController extends BaseController {
 
       // Update UserBio and return
       await db.userBio.update({
-        where: { id: req.params.id },
+        where: { id: req.params.userId },
         data: params
       })
       return res.status(200).json({
@@ -127,7 +127,7 @@ class UserController extends BaseController {
       const image = await db.userPhoto.findUnique({
         where: {
           userId_pathToFile: {
-            userId: req.params.id,
+            userId: req.params.userId,
             pathToFile
           }
         }
@@ -141,7 +141,7 @@ class UserController extends BaseController {
 
       // Update and return
       await db.userBio.update({
-        where: { id: req.params.id },
+        where: { id: req.params.userId },
         data: {
           profileAvatar: pathToFile
         }
@@ -163,7 +163,7 @@ class UserController extends BaseController {
       // Verify user exists
       const user = await db.userBio.findUnique({
         where: {
-          id: req.params.id
+          id: req.params.userId
         },
         include: {
           cards: true
@@ -177,7 +177,7 @@ class UserController extends BaseController {
       }
 
       // Verify under maximum amount of Cards
-      const cards = await db.card.findMany({ where: { userId: req.params.id } })
+      const cards = await db.card.findMany({ where: { userId: req.params.userId } })
       if (cards.length >= arrayLimits.MAX_CARDS) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -221,7 +221,7 @@ class UserController extends BaseController {
 
       // Update UserBio, create Card, and return
       const createdCard = await db.userBio.update({
-        where: { id: req.params.id },
+        where: { id: req.params.userId },
         data: {
           cards: {
             create: cardData
@@ -238,7 +238,7 @@ class UserController extends BaseController {
 
       const allCardIds = user.cards.map(a => a.cardId)
       let cardId = ''
-      // Isolate newly create id from previous
+      // Isolate newly created id from previous
       for (const id of createdCard.cards) {
         if (!allCardIds.includes(id.cardId)) {
           cardId = id.cardId
@@ -287,11 +287,11 @@ class UserController extends BaseController {
         })
       }
       // AWS API Call
-      const pathToFile = await awsUploadFile(file.data, req.params.id, 'profile-photo', file.name, file.mimetype)
+      const pathToFile = await awsUploadFile(file.data, req.params.userId, 'profile-photo', file.name, file.mimetype)
 
       // Update and return
       await db.userBio.update({
-        where: { id: req.params.id },
+        where: { id: req.params.userId },
         data: {
           profilePhotos: {
             create: {
@@ -317,7 +317,7 @@ class UserController extends BaseController {
       // Grab images and return
       const images = await db.userPhoto.findMany({
         where: {
-          userId: req.params.id
+          userId: req.params.userId
         },
         select: {
           pathToFile: true
@@ -325,50 +325,6 @@ class UserController extends BaseController {
       })
       return res.status(200).json({
         images,
-        code: codes.OK,
-        message: messages.SUCCESS
-      })
-    } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
-    }
-  }
-
-  // Find all links associated with user (Currently Unusued)
-  userAllLinks = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    try {
-      // Verify user exists
-      const user = await db.userBio.findUnique({ where: { id: req.params.id } })
-      if (!user) {
-        return res.status(404).json({
-          code: codes.NOT_FOUND,
-          message: messages.USER_NOT_FOUND
-        })
-      }
-
-      // Find all cards associated with user
-      const cards = await db.card.findMany({
-        where: {
-          userId: req.params.id
-        },
-        include: {
-          Links: true
-        }
-      })
-
-      // Set array and return
-      const returnArray: string[] = []
-      for (const card of cards) {
-        for (const link of card.Links) {
-          if (link.cardOne === card.cardId) {
-            returnArray.push(link.cardTwo)
-          } else {
-            returnArray.push(link.cardOne)
-          }
-        }
-      }
-      return res.status(200).json({
-        returnArray,
         code: codes.OK,
         message: messages.SUCCESS
       })
