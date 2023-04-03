@@ -22,7 +22,6 @@ export const authenticate = (req: RequestUserAuth, res: Response, next: NextFunc
     req.user = decoded.user
     next()
   } catch (err) {
-    console.error(err)
     return res.status(401).json({
       code: codes.UNAUTHORIZED,
       message: messages.INVALID_TOKEN

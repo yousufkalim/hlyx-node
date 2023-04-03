@@ -168,7 +168,7 @@ class AuthController extends BaseController {
               message: messages.TOKEN_FAILURE
             })
           }
-          // await sendCodeToEmail(email)
+          await sendCodeToEmail(email)
           return res.status(201).json({
             token,
             code: codes.CREATED,
