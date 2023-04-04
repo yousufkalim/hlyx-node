@@ -55,5 +55,7 @@ export const stringLengths = {
   PORTFOLIO_DETAILS: 100,
   SLUG_MIN: 5,
   SLUG_MAX: 50,
-  NOTE_MAX: 200
+  NOTE_MAX: 200,
+  CARD_NAME_MIN: 3,
+  CARD_NAME_MAX: 50
 }

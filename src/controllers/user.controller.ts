@@ -188,6 +188,7 @@ class UserController extends BaseController {
       // Create Card data
       const cardData: any = {
         fullName: `${user.firstName} ${user.middleInitial ?? ''} ${user.lastName}`.replace(/ +(?= )/g, ''),
+        cardName: `${user.firstName} ${user.middleInitial ?? ''} ${user.lastName}'s Card`.replace(/ +(?= )/g, ''),
         company: user.company ?? undefined,
         profTitle: user.profTitle ?? undefined,
         industry: user.industry ?? undefined,
@@ -238,7 +239,7 @@ class UserController extends BaseController {
 
       const allCardIds = user.cards.map(a => a.cardId)
       let cardId = ''
-      // Isolate newly created id from previous
+      // Isolate newly create id from previous
       for (const id of createdCard.cards) {
         if (!allCardIds.includes(id.cardId)) {
           cardId = id.cardId

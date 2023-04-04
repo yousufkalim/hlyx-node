@@ -48,6 +48,7 @@ router.post('/card/add/company-icon/:cardId', authenticate, cardAuthorization, C
 router.put('/card/update/company-icon/:cardId', authenticate, cardAuthorization, CardController.updateCompanyIcon)
 router.get('/card/find/company-icon/:cardId', authenticate, cardAuthorization, CardController.findCompanyIcons)
 
+router.put('/card/update/card-name/:cardId', authenticate, cardAuthorization, CardController.updateCardName)
 router.put('/card/update/full-name/:cardId', authenticate, cardAuthorization, CardController.updateFullName)
 router.put('/card/update/contact-page/:cardId', authenticate, cardAuthorization, CardController.updateContactPage)
 router.put('/card/update/about-page/:cardId', authenticate, cardAuthorization, CardController.updateAboutPage)

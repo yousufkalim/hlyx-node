@@ -89,8 +89,8 @@ model Card {
   Links           Link[]    @relation("CardOneRef")
   LinksDuplicate  Link[]    @relation("CardTwoRef") // IMPORTANT NOTE: This is only included to make prisma happy; however, this should not be referenced in any queries
   LinkPhoto       LinkPhoto[]
-  
   // Auth
+  cardName        String
   slug            String?   @unique
   publicCard      Boolean   @default(true)
   templateId      TemplateIdentification    @default(DEFAULT)
@@ -289,6 +289,8 @@ model Link {
   notes           LinkNotes[]
   messages        LinkMessages[]
   photos          LinkPhoto[]
+  cardOneFavorite Boolean   @default(false)
+  cardTwoFavorite Boolean   @default(false)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   @@unique([cardOne, cardTwo])
@@ -403,6 +405,7 @@ enum LinkType {
   accepted
   declined
   blocked
+  muted
 }
 
 enum NotificationStatus {

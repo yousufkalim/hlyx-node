@@ -1,9 +1,21 @@
 import Joi from 'joi'
-import { IValidateCardFullName, IValidateCardContactPage, IValidateCardAboutPage, IValidateCardServices, IValidateCardPortfolio, IValidateCardSlug } from '../../config/interfaces/card.validation.interface'
+import { IValidateCardName, IValidateCardFullName, IValidateCardContactPage, IValidateCardAboutPage, IValidateCardServices, IValidateCardPortfolio, IValidateCardSlug } from '../../config/interfaces/card.validation.interface'
 import { stringLengths } from '../../config/stringLengths'
 import { emailTypes, phoneTypes, academicLevels, additionalLinksType, degreeTypes, businessGoalsStatus, businessNeedsStatus, servicesTypes } from '../../config/enumTypes'
 import { stateAbbreviations } from '../../config/stateAbbreviations'
 import { arrayLimits } from '../../config/arrayLimits'
+
+/**
+ *
+ * @param cardNamePayload
+ * @returns Error message
+ */
+export const validateCardName = (cardNamePayload: IValidateCardName): string | undefined => {
+  const cardNameSchema = Joi.object({
+    cardName: Joi.string().min(stringLengths.CARD_NAME_MIN).max(stringLengths.CARD_NAME_MAX).required()
+  })
+  return (cardNameSchema.validate(cardNamePayload)?.error?.message)
+}
 
 /**
  *

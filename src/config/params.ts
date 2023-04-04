@@ -23,6 +23,7 @@ export const userControllerParams = [
 ]
 
 export const cardControllerParams = [
+  'cardName',
   'fullName',
   'coverPhoto',
   'emails',
