@@ -94,5 +94,6 @@ export const cardAboutPageParams = [
 export const linkControllerParams = [
   'cardOne',
   'cardTwo',
-  'status'
+  'status',
+  'note'
 ]

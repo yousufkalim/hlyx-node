@@ -34,6 +34,8 @@ model UserBio {
   id              String    @id
   User            UserAuth? @relation(fields: [id, email, phone], references: [id, email, phone], onDelete: Cascade, onUpdate: Cascade)
   profileAvatar   String    @default("routeToOurDefaultAvatar")
+  isOnBoardingComplete Boolean @default(false)
+  // notifications   Notification[]
   // Personal Info
   firstName       String?
   middleInitial   String?  
@@ -69,13 +71,27 @@ model UserPhoto {
   @@id([userId, pathToFile])
 }
 
+// model Notification {
+//   notificationId  String    @id @default(uuid())
+//   User            UserBio?  @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+//   userId          String
+//   status          NotificationStatus   @default(active)
+//   message         String
+//   userCard        String
+//   directsTo       String?   // When pressed go here
+//   updatedAt       DateTime  @updatedAt
+// }
+
 model Card {
   cardId          String    @id @default(uuid())
   User            UserBio   @relation(fields: [userId, userAvatar], references: [id, profileAvatar], onDelete: Cascade, onUpdate: Cascade)
   userId          String
   Links           Link[]    @relation("CardOneRef")
   LinksDuplicate  Link[]    @relation("CardTwoRef") // IMPORTANT NOTE: This is only included to make prisma happy; however, this should not be referenced in any queries
+  LinkPhoto       LinkPhoto[]
+  
   // Auth
+  slug            String?   @unique
   publicCard      Boolean   @default(true)
   templateId      TemplateIdentification    @default(DEFAULT)
   // Header
@@ -255,22 +271,58 @@ model CardPortfolio {
 }
 
 model CardPortfolioImages {
-  Card          Card   @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
+  Card          Card      @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
   cardId        String
   pathToFile    String
   @@id([cardId, pathToFile])
 }
 
 model Link {
+  id              String   @id @default(uuid())
   CardOneRef      Card     @relation("CardOneRef", fields: [cardOne], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
   CardTwoRef      Card     @relation("CardTwoRef", fields: [cardTwo], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
   cardOne         String
   cardTwo         String
   status          LinkType
   recentChangeBy  String  // Useful for logical statements later (Ex. cannot change to 'accepted' unless other user set 'requested')
+  bothUserBlock   Boolean  @default(false)
+  notes           LinkNotes[]
+  messages        LinkMessages[]
+  photos          LinkPhoto[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
-  @@id([cardOne, cardTwo])
+  @@unique([cardOne, cardTwo])
+}
+
+model LinkNotes {
+  id              String    @id @default(uuid())
+  Link            Link      @relation(fields: [linkId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  linkId          String
+  authorId        String
+  recipientId     String
+  note            String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model LinkMessages {
+  id              String    @id @default(uuid())
+  Link            Link      @relation(fields: [linkId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  linkId          String
+  senderId        String
+  recipientId     String
+  message         String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model LinkPhoto {
+  Link            Link      @relation(fields: [linkId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  linkId          String
+  Card            Card      @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
+  cardId          String
+  pathToFile      String
+  @@id([linkId, pathToFile])
 }
 
 
@@ -351,4 +403,9 @@ enum LinkType {
   accepted
   declined
   blocked
+}
+
+enum NotificationStatus {
+  active
+  archived
 }

@@ -14,5 +14,7 @@ export const arrayLimits = {
   MAX_NEEDSASKS: 8,
   MAX_INTERESTS: 8,
   MAX_SERVICES: 10,
-  MAX_PORTFOLIO: 20
+  MAX_PORTFOLIO: 20,
+  MAX_NOTES: 10,
+  MAX_LINK_IMAGES: 1
 }

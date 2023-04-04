@@ -1,6 +1,7 @@
 export interface ICard {
   cardId: string
   userId: string
+  slug: string
   publicCard: boolean
   templateID: string
   userAvatar: string
@@ -80,6 +81,10 @@ export interface IValidateCardServices {
 
 export interface IValidateCardPortfolio {
   portfolio: ICardPortfolio[]
+}
+
+export interface IValidateCardSlug {
+  slug: string
 }
 
 interface ICardCoverPhotos {

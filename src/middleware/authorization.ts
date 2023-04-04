@@ -7,7 +7,7 @@ import { db } from '../utils/db'
 
 export const userAuthorization = (req: RequestUserAuth, res: Response, next: NextFunction): any => {
   if (req.user?.role === roles.SUPER_ADMIN ||
-      req.user?.id === req.params?.id) {
+      req.user?.id === req.params?.userId) {
     next()
   } else {
     return res.status(403).json({
@@ -28,7 +28,7 @@ export const adminAuthorization = (req: RequestUserAuth, res: Response, next: Ne
   }
 }
 
-export const cardAuthorization = async (req: RequestLink, res: Response, next: NextFunction): Promise<any> => {
+export const cardAuthorization = async (req: RequestUserAuth, res: Response, next: NextFunction): Promise<any> => {
   // Verify card exists
   const card = await db.card.findUnique({ where: { cardId: req.params.cardId } })
   if (!card) {
@@ -48,30 +48,108 @@ export const cardAuthorization = async (req: RequestLink, res: Response, next: N
 }
 
 export const linkAuthorization = async (req: RequestLink, res: Response, next: NextFunction): Promise<any> => {
-  if (req.body.cardOne != null || req.body.cardTwo != null) {
-    // Verify Cards exist
-    const foundCardOne = await db.card.findUnique({ where: { cardId: req.body.cardOne } })
-    const foundCardTwo = await db.card.findUnique({ where: { cardId: req.body.cardTwo } })
-    if (!foundCardOne || !foundCardTwo) {
-      return res.status(404).json({
-        code: codes.NOT_FOUND,
-        message: messages.CARD_NOT_FOUND
-      })
+  // Verify Link exists
+  const link = await db.link.findUnique({
+    where: {
+      id: req.params.linkId
+    },
+    include: {
+      photos: true
     }
-    // Verify logged in user owns one of the cards
-    if (foundCardOne.userId !== req.user?.id || foundCardTwo.userId !== req.user?.id) {
-      return res.status(403).json({
-        code: codes.FORBIDDEN,
-        message: messages.ACCESS_DENIED
-      })
-    }
-
-    // Discover which card is making the request and set req.card
-    if (foundCardOne.userId === req.user?.id) {
-      req.card = 'one'
-    } else if (foundCardTwo.userId === req.user?.id) {
-      req.card = 'two'
-    }
-    next()
+  })
+  if (!link) {
+    return res.status(400).json({
+      code: codes.BAD_REQUEST,
+      message: messages.LINK_NOT_FOUND
+    })
   }
+  // Set req.link
+  req.link = link
+
+  // Find Cards Associated with logged in user
+  const cards = await db.userBio.findUnique({
+    where: {
+      id: req.user?.id
+    },
+    select: {
+      cards: {
+        select: {
+          cardId: true
+        }
+      }
+    }
+  })
+  if (!cards) {
+    return res.status(404).json({
+      code: codes.NOT_FOUND,
+      message: messages.CARD_NOT_FOUND
+    })
+  }
+
+  const cardIds = cards.cards.map(element => element.cardId)
+
+  // Discover which card is making the request and set req.card
+  if (cardIds.includes(link.cardOne)) {
+    req.card = {
+      requester: link.cardOne,
+      recipient: link.cardTwo
+    }
+  } else {
+    req.card = {
+      requester: link.cardTwo,
+      recipient: link.cardOne
+    }
+  }
+  next()
+}
+
+export const noteAuthorization = async (req: RequestUserAuth, res: Response, next: NextFunction): Promise<any> => {
+  // Verify Note Exists
+  const existingNote = await db.linkNotes.findUnique({
+    where: {
+      id: req.params.noteId
+    },
+    include: {
+      Link: {
+        include: {
+          CardOneRef: {
+            select: {
+              userId: true,
+              cardId: true
+            }
+          },
+          CardTwoRef: {
+            select: {
+              userId: true,
+              cardId: true
+            }
+          }
+        }
+      }
+    }
+  })
+  if (!existingNote) {
+    return res.status(404).json({
+      code: codes.NOT_FOUND,
+      message: messages.NOTE_NOT_FOUND
+    })
+  }
+
+  // Verify User Matches
+  if ((req.user?.id !== existingNote.Link.CardOneRef.userId && existingNote.Link.CardTwoRef.cardId !== existingNote.authorId) ||
+      (req.user?.id !== existingNote.Link.CardTwoRef.userId && existingNote.Link.CardOneRef.cardId !== existingNote.authorId)) {
+    return res.status(400).json({
+      code: codes.BAD_REQUEST,
+      message: messages.NOTE_UNAUTHORIZED
+    })
+  }
+
+  // Verify Link Status
+  if (existingNote.Link.status !== 'accepted') {
+    return res.status(400).json({
+      code: codes.BAD_REQUEST,
+      message: messages.NOTE_NOT_ACCEPTED
+    })
+  }
+  next()
 }

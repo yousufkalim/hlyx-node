@@ -5,7 +5,7 @@ import UserController from '../controllers/user.controller'
 import CardController from '../controllers/card.controller'
 import LinkController from '../controllers/link.controller'
 import { authenticate } from '../middleware/authentication'
-import { userAuthorization, cardAuthorization, linkAuthorization } from '../middleware/authorization'
+import { userAuthorization, cardAuthorization, linkAuthorization, noteAuthorization } from '../middleware/authorization'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { config } from '../config/env.config.validations'
@@ -19,19 +19,19 @@ router.post('/auth/send-code-email', AuthController.sendCodeEmail)
 router.post('/auth/verify-code-email', authenticate, AuthController.verifyCodeEmail)
 router.post('/auth/verify-code-password-reset', AuthController.verifyCodePassword)
 router.put('/auth/forgot-password', AuthController.forgotPassword)
-router.put('/auth/update-phone/:id', authenticate, userAuthorization, AuthController.updatePhone)
+router.put('/auth/update-phone/:userId', authenticate, userAuthorization, AuthController.updatePhone)
 router.post('/auth/send-code-phone', authenticate, AuthController.sendCodePhone)
 router.post('/auth/verify-code-phone', authenticate, AuthController.verifyCodePhone)
-router.put('/auth/pause-account/:id', authenticate, userAuthorization, AuthController.pauseAccount)
-router.delete('/auth/delete-account/:id', authenticate, userAuthorization, AuthController.deleteAcount)
+router.put('/auth/pause-account/:userId', authenticate, userAuthorization, AuthController.pauseAccount)
+router.delete('/auth/delete-account/:userId', authenticate, userAuthorization, AuthController.deleteAcount)
 
 // User Routes
 router.get('/user/find/me', authenticate, UserController.me)
-router.put('/user/update/bio/:id', authenticate, userAuthorization, UserController.updateBio)
-router.put('/user/update/avatar/:id', authenticate, userAuthorization, UserController.updateProfileAvatar)
-router.post('/user/add/card/:id', authenticate, userAuthorization, UserController.addCard)
-router.post('/user/add/profile-photo/:id', authenticate, userAuthorization, UserController.addProfilePhoto)
-router.get('/user/find/profile-photos/:id', authenticate, userAuthorization, UserController.findProfilePhotos)
+router.put('/user/update/bio/:userId', authenticate, userAuthorization, UserController.updateBio)
+router.put('/user/update/avatar/:userId', authenticate, userAuthorization, UserController.updateProfileAvatar)
+router.post('/user/add/card/:userId', authenticate, userAuthorization, UserController.addCard)
+router.post('/user/add/profile-photo/:userId', authenticate, userAuthorization, UserController.addProfilePhoto)
+router.get('/user/find/profile-photos/:userId', authenticate, userAuthorization, UserController.findProfilePhotos)
 
 // Card Routes
 router.get('/card/find/base-info/:cardId', CardController.getBaseInfo)
@@ -57,17 +57,26 @@ router.put('/card/update/portfolio/:cardId', authenticate, cardAuthorization, Ca
 
 router.put('/card/update/public-visibility/:cardId', authenticate, cardAuthorization, CardController.updatePublicVisibility)
 router.put('/card/update/template/:cardId', authenticate, cardAuthorization, CardController.updateTemplateId)
+router.put('/card/update/slug/:cardId', authenticate, cardAuthorization, CardController.updateSlug)
 
 // (Currently Unused)
 router.delete('/card/delete/:cardId', authenticate, cardAuthorization, CardController.delete)
-router.get('/user/find/all-links/:id', authenticate, userAuthorization, UserController.userAllLinks)
-router.get('/card/find/all-links/:cardId', authenticate, CardController.cardAllLinks)
 
-// Link Routes (Currently Unused)
+// Link Routes
 router.post('/link/create', authenticate, linkAuthorization, LinkController.create)
-router.post('/link/delete', authenticate, linkAuthorization, LinkController.delete)
-router.get('/link/find', authenticate, LinkController.find) // May need authorization
-router.post('/link/update', authenticate, linkAuthorization, LinkController.update)
+router.put('/link/update/:linkId', authenticate, linkAuthorization, LinkController.update)
+router.get('/link/find/card/accepted/:cardId', authenticate, LinkController.cardAllLinks)
+router.get('/link/find/user/accepted/:userId', authenticate, userAuthorization, LinkController.userAllLinks)
+router.get('/link/find/user/blocked/:userId', authenticate, userAuthorization, LinkController.userAllBlocks)
+router.get('/link/find/user/incoming-requests/:userId', authenticate, userAuthorization, LinkController.userAllIncomingLinkRequests)
+router.get('/link/find/user/outgoing-requests/:userId', authenticate, userAuthorization, LinkController.userAllOutgoingLinkRequests)
+router.put('/link/update/unblock/:linkId', authenticate, linkAuthorization, LinkController.unblockLink)
+router.post('/link/create/note/:linkId', authenticate, linkAuthorization, LinkController.createNote)
+router.get('/link/find/notes/:linkId', authenticate, linkAuthorization, LinkController.findAllNotes)
+router.put('/link/update/note/:noteId', authenticate, noteAuthorization, LinkController.updateNote)
+router.post('/link/delete/note/:noteId', authenticate, noteAuthorization, LinkController.deleteNote)
+router.post('/link/add/link-photo/:linkId', authenticate, linkAuthorization, LinkController.addLinkPhoto)
+router.get('/link/find/link-photo/:linkId', authenticate, linkAuthorization, LinkController.findLinkPhotos)
 
 // Health Check
 router.get('/health-check', (req: Request, res: Response) => {

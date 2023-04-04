@@ -439,7 +439,7 @@ class AuthController extends BaseController {
       }
 
       // Verify User exists
-      const user = await db.userAuth.findUnique({ where: { id: req.params.id } })
+      const user = await db.userAuth.findUnique({ where: { id: req.params.userId } })
       if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -459,16 +459,17 @@ class AuthController extends BaseController {
       // Update User
       await db.userAuth.update({
         where: {
-          id: req.params.id
+          id: req.params.userId
         },
         data: {
           phone,
           isPhoneVerified: false
         }
       })
+      // (NOT NECESSARY?????)
       await db.userBio.update({
         where: {
-          id: req.params.id
+          id: req.params.userId
         },
         data: {
           phone
@@ -603,7 +604,7 @@ class AuthController extends BaseController {
   pauseAccount = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify User exists
-      const user = await db.userAuth.findUnique({ where: { id: req.params.id } })
+      const user = await db.userAuth.findUnique({ where: { id: req.params.userId } })
       if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -614,7 +615,7 @@ class AuthController extends BaseController {
       // Update User and return
       await db.userAuth.update({
         where: {
-          id: req.params.id
+          id: req.params.userId
         },
         data: {
           isPaused: true
@@ -635,7 +636,7 @@ class AuthController extends BaseController {
   deleteAcount = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify User exists
-      const user = await db.userAuth.findUnique({ where: { id: req.params.id } })
+      const user = await db.userAuth.findUnique({ where: { id: req.params.userId } })
       if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -646,7 +647,7 @@ class AuthController extends BaseController {
       // Update User and return
       await db.userAuth.update({
         where: {
-          id: req.params.id
+          id: req.params.userId
         },
         data: {
           isDeleted: true,
@@ -668,7 +669,7 @@ class AuthController extends BaseController {
   delete = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify user exists
-      const user = await db.userAuth.findUnique({ where: { id: req.params.id } })
+      const user = await db.userAuth.findUnique({ where: { id: req.params.userId } })
       if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -676,7 +677,7 @@ class AuthController extends BaseController {
         })
       }
 
-      await db.userAuth.delete({ where: { id: req.params.id } })
+      await db.userAuth.delete({ where: { id: req.params.userId } })
 
       return res.status(200).json({
         code: codes.OK,

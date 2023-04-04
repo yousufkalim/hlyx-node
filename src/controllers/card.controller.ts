@@ -5,7 +5,7 @@ import { RequestUserAuth } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { cardAboutPageParams, cardContactPageParams, cardControllerParams } from '../config/params'
-import { validateCardFullName, validateCardContactPage, validateCardAboutPage, validateCardServices, validateCardPortfolio } from '../utils/validations/card.controller.validation'
+import { validateCardFullName, validateCardContactPage, validateCardAboutPage, validateCardServices, validateCardPortfolio, validateCardSlug } from '../utils/validations/card.controller.validation'
 import { templateIds } from '../config/enumTypes'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
 import { awsUploadFile } from '../utils/aws-image'
@@ -21,6 +21,7 @@ class CardController extends BaseController {
           cardId: req.params.cardId
         },
         select: {
+          slug: true,
           publicCard: true,
           templateId: true,
           userAvatar: true,
@@ -220,6 +221,9 @@ class CardController extends BaseController {
               subtitle: true,
               details: true,
               positioning: true
+            },
+            orderBy: {
+              positioning: 'asc'
             }
           }
         }
@@ -257,6 +261,9 @@ class CardController extends BaseController {
               title: true,
               details: true,
               positioning: true
+            },
+            orderBy: {
+              positioning: 'asc'
             }
           }
         }
@@ -294,7 +301,7 @@ class CardController extends BaseController {
       if (!file) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
-          message: messages.INVALID_FILE_LABEL + 'coverPhoto'
+          message: `${messages.INVALID_FILE_LABEL} coverPhoto`
         })
       }
       // Verify Acceptable MIME Type
@@ -419,7 +426,7 @@ class CardController extends BaseController {
       if (!file) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
-          message: messages.INVALID_FILE_LABEL + 'companyIcon'
+          message: `${messages.INVALID_FILE_LABEL} companyIcon`
         })
       }
       // Verify Acceptable MIME Type
@@ -802,7 +809,7 @@ class CardController extends BaseController {
       if (!file) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
-          message: messages.INVALID_FILE_LABEL + 'portfolioImage'
+          message: `${messages.INVALID_FILE_LABEL} portfolioImage`
         })
       }
       // Verify Acceptable MIME Type
@@ -940,6 +947,50 @@ class CardController extends BaseController {
     }
   }
 
+  // Update Slug
+  updateSlug = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const params = this.filterParams(req.body, ['slug'])
+    try {
+      const validationError = validateCardSlug(params)
+      if (validationError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+
+      // Verify Uniqueness
+      const unique = await db.card.findUnique({
+        where: {
+          slug: params.slug
+        }
+      })
+      if (unique) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.CARD_SLUG_ERROR
+        })
+      }
+
+      // Update and return
+      await db.card.update({
+        where: {
+          cardId: req.params.cardId
+        },
+        data: {
+          ...params
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
   // Update Template (Unused Currently)
   updateTemplateId = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const { templateId } = req.body
@@ -962,45 +1013,6 @@ class CardController extends BaseController {
         }
       })
       return res.status(200).json({
-        code: codes.OK,
-        message: messages.SUCCESS
-      })
-    } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
-    }
-  }
-
-  // Find all links associated with card (Unused Currently)
-  cardAllLinks = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    try {
-      // Verify card exists
-      const card = await db.card.findUnique({
-        where: {
-          cardId: req.params.cardId
-        },
-        include: {
-          Links: true
-        }
-      })
-      if (!card) {
-        return res.status(404).json({
-          code: codes.NOT_FOUND,
-          message: messages.CARD_NOT_FOUND
-        })
-      }
-
-      // Set array and return
-      const returnArray: string[] = []
-      for (let i = 0; i < card?.Links.length; i++) {
-        if (card.Links[i].cardOne === card.cardId) {
-          returnArray.push(card.Links[i].cardTwo)
-        } else {
-          returnArray.push(card.Links[i].cardOne)
-        }
-      }
-      return res.status(200).json({
-        returnArray,
         code: codes.OK,
         message: messages.SUCCESS
       })
