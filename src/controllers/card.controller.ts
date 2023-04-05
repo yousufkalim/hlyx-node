@@ -21,6 +21,8 @@ class CardController extends BaseController {
           cardId: req.params.cardId
         },
         select: {
+          cardName: true,
+          coverPhoto: true,
           slug: true,
           publicCard: true,
           templateId: true,
