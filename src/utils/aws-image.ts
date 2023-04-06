@@ -28,3 +28,14 @@ export const awsUploadFile = async (
 
   return uploadResult.Location
 }
+
+export const awsDeleteFile = async (fileName: string): Promise<boolean | undefined> => {
+  const Bucket = config.get('aws_bucket_name') as string
+
+  const deleteResult = await s3.deleteObject({
+    Bucket,
+    Key: fileName
+  }).promise()
+
+  return deleteResult.DeleteMarker
+}

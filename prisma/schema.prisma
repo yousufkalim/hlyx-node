@@ -284,8 +284,9 @@ model Link {
   cardOne         String
   cardTwo         String
   status          LinkType
-  recentChangeBy  String  // Useful for logical statements later (Ex. cannot change to 'accepted' unless other user set 'requested')
+  recentChangeBy  String
   bothUserBlock   Boolean  @default(false)
+  bothUserMute    Boolean  @default(false)
   notes           LinkNotes[]
   messages        LinkMessages[]
   photos          LinkPhoto[]
