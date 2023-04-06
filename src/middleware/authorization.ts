@@ -29,127 +29,144 @@ export const adminAuthorization = (req: RequestUserAuth, res: Response, next: Ne
 }
 
 export const cardAuthorization = async (req: RequestUserAuth, res: Response, next: NextFunction): Promise<any> => {
-  // Verify card exists
-  const card = await db.card.findUnique({ where: { cardId: req.params.cardId } })
-  if (!card) {
-    return res.status(404).json({
-      code: codes.NOT_FOUND,
-      message: messages.CARD_NOT_FOUND
-    })
-  }
-  if (card.userId === req.user?.id || req.user?.role === roles.SUPER_ADMIN) {
-    next()
-  } else {
-    return res.status(403).json({
-      code: codes.FORBIDDEN,
-      message: messages.ACCESS_DENIED
-    })
+  try {
+    // Verify card exists
+    const card = await db.card.findUnique({ where: { cardId: req.params.cardId } })
+    if (!card) {
+      return res.status(404).json({
+        code: codes.NOT_FOUND,
+        message: messages.CARD_NOT_FOUND
+      })
+    }
+    if (card.userId === req.user?.id || req.user?.role === roles.SUPER_ADMIN) {
+      next()
+    } else {
+      return res.status(403).json({
+        code: codes.FORBIDDEN,
+        message: messages.ACCESS_DENIED
+      })
+    }
+  } catch (error: any) {
+    console.error(error)
+    return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
   }
 }
 
 export const linkAuthorization = async (req: RequestLink, res: Response, next: NextFunction): Promise<any> => {
-  // Verify Link exists
-  const link = await db.link.findUnique({
-    where: {
-      id: req.params.linkId
-    },
-    include: {
-      photos: true
-    }
-  })
-  if (!link) {
-    return res.status(400).json({
-      code: codes.BAD_REQUEST,
-      message: messages.LINK_NOT_FOUND
+  try {
+    // Verify Link exists
+    const link = await db.link.findUnique({
+      where: {
+        id: req.params.linkId
+      },
+      include: {
+        photos: true
+      }
     })
-  }
-  // Set req.link
-  req.link = link
+    if (!link) {
+      return res.status(400).json({
+        code: codes.BAD_REQUEST,
+        message: messages.LINK_NOT_FOUND
+      })
+    }
+    // Set req.link
+    req.link = link
 
-  // Find Cards Associated with logged in user
-  const cards = await db.userBio.findUnique({
-    where: {
-      id: req.user?.id
-    },
-    select: {
-      cards: {
-        select: {
-          cardId: true
+    // Find Cards Associated with logged in user
+    const cards = await db.userBio.findUnique({
+      where: {
+        id: req.user?.id
+      },
+      select: {
+        cards: {
+          select: {
+            cardId: true
+          }
         }
       }
-    }
-  })
-  if (!cards) {
-    return res.status(404).json({
-      code: codes.NOT_FOUND,
-      message: messages.CARD_NOT_FOUND
     })
-  }
-
-  const cardIds = cards.cards.map(element => element.cardId)
-
-  // Discover which card is making the request and set req.card
-  if (cardIds.includes(link.cardOne)) {
-    req.card = {
-      requester: link.cardOne,
-      recipient: link.cardTwo
+    if (!cards) {
+      return res.status(404).json({
+        code: codes.NOT_FOUND,
+        message: messages.CARD_NOT_FOUND
+      })
     }
-  } else {
-    req.card = {
-      requester: link.cardTwo,
-      recipient: link.cardOne
+
+    const cardIds = cards.cards.map(element => element.cardId)
+
+    // Discover which card is making the request and set req.card
+    if (cardIds.includes(link.cardOne)) {
+      req.card = {
+        requester: link.cardOne,
+        recipient: link.cardTwo
+      }
+    } else if (cardIds.includes(link.cardTwo)) {
+      req.card = {
+        requester: link.cardTwo,
+        recipient: link.cardOne
+      }
+    } else {
+      throw Error('Link Authorization failed.')
     }
+    next()
+  } catch (error: any) {
+    console.error(error)
+    return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
   }
-  next()
 }
 
 export const noteAuthorization = async (req: RequestUserAuth, res: Response, next: NextFunction): Promise<any> => {
-  // Verify Note Exists
-  const existingNote = await db.linkNotes.findUnique({
-    where: {
-      id: req.params.noteId
-    },
-    include: {
-      Link: {
-        include: {
-          CardOneRef: {
-            select: {
-              userId: true,
-              cardId: true
-            }
-          },
-          CardTwoRef: {
-            select: {
-              userId: true,
-              cardId: true
+  try {
+    // Verify Note Exists
+    const existingNote = await db.linkNotes.findUnique({
+      where: {
+        id: req.params.noteId
+      },
+      include: {
+        Link: {
+          include: {
+            CardOneRef: {
+              select: {
+                userId: true,
+                cardId: true
+              }
+            },
+            CardTwoRef: {
+              select: {
+                userId: true,
+                cardId: true
+              }
             }
           }
         }
       }
+    })
+    if (!existingNote) {
+      return res.status(404).json({
+        code: codes.NOT_FOUND,
+        message: messages.NOTE_NOT_FOUND
+      })
     }
-  })
-  if (!existingNote) {
-    return res.status(404).json({
-      code: codes.NOT_FOUND,
-      message: messages.NOTE_NOT_FOUND
-    })
-  }
 
-  // Verify User Matches
-  if ((req.user?.id !== existingNote.Link.CardOneRef.userId && existingNote.Link.CardTwoRef.cardId !== existingNote.authorId) ||
-      (req.user?.id !== existingNote.Link.CardTwoRef.userId && existingNote.Link.CardOneRef.cardId !== existingNote.authorId)) {
-    return res.status(400).json({
-      code: codes.BAD_REQUEST,
-      message: messages.NOTE_UNAUTHORIZED
-    })
-  }
+    // Verify User Matches
+    if ((req.user?.id !== existingNote.Link.CardOneRef.userId && existingNote.Link.CardTwoRef.cardId !== existingNote.authorId) ||
+        (req.user?.id !== existingNote.Link.CardTwoRef.userId && existingNote.Link.CardOneRef.cardId !== existingNote.authorId)) {
+      return res.status(400).json({
+        code: codes.BAD_REQUEST,
+        message: messages.NOTE_UNAUTHORIZED
+      })
+    }
 
-  // Verify Link Status
-  if (existingNote.Link.status !== 'accepted') {
-    return res.status(400).json({
-      code: codes.BAD_REQUEST,
-      message: messages.NOTE_NOT_ACCEPTED
-    })
+    // Verify Link Status
+    if (existingNote.Link.status !== 'accepted') {
+      return res.status(400).json({
+        code: codes.BAD_REQUEST,
+        message: messages.NOTE_NOT_ACCEPTED
+      })
+    }
+    next()
+  } catch (error: any) {
+    console.error(error)
+    return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
   }
-  next()
 }

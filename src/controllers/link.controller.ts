@@ -446,18 +446,22 @@ class LinkController extends BaseController {
       })
 
       // Loop through all cards, find links and return
-      const allLinks: IArrayLink[] = []
+      const favorites: IArrayLink[] = []
+      const general: IArrayLink[] = []
       for (const card of cards) {
-        const Links = await db.link.findMany({
+        // Favorites
+        const favoriteLinks = await db.link.findMany({
           where: {
             OR: [
               {
                 cardOne: card.cardId,
-                status: 'accepted'
+                status: 'accepted',
+                cardOneFavorite: true
               },
               {
                 cardTwo: card.cardId,
-                status: 'accepted'
+                status: 'accepted',
+                cardTwoFavorite: true
               }
             ]
           },
@@ -468,17 +472,47 @@ class LinkController extends BaseController {
             updatedAt: true
           }
         })
-        allLinks.push({
+        favorites.push({
           cardId: card.cardId,
-          Links
+          Links: favoriteLinks
+        })
+
+        // General
+        const generalLinks = await db.link.findMany({
+          where: {
+            OR: [
+              {
+                cardOne: card.cardId,
+                status: 'accepted',
+                cardOneFavorite: false
+              },
+              {
+                cardTwo: card.cardId,
+                status: 'accepted',
+                cardTwoFavorite: false
+              }
+            ]
+          },
+          select: {
+            id: true,
+            cardOne: true,
+            cardTwo: true,
+            updatedAt: true
+          }
+        })
+        general.push({
+          cardId: card.cardId,
+          Links: generalLinks
         })
       }
 
       // Grab base info and return
-      const allAccepted = await this.#getBaseInfoAllCards(allLinks)
+      const favoriteLinks = await this.#getBaseInfoAllCards(favorites)
+      const generalLinks = await this.#getBaseInfoAllCards(general)
 
       return res.status(200).json({
-        allAccepted,
+        favoriteLinks,
+        generalLinks,
         code: codes.OK,
         message: messages.SUCCESS
       })
@@ -1021,6 +1055,81 @@ class LinkController extends BaseController {
       })
       return res.status(200).json({
         images,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  /* Link Favorites */
+  addToFavorites = async (req: RequestLink, res: Response): Promise<Response> => {
+    try {
+      // Confirm req.card & req.link are set
+      if (!req.card?.requester || !req.card?.recipient || !req.link) {
+        throw Error(messages.LINK_MIDDLEWARE)
+      }
+
+      // Update and return
+      if (req.card.requester === req.link.cardOne) {
+        await db.link.update({
+          where: {
+            id: req.link.id
+          },
+          data: {
+            cardOneFavorite: true
+          }
+        })
+      } else {
+        await db.link.update({
+          where: {
+            id: req.link.id
+          },
+          data: {
+            cardTwoFavorite: true
+          }
+        })
+      }
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  removeFavorites = async (req: RequestLink, res: Response): Promise<Response> => {
+    try {
+      // Confirm req.card & req.link are set
+      if (!req.card?.requester || !req.card?.recipient || !req.link) {
+        throw Error(messages.LINK_MIDDLEWARE)
+      }
+
+      // Update and return
+      if (req.card.requester === req.link.cardOne) {
+        await db.link.update({
+          where: {
+            id: req.link.id
+          },
+          data: {
+            cardOneFavorite: false
+          }
+        })
+      } else {
+        await db.link.update({
+          where: {
+            id: req.link.id
+          },
+          data: {
+            cardTwoFavorite: false
+          }
+        })
+      }
+      return res.status(200).json({
         code: codes.OK,
         message: messages.SUCCESS
       })
