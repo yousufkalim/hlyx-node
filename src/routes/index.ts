@@ -31,6 +31,7 @@ router.put('/user/update/bio/:userId', authenticate, userAuthorization, UserCont
 router.put('/user/update/avatar/:userId', authenticate, userAuthorization, UserController.updateProfileAvatar)
 router.post('/user/add/card/:userId', authenticate, userAuthorization, UserController.addCard)
 router.post('/user/add/profile-photo/:userId', authenticate, userAuthorization, UserController.addProfilePhoto)
+router.delete('/user/delete/profile-photo/:userId', authenticate, userAuthorization, UserController.deleteProfilePhoto)
 router.get('/user/find/profile-photos/:userId', authenticate, userAuthorization, UserController.findProfilePhotos)
 
 // Card Routes
@@ -48,6 +49,7 @@ router.post('/card/add/company-icon/:cardId', authenticate, cardAuthorization, C
 router.put('/card/update/company-icon/:cardId', authenticate, cardAuthorization, CardController.updateCompanyIcon)
 router.get('/card/find/company-icon/:cardId', authenticate, cardAuthorization, CardController.findCompanyIcons)
 
+router.put('/card/update/card-name/:cardId', authenticate, cardAuthorization, CardController.updateCardName)
 router.put('/card/update/full-name/:cardId', authenticate, cardAuthorization, CardController.updateFullName)
 router.put('/card/update/contact-page/:cardId', authenticate, cardAuthorization, CardController.updateContactPage)
 router.put('/card/update/about-page/:cardId', authenticate, cardAuthorization, CardController.updateAboutPage)

@@ -33,6 +33,7 @@ export const messages = {
   CODE_SENT_PHONE_SUCCESS: 'Code texted to your phone, Please verify',
   VERIFIED_SUCCESS: 'Verified successfully',
   PASSWORD_FAILURE: 'Password fails to match the Minimum eight characters, at least one letter and one number',
+  ONBOARDING_INCOMPLETE: 'Please finish the onboarding process before adding a card',
   CARD_NOT_FOUND: 'Card not found',
   EXCEEDS_CARD_LIMIT: 'Adding another card would exceed the allotted amount allowed',
   EXCEEDS_PHOTO_LIMIT: 'Adding another photo would exceed the allotted amount allowed',
@@ -61,8 +62,10 @@ export const messages = {
   LINK_ALREADY_BLOCKED: 'This users are already blocked',
   LINK_ALREADY_REQUESTED: 'You have already requested to Link with this user',
   LINK_CARD_ID_NOT_FOUND: 'Card ID added as link for card that is not in our system',
-  LINK_NOT_BLOCKED: 'This user is not blocked by you.',
+  LINK_NOT_BLOCKED: 'This link is not blocked by you.',
+  LINK_NOTE_MUTED: 'This link is not blocked by you.',
   NOTE_NOT_ACCEPTED: 'Cannot access note routes for a link whose status is not accepted',
   NOTE_NOT_FOUND: 'Note not found',
-  NOTE_UNAUTHORIZED: 'Note was not authored by authenticated user'
+  NOTE_UNAUTHORIZED: 'Note was not authored by authenticated user',
+  MUTE_INVALID: 'Cannot mute a link the is not already accepted'
 }

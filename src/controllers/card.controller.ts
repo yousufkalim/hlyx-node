@@ -5,7 +5,7 @@ import { RequestUserAuth } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { cardAboutPageParams, cardContactPageParams, cardControllerParams } from '../config/params'
-import { validateCardFullName, validateCardContactPage, validateCardAboutPage, validateCardServices, validateCardPortfolio, validateCardSlug } from '../utils/validations/card.controller.validation'
+import { validateCardName, validateCardFullName, validateCardContactPage, validateCardAboutPage, validateCardServices, validateCardPortfolio, validateCardSlug } from '../utils/validations/card.controller.validation'
 import { templateIds } from '../config/enumTypes'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
 import { awsUploadFile } from '../utils/aws-image'
@@ -21,6 +21,8 @@ class CardController extends BaseController {
           cardId: req.params.cardId
         },
         select: {
+          cardName: true,
+          coverPhoto: true,
           slug: true,
           publicCard: true,
           templateId: true,
@@ -527,6 +529,37 @@ class CardController extends BaseController {
       })
       return res.status(200).json({
         images,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Update Card Name
+  updateCardName = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const params = this.filterParams(req.body, cardControllerParams)
+    const { cardName } = params
+    try {
+      const validationError = validateCardName(params)
+      if (validationError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+      // Update and return
+      await db.card.update({
+        where: {
+          cardId: req.params.cardId
+        },
+        data: {
+          cardName
+        }
+      })
+      return res.status(200).json({
         code: codes.OK,
         message: messages.SUCCESS
       })

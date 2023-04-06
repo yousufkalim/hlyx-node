@@ -40,6 +40,10 @@ export interface ICard {
   qrCode: string
 }
 
+export interface IValidateCardName {
+  cardName: string
+}
+
 export interface IValidateCardFullName {
   fullName: string
 }
