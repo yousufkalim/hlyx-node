@@ -17,3 +17,5 @@ export const servicesTypes = ['featured', 'main']
 export const templateIds = ['DEFAULT', 'PAID']
 
 export const linksTypes = ['requested', 'accepted', 'declined', 'blocked']
+
+export const directsTo = ['linkRequest', 'message', 'contact']
