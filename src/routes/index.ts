@@ -61,7 +61,6 @@ router.put('/card/update/public-visibility/:cardId', authenticate, cardAuthoriza
 router.put('/card/update/template/:cardId', authenticate, cardAuthorization, CardController.updateTemplateId)
 router.put('/card/update/slug/:cardId', authenticate, cardAuthorization, CardController.updateSlug)
 
-// (Currently Unused)
 router.delete('/card/delete/:cardId', authenticate, cardAuthorization, CardController.delete)
 
 // Link Routes
