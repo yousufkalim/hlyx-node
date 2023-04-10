@@ -1001,6 +1001,8 @@ class LinkController extends BaseController {
     }
   }
 
+  /* ADD DELETE IMAGE ROUTE */
+
   /* Link Favorites */
   addToFavorites = async (req: RequestLink, res: Response): Promise<Response> => {
     try {

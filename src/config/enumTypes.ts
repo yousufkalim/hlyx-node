@@ -14,7 +14,7 @@ export const businessNeedsStatus = ['Active', 'Filled']
 
 export const servicesTypes = ['featured', 'main']
 
-export const templateIds = ['DEFAULT', 'PAID']
+export const templateIds = ['DEFAULT', 'FULL']
 
 export const linksTypes = ['requested', 'accepted', 'declined', 'blocked']
 

@@ -297,16 +297,22 @@ class UserController extends BaseController {
       // AWS API Call
       const pathToFile = await awsUploadFile(file.data, req.params.userId, 'profile-photo', file.name, file.mimetype)
 
+      const data: any = {
+        profilePhotos: {
+          create: {
+            pathToFile
+          }
+        }
+      }
+      // Check if make makeAvatar is true
+      if (req.body.makeAvatar === true) {
+        data.profileAvatar = pathToFile
+      }
+
       // Update and return
       await db.userBio.update({
         where: { id: req.params.userId },
-        data: {
-          profilePhotos: {
-            create: {
-              pathToFile
-            }
-          }
-        }
+        data
       })
       return res.status(200).json({
         pathToFile,

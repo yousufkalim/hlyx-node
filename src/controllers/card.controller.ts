@@ -345,6 +345,8 @@ class CardController extends BaseController {
     }
   }
 
+  /* ADD DELETE ROUTE */
+
   // Update active Cover Photo
   updateCoverPhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, cardControllerParams)
@@ -468,6 +470,8 @@ class CardController extends BaseController {
       return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
+
+  /* ADD DELETE ROUTE */
 
   // Update Company Icon
   updateCompanyIcon = async (req: RequestUserAuth, res: Response): Promise<Response> => {
@@ -949,6 +953,8 @@ class CardController extends BaseController {
     }
   }
 
+  /* ADD DELETE ROUTE */
+
   // Update visibility status
   updatePublicVisibility = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const { publicCard } = req.body
@@ -1024,7 +1030,7 @@ class CardController extends BaseController {
     }
   }
 
-  // Update Template (Unused Currently)
+  // Update Template
   updateTemplateId = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const { templateId } = req.body
     try {
