@@ -90,6 +90,7 @@ model Card {
   companyIcons      CardCompanyIcons[]
   fullName          String    
   // Contact Page
+  headerPhoto       String?
   emails            CardEmails[]
   phones            CardPhones[]
   calendar          String?

@@ -62,6 +62,7 @@ export const cardControllerParams = [
 ]
 
 export const cardContactPageParams = [
+  'headerPhoto',
   'emails',
   'phones',
   'calendar',

@@ -616,6 +616,24 @@ class CardController extends BaseController {
         })
       }
 
+      // Verify Header Photo Exists
+      if (params.headerPhoto) {
+        const photo = await db.cardCoverPhotos.findUnique({
+          where: {
+            cardId_pathToFile: {
+              cardId: req.params.cardId,
+              pathToFile: params.headerPhoto
+            }
+          }
+        })
+        if (!photo) {
+          return res.status(404).json({
+            code: codes.NOT_FOUND,
+            message: messages.IMAGE_NOT_FOUND
+          })
+        }
+      }
+
       // Check one-to-many relations
       // Emails
       if (params.emails) {
