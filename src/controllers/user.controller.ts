@@ -305,7 +305,7 @@ class UserController extends BaseController {
         }
       }
       // Check if make makeAvatar is true
-      if (req.body.makeAvatar === true) {
+      if (req.body.makeAvatar === 'true') {
         data.profileAvatar = pathToFile
       }
 
