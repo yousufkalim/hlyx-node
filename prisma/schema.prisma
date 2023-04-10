@@ -11,19 +11,19 @@ datasource db {
 }
 
 model UserAuth {
-  id              String    @id @default(uuid())
-  email           String    @unique
-  phone           String?   @unique
-  password        String
-  isEmailVerified Boolean   @default(false)
-  isPhoneVerified Boolean   @default(false)
-  isPaused        Boolean   @default(false)
-  isDeleted       Boolean   @default(false)
-  passwordReset   DateTime?
-  role            Role      @default(USER)
-  userBio         UserBio?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                String    @id @default(uuid())
+  email             String    @unique
+  phone             String?   @unique
+  password          String
+  isEmailVerified   Boolean   @default(false)
+  isPhoneVerified   Boolean   @default(false)
+  isPaused          Boolean   @default(false)
+  isDeleted         Boolean   @default(false)
+  passwordReset     DateTime?
+  role              Role      @default(USER)
+  userBio           UserBio?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   // Required to pass to UserBio
   @@unique([id, email, phone]) 
@@ -31,31 +31,30 @@ model UserAuth {
 
 // Updated during onboarding process and used to initialize card creation
 model UserBio {
-  id              String    @id
-  User            UserAuth? @relation(fields: [id, email, phone], references: [id, email, phone], onDelete: Cascade, onUpdate: Cascade)
-  profileAvatar   String    @default("routeToOurDefaultAvatar")
+  id                String    @id
+  User              UserAuth? @relation(fields: [id, email, phone], references: [id, email, phone], onDelete: Cascade, onUpdate: Cascade)
+  profileAvatar     String    @default("routeToOurDefaultAvatar")
   isOnBoardingComplete Boolean @default(false)
-  // notifications   Notification[]
   // Personal Info
-  firstName       String?
-  middleInitial   String?  
-  lastName        String?
-  email           String
-  phone           String?
+  firstName         String?
+  middleInitial     String?  
+  lastName          String?
+  email             String
+  phone             String?
   // Profession
-  company         String? 
-  profTitle       String?
-  industry        String?
-  profRole        String?
-  website         String?
+  company           String? 
+  profTitle         String?
+  industry          String?
+  profRole          String?
+  website           String?
   // Location
-  country         String?
-  city            String?
-  state           String?
-  zipcode         String?
-  profilePhotos   UserPhoto[]
-  cards           Card[]
-  updatedAt       DateTime  @updatedAt
+  country           String?
+  city              String?
+  state             String?
+  zipcode           String?
+  profilePhotos     UserPhoto[]
+  cards             Card[]
+  updatedAt         DateTime  @updatedAt
 
   // Required to link with User
   @@unique([id, email, phone])
@@ -65,90 +64,79 @@ model UserBio {
 }
 
 model UserPhoto {
-  User          UserBio   @relation(fields: [userId], references: [id] , onDelete: Cascade, onUpdate: Cascade)
-  userId        String
-  pathToFile    String
+  User              UserBio   @relation(fields: [userId], references: [id] , onDelete: Cascade, onUpdate: Cascade)
+  userId            String
+  pathToFile        String
   @@id([userId, pathToFile])
 }
 
-// model Notification {
-//   notificationId  String    @id @default(uuid())
-//   User            UserBio?  @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-//   userId          String
-//   status          NotificationStatus   @default(active)
-//   message         String
-//   userCard        String
-//   directsTo       String?   // When pressed go here
-//   updatedAt       DateTime  @updatedAt
-// }
-
 model Card {
-  cardId          String    @id @default(uuid())
-  User            UserBio   @relation(fields: [userId, userAvatar], references: [id, profileAvatar], onDelete: Cascade, onUpdate: Cascade)
-  userId          String
-  Links           Link[]    @relation("CardOneRef")
-  LinksDuplicate  Link[]    @relation("CardTwoRef") // IMPORTANT NOTE: This is only included to make prisma happy; however, this should not be referenced in any queries
-  LinkPhoto       LinkPhoto[]
+  cardId            String    @id @default(uuid())
+  User              UserBio   @relation(fields: [userId, userAvatar], references: [id, profileAvatar], onDelete: Cascade, onUpdate: Cascade)
+  userId            String
+  Links             Link[]    @relation("CardOneRef")
+  LinksDuplicate    Link[]    @relation("CardTwoRef") // IMPORTANT NOTE: This is only included to make prisma happy; however, this should not be referenced in any queries
+  LinkPhoto         LinkPhoto[]
   // Auth
-  cardName        String
-  slug            String?   @unique
-  publicCard      Boolean   @default(true)
-  templateId      TemplateIdentification    @default(DEFAULT)
+  cardName          String
+  slug              String?   @unique
+  publicCard        Boolean   @default(true)
+  templateId        TemplateIdentification    @default(DEFAULT)
   // Header
-  userAvatar      String
-  coverPhoto      String?
-  coverPhotos     CardCoverPhotos[]
-  companyIcon     String?
-  companyIcons    CardCompanyIcons[]
-  fullName        String    
+  userAvatar        String
+  coverPhoto        String?
+  coverPhotos       CardCoverPhotos[]
+  companyIcon       String?
+  companyIcons      CardCompanyIcons[]
+  fullName          String    
   // Contact Page
-  emails          CardEmails[]
-  phones          CardPhones[]
-  calendar        String?
-  websites        CardWebsites[]
-  country         String?
-  city            String?
-  state           String?
-  streetAddress   String?
-  zipcode         String?
-  socialMedias    CardSocialMedias[]
-  additionalLinks CardAdditionalLinks[]
+  emails            CardEmails[]
+  phones            CardPhones[]
+  calendar          String?
+  websites          CardWebsites[]
+  country           String?
+  city              String?
+  state             String?
+  streetAddress     String?
+  zipcode           String?
+  socialMedias      CardSocialMedias[]
+  additionalLinks   CardAdditionalLinks[]
   // About Page
-  about           String?
-  company         String?
-  profTitle       String?
-  occupation      String?
-  industry        String?
-  education       CardEducations[]
-  accolades       CardAccolades[]
-  achievements    CardAchievements[]
-  businessGoals   CardBusinessGoals[]
-  businessNeeds   CardBusinessNeeds[]
-  hobbies         String[]
-  interests       String[]
-  skills          String[]
-  motto           String?
+  about             String?
+  company           String?
+  profTitle         String?
+  occupation        String?
+  industry          String?
+  education         CardEducations[]
+  accolades         CardAccolades[]
+  achievements      CardAchievements[]
+  businessGoals     CardBusinessGoals[]
+  businessNeeds     CardBusinessNeeds[]
+  hobbies           String[]
+  interests         String[]
+  skills            String[]
+  motto             String?
   // Services
-  services        CardServices[]
+  services          CardServices[]
   // Portfolio
   portfolioTemplate PortfolioTemplateIdentification @default(DEFAULT)
-  portfolio       CardPortfolio[]
-  portfolioImages CardPortfolioImages[]
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  portfolio         CardPortfolio[]
+  portfolioImages   CardPortfolioImages[]
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 model CardCoverPhotos {
-  Card          Card   @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
-  cardId        String
-  pathToFile    String
+  Card            Card   @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
+  cardId          String
+  pathToFile      String
   @@id([cardId, pathToFile])
 }
 
 model CardCompanyIcons {
-  Card          Card   @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
-  cardId        String
-  pathToFile    String
+  Card            Card   @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
+  cardId          String
+  pathToFile      String
   @@id([cardId, pathToFile])
 }
 
@@ -292,9 +280,12 @@ model Link {
   photos          LinkPhoto[]
   cardOneFavorite Boolean   @default(false)
   cardTwoFavorite Boolean   @default(false)
+  notifcations    LinkNotification[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+
   @@unique([cardOne, cardTwo])
+  @@unique([id, cardOne, cardTwo]) // For Link Notifications
 }
 
 model LinkNotes {
@@ -328,6 +319,18 @@ model LinkPhoto {
   @@id([linkId, pathToFile])
 }
 
+model LinkNotification {
+  notificationId  String    @id @default(uuid())
+  Link            Link      @relation(fields: [linkId, cardOne, cardTwo], references: [id, cardOne, cardTwo], onDelete: Cascade, onUpdate: Cascade)
+  linkId          String
+  ownerId         String
+  cardOne         String    
+  cardTwo         String
+  status          NotificationStatus   @default(active)
+  details         String
+  directsTo       NotificationDirectsTo
+  updatedAt       DateTime  @updatedAt
+}
 
 // Enums
 enum Role {
@@ -412,4 +415,10 @@ enum LinkType {
 enum NotificationStatus {
   active
   archived
+}
+
+enum NotificationDirectsTo {
+  linkRequest
+  message
+  contact
 }

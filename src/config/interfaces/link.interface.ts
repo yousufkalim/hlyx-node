@@ -28,6 +28,7 @@ export interface ILinks {
   recentChangeBy?: string
   bothUserBlock?: boolean
   photos?: ILinkPhoto[]
+  notifications?: INotification[]
   updatedAt: Date
   createdAt?: Date
 }
@@ -52,4 +53,27 @@ export interface INote {
 
 export interface IValidateNote {
   note: string
+}
+
+export interface IValidateNotification {
+  message: string
+  directsTo: string
+}
+
+export interface INotificationArray {
+  cardId: string
+  notificaiton: INotification
+  otherCardInfo: ILinkWithBaseInfo
+}
+
+interface INotification {
+  notificationId: string
+  linkId: string
+  ownerId: string
+  cardOne: string
+  cardTwo: string
+  status: string
+  details: string
+  directsTo: string
+  updatedAt: Date
 }

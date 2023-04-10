@@ -103,6 +103,7 @@ class AuthController extends BaseController {
           }
           return res.status(200).json({
             token,
+            id: user.id,
             isEmailVerified: user.isEmailVerified,
             isPhoneVerified: user.isPhoneVerified,
             code: codes.OK,
@@ -171,6 +172,7 @@ class AuthController extends BaseController {
           await sendCodeToEmail(email)
           return res.status(201).json({
             token,
+            id: createUser.id,
             code: codes.CREATED,
             message: messages.CODE_SENT_SUCCESS
           })

@@ -67,5 +67,9 @@ export const messages = {
   NOTE_NOT_ACCEPTED: 'Cannot access note routes for a link whose status is not accepted',
   NOTE_NOT_FOUND: 'Note not found',
   NOTE_UNAUTHORIZED: 'Note was not authored by authenticated user',
-  MUTE_INVALID: 'Cannot mute a link the is not already accepted'
+  MUTE_INVALID: 'Cannot mute a link the is not already accepted',
+  NOTIFICATION_CONTACT_INVALID: 'When sharing a contact, details should be a valid cardId',
+  NOTIFICATION_NOT_FOUND: 'Notification not found',
+  NOTIFICATION_UNAUTHORIZED: 'Notification belongs to another authenticated user',
+  NOTIFACITION_OUT_OF_SYNC: 'Notifications are out of sync within our database'
 }
