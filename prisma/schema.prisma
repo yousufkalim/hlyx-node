@@ -362,7 +362,7 @@ enum PhoneType {
 
 enum SocialMediaPlatforms {
   // Add more once list of supported platforms is finalized
-  linkedin
+  linkedIn
   youtube
   slack
   reddit
@@ -370,6 +370,7 @@ enum SocialMediaPlatforms {
   facebook
   twitter
   instagram
+  medium
 }
 
 enum DegreeType {
@@ -384,6 +385,7 @@ enum AdditionalLinksType {
   audio
   video
   website
+  file
 }
 
 enum BusinessGoalsStatus {

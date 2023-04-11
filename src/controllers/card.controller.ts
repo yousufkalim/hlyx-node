@@ -323,16 +323,23 @@ class CardController extends BaseController {
       // AWS API Call
       const pathToFile = await awsUploadFile(file.data, req.params.cardId, 'cover-photo', file.name, file.mimetype)
 
+      const data: any = {
+        coverPhotos: {
+          create: {
+            pathToFile
+          }
+        }
+      }
+
+      // Check if make makeActive is true
+      if (req.body.makeActive === 'true') {
+        data.coverPhoto = pathToFile
+      }
+
       // Update and return
       await db.card.update({
         where: { cardId: req.params.cardId },
-        data: {
-          coverPhotos: {
-            create: {
-              pathToFile
-            }
-          }
-        }
+        data
       })
       return res.status(200).json({
         pathToFile,
@@ -450,18 +457,26 @@ class CardController extends BaseController {
       // AWS API Call
       const pathToFile = await awsUploadFile(file.data, req.params.cardId, 'company-icon', file.name, file.mimetype)
 
+      const data: any = {
+        companyIcons: {
+          create: {
+            pathToFile
+          }
+        }
+      }
+
+      // Check if make makeActive is true
+      if (req.body.makeActive === 'true') {
+        data.companyIcon = pathToFile
+      }
+
       // Update and return
       await db.card.update({
         where: { cardId: req.params.cardId },
-        data: {
-          companyIcons: {
-            create: {
-              pathToFile
-            }
-          }
-        }
+        data
       })
       return res.status(200).json({
+        pathToFile,
         code: codes.OK,
         message: messages.SUCCESS
       })
@@ -896,6 +911,7 @@ class CardController extends BaseController {
         }
       })
       return res.status(200).json({
+        pathToFile,
         code: codes.OK,
         message: messages.SUCCESS
       })
