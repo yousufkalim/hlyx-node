@@ -6,7 +6,9 @@ export const academicLevels = ['High School', 'Vocational Degree', 'College Degr
 
 export const degreeTypes = ['Associates', 'Bachelors', 'Masters', 'Doctorate']
 
-export const additionalLinksType = ['article', 'audio', 'video', 'website']
+export const socialMedia = ['linkedIn', 'youtube', 'slack', 'reddit', 'discord', 'facebook', 'twitter', 'instagram', 'medium']
+
+export const additionalLinksType = ['article', 'audio', 'video', 'website', 'file']
 
 export const businessGoalsStatus = ['Active', 'Achieved']
 
