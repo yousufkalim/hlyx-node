@@ -2,11 +2,11 @@ import { Response } from 'express'
 import { UploadedFile } from 'express-fileupload'
 
 import { RequestLink, RequestUserAuth } from '../config/interfaces/common.interface'
-import { IArrayLink, IArrayLinkWithBaseInfo, ILinkWithBaseInfo, INotificationArray } from '../config/interfaces/link.validation.interface'
+import { IArrayLink, IArrayLinkWithBaseInfo, ILinkWithBaseInfo } from '../config/interfaces/link.validation.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { linkControllerParams } from '../config/params'
-import { validateNote, validateNotification } from '../utils/validations/link.controller.validation'
+import { validateNote } from '../utils/validations/link.controller.validation'
 import { arrayLimits } from '../config/arrayLimits'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
 import { awsUploadFile } from '../utils/aws-image'
@@ -92,24 +92,52 @@ class LinkController extends BaseController {
       }
 
       // Create Link
-      const link = await db.link.create({
+      const card = await db.card.update({
+        where: {
+          cardId: req.card.requester
+        },
         data: {
-          cardOne: req.card.requester,
-          cardTwo: req.card.recipient,
-          status,
-          recentChangeBy: cardOne
+          Links: {
+            create: {
+              cardTwo: req.card.recipient,
+              status,
+              recentChangeBy: cardOne
+            }
+          }
         },
         select: {
-          id: true,
-          cardOne: true,
-          cardTwo: true,
-          updatedAt: true
+          Links: {
+            select: {
+              id: true,
+              cardOne: true,
+              cardTwo: true,
+              createdAt: true
+            },
+            orderBy: {
+              createdAt: 'desc'
+            },
+            take: 1
+          }
         }
       })
 
+      // // Connect Other Card to Link
+      // await db.card.update({
+      //   where: {
+      //     cardId: req.card.requester
+      //   },
+      //   data: {
+      //     Links: {
+      //       connect: {
+      //         id: card.Links[0].id
+      //       }
+      //     }
+      //   }
+      // })
+
       // Return
       return res.status(200).json({
-        link,
+        link: card.Links[0].id,
         code: codes.OK,
         message: messages.SUCCESS
       })
@@ -1078,212 +1106,6 @@ class LinkController extends BaseController {
     }
   }
 
-  /* Activites */
-  // Create Notification
-  createNotification = async (req: RequestLink, res: Response): Promise<Response> => {
-    const params = this.filterParams(req.body, linkControllerParams)
-    const { details, directsTo } = params
-    try {
-      // Confirm req.card & req.link are set
-      if (!req.card?.requester || !req.card?.recipient || !req.link) {
-        throw Error(messages.LINK_MIDDLEWARE)
-      }
-
-      // Validate Input
-      const validationError = validateNotification(params)
-      if (validationError) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: validationError
-        })
-      }
-
-      // Validate details is a cardId
-      if (directsTo === 'contact') {
-        const isCard = await db.card.findUnique({ where: { cardId: details } })
-        if (!isCard) {
-          return res.status(400).json({
-            code: codes.BAD_REQUEST,
-            message: messages.NOTIFICATION_CONTACT_INVALID
-          })
-        }
-      }
-
-      // Create and return
-      const notification = await db.linkNotification.create({
-        data: {
-          linkId: req.link.id,
-          cardOne: req.link.cardOne,
-          cardTwo: req.link.cardTwo,
-          ownerId: req.card.recipient,
-          details,
-          directsTo
-        }
-      })
-      return res.status(200).json({
-        notification,
-        code: codes.OK,
-        message: messages.SUCCESS
-      })
-    } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
-    }
-  }
-
-  // Archive Notification
-  archiveNotification = async (req: RequestLink, res: Response): Promise<Response> => {
-    try {
-      // Update and return
-      await db.linkNotification.update({
-        where: {
-          notificationId: req.params.notificationId
-        },
-        data: {
-          status: 'archived'
-        }
-      })
-      return res.status(200).json({
-        code: codes.OK,
-        message: messages.SUCCESS
-      })
-    } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
-    }
-  }
-
-  // Delete Notification
-  deleteNotification = async (req: RequestLink, res: Response): Promise<Response> => {
-    try {
-      // Delete and return
-      await db.linkNotification.delete({
-        where: {
-          notificationId: req.params.notificationId
-        }
-      })
-      return res.status(200).json({
-        code: codes.OK,
-        message: messages.SUCCESS
-      })
-    } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
-    }
-  }
-
-  // Get Active Notifications
-  getActiveNotification = async (req: RequestLink, res: Response): Promise<Response> => {
-    try {
-      // Find all cards associated with user
-      const cards = await db.card.findMany({
-        where: {
-          userId: req.params.userId
-        },
-        select: {
-          cardId: true
-        }
-      })
-
-      // Loop through all cards, find notifications and return
-      let activeNotifications: INotificationArray[] = []
-      for (const card of cards) {
-        // Favorites
-        const linksWithNotifications = await db.link.findMany({
-          where: {
-            OR: [
-              {
-                cardOne: card.cardId,
-                notifcations: { some: {} }
-              },
-              {
-                cardTwo: card.cardId,
-                notifcations: { some: {} }
-              }
-            ]
-          },
-          include: {
-            notifcations: {
-              where: {
-                status: 'active'
-              }
-            }
-          }
-        })
-        // Get necessary info from notificaitons
-        const getInfo = await this.#getInfoNotification(linksWithNotifications)
-        if (getInfo) {
-          activeNotifications = activeNotifications.concat(getInfo)
-        }
-      }
-
-      return res.status(200).json({
-        activeNotifications,
-        code: codes.OK,
-        message: messages.SUCCESS
-      })
-    } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
-    }
-  }
-
-  // Get Archived Notifications
-  getArchivedNotification = async (req: RequestLink, res: Response): Promise<Response> => {
-    try {
-      // Find all cards associated with user
-      const cards = await db.card.findMany({
-        where: {
-          userId: req.params.userId
-        },
-        select: {
-          cardId: true
-        }
-      })
-
-      // Loop through all cards, find notifications and return
-      let archivedNotifications: INotificationArray[] = []
-      for (const card of cards) {
-        // Favorites
-        const linksWithNotifications = await db.link.findMany({
-          where: {
-            OR: [
-              {
-                cardOne: card.cardId,
-                notifcations: { some: {} }
-              },
-              {
-                cardTwo: card.cardId,
-                notifcations: { some: {} }
-              }
-            ]
-          },
-          include: {
-            notifcations: {
-              where: {
-                status: 'archived'
-              }
-            }
-          }
-        })
-        // Get necessary info from notificaitons
-        const getInfo = await this.#getInfoNotification(linksWithNotifications)
-        if (getInfo) {
-          archivedNotifications = archivedNotifications.concat(getInfo)
-        }
-      }
-
-      return res.status(200).json({
-        archivedNotifications,
-        code: codes.OK,
-        message: messages.SUCCESS
-      })
-    } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
-    }
-  }
-
   /* Private Functions */
   #getBaseInfoAllCards = async (arrayLinks: IArrayLink[]): Promise<IArrayLinkWithBaseInfo[] | undefined> => {
     try {
@@ -1334,44 +1156,6 @@ class LinkController extends BaseController {
         linkInfo.push(otherCard)
       }
       return linkInfo
-    } catch (error: any) {
-      console.error(error)
-    }
-  }
-
-  #getInfoNotification = async (linksWithNotifications: any): Promise<INotificationArray[] | undefined> => {
-    try {
-      const returnArray: INotificationArray[] = []
-      for (const link of linksWithNotifications) {
-        for (const notificaiton of link.notifcations) {
-          let otherCardId = notificaiton.cardOne
-          if (notificaiton.ownerId === notificaiton.cardOne) {
-            otherCardId = notificaiton.cardTwo
-          }
-          const otherCardInfo = await db.card.findUnique({
-            where: {
-              cardId: otherCardId
-            },
-            select: {
-              cardId: true,
-              slug: true,
-              publicCard: true,
-              userAvatar: true,
-              fullName: true
-            }
-          })
-          if (!otherCardInfo) {
-            throw Error(messages.NOTIFACITION_OUT_OF_SYNC)
-          }
-          const notificaitonInfo = {
-            cardId: notificaiton.ownerId,
-            notificaiton,
-            otherCardInfo
-          }
-          returnArray.push(notificaitonInfo)
-        }
-      }
-      return returnArray
     } catch (error: any) {
       console.error(error)
     }

@@ -77,7 +77,8 @@ model Card {
   Links             Link[]    @relation("CardOneRef")
   LinksDuplicate    Link[]    @relation("CardTwoRef") // IMPORTANT NOTE: This is only included to make prisma happy; however, this should not be referenced in any queries
   LinkPhoto         LinkPhoto[]
-  ShareContact      SharedContact[]
+  ShareContacts     SharedContact[]
+  Notifications     Notification[]
   // Auth
   cardName          String
   slug              String?   @unique
@@ -282,26 +283,11 @@ model Link {
   photos          LinkPhoto[]
   cardOneFavorite Boolean   @default(false)
   cardTwoFavorite Boolean   @default(false)
-  notifcations    LinkNotification[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
   @@unique([cardOne, cardTwo])
   @@unique([id, cardOne, cardTwo]) // For Link Notifications
-}
-
-model SharedContact {
-  id              String   @id @default(uuid())
-  Card            Card     @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
-  cardId          String
-  fullName        String
-  company         String
-  jobTitle        String
-  phone           String
-  email           String
-  message         String
-  notes           String?
-  createdAt       DateTime  @default(now())
 }
 
 model LinkNotes {
@@ -335,15 +321,28 @@ model LinkPhoto {
   @@id([linkId, pathToFile])
 }
 
-model LinkNotification {
-  notificationId  String    @id @default(uuid())
-  Link            Link      @relation(fields: [linkId, cardOne, cardTwo], references: [id, cardOne, cardTwo], onDelete: Cascade, onUpdate: Cascade)
-  linkId          String
-  ownerId         String
-  cardOne         String    
-  cardTwo         String
+model SharedContact {
+  contactId       String   @id @default(uuid())
+  Card            Card     @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
+  cardId          String
+  status          SharedContactStatus @default(active)
+  fullName        String
+  company         String?
+  jobTitle        String?
+  phone           String
+  email           String
+  location        String?
+  message         String?
+  notes           String?
+  createdAt       DateTime  @default(now())
+}
+
+model Notification {
+  notificationId  String   @id @default(uuid())
+  Card            Card     @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
+  cardId          String
   status          NotificationStatus   @default(active)
-  details         String
+  message         String?
   directsTo       NotificationDirectsTo
   updatedAt       DateTime  @updatedAt
 }
@@ -438,5 +437,11 @@ enum NotificationStatus {
 enum NotificationDirectsTo {
   linkRequest
   message
-  contact
+  contactRequest
+  sharedContact
+}
+
+enum SharedContactStatus {
+  active
+  archived
 }

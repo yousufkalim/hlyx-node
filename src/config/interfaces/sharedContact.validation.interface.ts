@@ -1,10 +1,14 @@
 export interface IValidateSharedContact {
   cardId: string
   fullName: string
-  company: string
-  jobTitle: string
+  company?: string
+  jobTitle?: string
   phone: string
   email: string
-  message: string
+  location?: string
+  message?: string
+}
+
+export interface IValidateContactSharedContact {
   notes?: string
 }

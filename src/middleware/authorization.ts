@@ -173,25 +173,72 @@ export const noteAuthorization = async (req: RequestUserAuth, res: Response, nex
 
 export const notificationAuthorization = async (req: RequestUserAuth, res: Response, next: NextFunction): Promise<any> => {
   try {
-    // Validate Notification Exists
-    const notification = await db.linkNotification.findUnique({ where: { notificationId: req.params.notificationId } })
+    // Verify Notifcation Exists
+    const notification = await db.notification.findUnique({ where: { notificationId: req.params.notificationId } })
     if (!notification) {
       return res.status(400).json({
         code: codes.BAD_REQUEST,
-        message: messages.NOTIFICATION_NOT_FOUND
+        message: messages.CONTACT_NOT_FOUND
       })
     }
 
-    // Validate Authorized User Owns Notification
-    if (notification.ownerId !== req.user?.id) {
+    // Verify Notification Belongs to Authenticated User
+    const card = await db.card.findUnique({
+      where: {
+        cardId: notification.cardId
+      },
+      select: {
+        userId: true
+      }
+    })
+
+    if (!card) {
+      throw Error(messages.CONTACT_OUT_OF_SYNC)
+    }
+
+    if (card.userId !== req.user?.id) {
       return res.status(400).json({
         code: codes.BAD_REQUEST,
         message: messages.NOTIFICATION_UNAUTHORIZED
       })
     }
+    next()
+  } catch (error: any) {
+    console.error(error)
+    return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+  }
+}
 
-    if (notification.ownerId !== notification.cardOne && notification.ownerId !== notification.cardTwo) {
-      throw Error(messages.NOTIFACITION_OUT_OF_SYNC)
+export const sharedContactAuthorization = async (req: RequestUserAuth, res: Response, next: NextFunction): Promise<any> => {
+  try {
+    // Verify Contact Exists
+    const contact = await db.sharedContact.findUnique({ where: { contactId: req.params.contactId } })
+    if (!contact) {
+      return res.status(400).json({
+        code: codes.BAD_REQUEST,
+        message: messages.CONTACT_NOT_FOUND
+      })
+    }
+
+    // Verify Contact Belongs to Authenticated User
+    const card = await db.card.findUnique({
+      where: {
+        cardId: contact.cardId
+      },
+      select: {
+        userId: true
+      }
+    })
+
+    if (!card) {
+      throw Error(messages.CONTACT_OUT_OF_SYNC)
+    }
+
+    if (card.userId !== req.user?.id) {
+      return res.status(400).json({
+        code: codes.BAD_REQUEST,
+        message: messages.CONTACT_UNAUTHORIZED
+      })
     }
     next()
   } catch (error: any) {

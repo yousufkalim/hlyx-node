@@ -108,5 +108,6 @@ export const sharedContactControllerParams = [
   'phone',
   'email',
   'message',
+  'location',
   'notes'
 ]

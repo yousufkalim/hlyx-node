@@ -21,6 +21,14 @@ export interface RequestLink extends RequestUserAuth {
   link?: ILinks
 }
 
+export interface RequestNotification extends Request {
+  notification?: {
+    cardId: string
+    message?: string
+    directsTo: string
+  }
+}
+
 export interface IEmail {
   to: string
   from: string

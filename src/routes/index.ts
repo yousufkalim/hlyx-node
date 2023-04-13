@@ -4,8 +4,11 @@ import AuthController from '../controllers/auth.controller'
 import UserController from '../controllers/user.controller'
 import CardController from '../controllers/card.controller'
 import LinkController from '../controllers/link.controller'
+import SharedContactController from '../controllers/sharedContact.controller'
+import NotificationController from '../controllers/notification.controller'
+
 import { authenticate } from '../middleware/authentication'
-import { userAuthorization, cardAuthorization, linkAuthorization, noteAuthorization, notificationAuthorization } from '../middleware/authorization'
+import { userAuthorization, cardAuthorization, linkAuthorization, noteAuthorization, notificationAuthorization, sharedContactAuthorization } from '../middleware/authorization'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { config } from '../config/env.config.validations'
@@ -95,11 +98,18 @@ router.put('/link/add/favorites/:linkId', authenticate, linkAuthorization, LinkC
 router.put('/link/remove/favorites/:linkId', authenticate, linkAuthorization, LinkController.removeFavorites)
 
 // Notificaiton Routes
-router.post('/notification/create', authenticate, linkAuthorization, LinkController.createNotification)
-router.put('/notification/archive/:notificationId', authenticate, notificationAuthorization, LinkController.archiveNotification)
-router.delete('/notification/delete/:notificationId', authenticate, notificationAuthorization, LinkController.deleteNotification)
-router.get('/notification/get/active/:userId', authenticate, userAuthorization, LinkController.getActiveNotification)
-router.get('/notification/get/archived/:userId', authenticate, userAuthorization, LinkController.getArchivedNotification)
+router.get('/notification/find/active/:userId', authenticate, userAuthorization, NotificationController.getActiveNotification)
+router.get('/notification/find/archived/:userId', authenticate, userAuthorization, NotificationController.getArchivedNotification)
+router.put('/notification/update/archive/:notificationId', authenticate, notificationAuthorization, NotificationController.archiveNotification)
+router.delete('/notification/delete/:notificationId', authenticate, notificationAuthorization, NotificationController.deleteNotification)
+
+// Shared Contact Routes
+router.post('/contact/create', SharedContactController.create)
+router.get('/contact/find/active/:userId', authenticate, userAuthorization, SharedContactController.getActive)
+router.get('/contact/find/archived/:userId', authenticate, userAuthorization, SharedContactController.getArchived)
+router.put('/contact/update/status/:contactId', authenticate, sharedContactAuthorization, SharedContactController.updateStatus)
+router.put('/contact/update/note/:contactId', authenticate, sharedContactAuthorization, SharedContactController.updateNote)
+router.delete('/contact/delete/:contactId', authenticate, sharedContactAuthorization, SharedContactController.deleteContact)
 
 // Health Check
 router.get('/health-check', (req: Request, res: Response) => {
