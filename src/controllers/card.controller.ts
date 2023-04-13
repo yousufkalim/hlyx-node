@@ -8,7 +8,7 @@ import { cardAboutPageParams, cardContactPageParams, cardControllerParams } from
 import { validateCardName, validateCardFullName, validateCardContactPage, validateCardAboutPage, validateCardServices, validateCardPortfolio, validateCardSlug } from '../utils/validations/card.controller.validation'
 import { templateIds } from '../config/enumTypes'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
-import { awsUploadFile } from '../utils/aws-image'
+import { awsUploadFile, awsDeleteFile } from '../utils/aws-image'
 
 import BaseController from './base.controller'
 import { db } from '../utils/db'
@@ -352,7 +352,60 @@ class CardController extends BaseController {
     }
   }
 
-  /* ADD DELETE ROUTE */
+  // Delete Cover Photo
+  deleteCoverPhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const { pathToFile } = req.body
+    try {
+      if (!pathToFile) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: 'pathToFile required'
+        })
+      }
+
+      // Verify card / photo exists
+      const image = await db.cardCoverPhotos.findUnique({
+        where: {
+          cardId_pathToFile: {
+            cardId: req.params.cardId,
+            pathToFile
+          }
+        }
+      })
+      if (!image) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.IMAGE_NOT_FOUND
+        })
+      }
+
+      // AWS Call
+      const key = req.body.pathToFile.split('/').pop()
+      const result = await awsDeleteFile(key)
+
+      // Update and return
+      if (result) {
+        await db.cardCoverPhotos.delete({
+          where: {
+            cardId_pathToFile: {
+              cardId: req.params.cardId,
+              pathToFile
+            }
+          }
+        })
+      } else {
+        throw Error('AWS and database not in sync')
+      }
+
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
 
   // Update active Cover Photo
   updateCoverPhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
@@ -486,7 +539,60 @@ class CardController extends BaseController {
     }
   }
 
-  /* ADD DELETE ROUTE */
+  // Delete Cover Photo
+  deleteCompanyIcon = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const { pathToFile } = req.body
+    try {
+      if (!pathToFile) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: 'pathToFile required'
+        })
+      }
+
+      // Verify card / photo exists
+      const image = await db.cardCompanyIcons.findUnique({
+        where: {
+          cardId_pathToFile: {
+            cardId: req.params.cardId,
+            pathToFile
+          }
+        }
+      })
+      if (!image) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.IMAGE_NOT_FOUND
+        })
+      }
+
+      // AWS Call
+      const key = req.body.pathToFile.split('/').pop()
+      const result = await awsDeleteFile(key)
+
+      // Update and return
+      if (result) {
+        await db.cardCompanyIcons.delete({
+          where: {
+            cardId_pathToFile: {
+              cardId: req.params.cardId,
+              pathToFile
+            }
+          }
+        })
+      } else {
+        throw Error('AWS and database not in sync')
+      }
+
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
 
   // Update Company Icon
   updateCompanyIcon = async (req: RequestUserAuth, res: Response): Promise<Response> => {
@@ -987,7 +1093,60 @@ class CardController extends BaseController {
     }
   }
 
-  /* ADD DELETE ROUTE */
+  // Delete Portfolio Photo
+  deletePortfolioPhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const { pathToFile } = req.body
+    try {
+      if (!pathToFile) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: 'pathToFile required'
+        })
+      }
+
+      // Verify card / photo exists
+      const image = await db.cardPortfolioImages.findUnique({
+        where: {
+          cardId_pathToFile: {
+            cardId: req.params.cardId,
+            pathToFile
+          }
+        }
+      })
+      if (!image) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.IMAGE_NOT_FOUND
+        })
+      }
+
+      // AWS Call
+      const key = req.body.pathToFile.split('/').pop()
+      const result = await awsDeleteFile(key)
+
+      // Update and return
+      if (result) {
+        await db.cardPortfolioImages.delete({
+          where: {
+            cardId_pathToFile: {
+              cardId: req.params.cardId,
+              pathToFile
+            }
+          }
+        })
+      } else {
+        throw Error('AWS and database not in sync')
+      }
+
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
 
   // Update visibility status
   updatePublicVisibility = async (req: RequestUserAuth, res: Response): Promise<Response> => {

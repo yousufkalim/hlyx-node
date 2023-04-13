@@ -48,11 +48,13 @@ router.get('/card/find/portfolio-page/:cardId', CardController.getPortfolio)
 router.post('/card/add/cover-photo/:cardId', authenticate, cardAuthorization, CardController.addCoverPhoto)
 router.put('/card/update/cover-photo/:cardId', authenticate, cardAuthorization, CardController.updateCoverPhoto)
 router.get('/card/find/cover-photos/:cardId', authenticate, cardAuthorization, CardController.findCoverPhotos)
+router.delete('/card/delete/cover-photo/:cardId', authenticate, cardAuthorization, CardController.deleteCoverPhoto)
 
 // Card Company Icon
 router.post('/card/add/company-icon/:cardId', authenticate, cardAuthorization, CardController.addCompanyIcon)
 router.put('/card/update/company-icon/:cardId', authenticate, cardAuthorization, CardController.updateCompanyIcon)
 router.get('/card/find/company-icon/:cardId', authenticate, cardAuthorization, CardController.findCompanyIcons)
+router.delete('/card/delete/company-icon/:cardId', authenticate, cardAuthorization, CardController.deleteCompanyIcon)
 
 // Card Update Info Routes
 router.put('/card/update/card-name/:cardId', authenticate, cardAuthorization, CardController.updateCardName)
@@ -92,6 +94,7 @@ router.delete('/link/delete/note/:noteId', authenticate, noteAuthorization, Link
 // Link Images
 router.post('/link/add/link-photo/:linkId', authenticate, linkAuthorization, LinkController.addLinkPhoto)
 router.get('/link/find/link-photo/:linkId', authenticate, linkAuthorization, LinkController.findLinkPhotos)
+router.delete('/link/delete/link-photo/:linkId', authenticate, linkAuthorization, LinkController.deleteLinkPhoto)
 
 // Link Favorites
 router.put('/link/add/favorites/:linkId', authenticate, linkAuthorization, LinkController.addToFavorites)

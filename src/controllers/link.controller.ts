@@ -9,7 +9,7 @@ import { linkControllerParams } from '../config/params'
 import { validateNote } from '../utils/validations/link.controller.validation'
 import { arrayLimits } from '../config/arrayLimits'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
-import { awsUploadFile } from '../utils/aws-image'
+import { awsUploadFile, awsDeleteFile } from '../utils/aws-image'
 
 import BaseController from './base.controller'
 import { db } from '../utils/db'
@@ -1029,7 +1029,60 @@ class LinkController extends BaseController {
     }
   }
 
-  /* ADD DELETE IMAGE ROUTE */
+  // Delete Cover Photo
+  deleteLinkPhoto = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const { pathToFile } = req.body
+    try {
+      if (!pathToFile) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: 'pathToFile required'
+        })
+      }
+
+      // Verify card / photo exists
+      const image = await db.linkPhoto.findUnique({
+        where: {
+          linkId_pathToFile: {
+            linkId: req.params.linkId,
+            pathToFile
+          }
+        }
+      })
+      if (!image) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.IMAGE_NOT_FOUND
+        })
+      }
+
+      // AWS Call
+      const key = req.body.pathToFile.split('/').pop()
+      const result = await awsDeleteFile(key)
+
+      // Update and return
+      if (result) {
+        await db.linkPhoto.delete({
+          where: {
+            linkId_pathToFile: {
+              linkId: req.params.linkId,
+              pathToFile
+            }
+          }
+        })
+      } else {
+        throw Error('AWS and database not in sync')
+      }
+
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
 
   /* Link Favorites */
   addToFavorites = async (req: RequestLink, res: Response): Promise<Response> => {
