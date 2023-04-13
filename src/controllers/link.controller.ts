@@ -2,7 +2,7 @@ import { Response } from 'express'
 import { UploadedFile } from 'express-fileupload'
 
 import { RequestLink, RequestUserAuth } from '../config/interfaces/common.interface'
-import { IArrayLink, IArrayLinkWithBaseInfo, ILinkWithBaseInfo, INotificationArray } from '../config/interfaces/link.interface'
+import { IArrayLink, IArrayLinkWithBaseInfo, ILinkWithBaseInfo, INotificationArray } from '../config/interfaces/link.validation.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { linkControllerParams } from '../config/params'

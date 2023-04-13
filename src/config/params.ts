@@ -99,3 +99,14 @@ export const linkControllerParams = [
   'status',
   'note'
 ]
+
+export const sharedContactControllerParams = [
+  'cardId',
+  'fullName',
+  'company',
+  'jobTitle',
+  'phone',
+  'email',
+  'message',
+  'notes'
+]

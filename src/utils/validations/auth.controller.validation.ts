@@ -11,7 +11,7 @@ import { stringLengths } from '../../config/stringLengths'
 export const validateLogin = (loginPayload: IValidateLoginRegister): string | undefined => {
   const loginSchema = Joi.object({
     email: Joi.string().email({ tlds: { allow: false } }).required(),
-    password: Joi.string().pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/).required().error(new Error(`${messages.PASSWORD_FAILURE}`))
+    password: Joi.string().pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d$&+,:;=?@#|'<>.^*()%!-]{8,}$/).required().error(new Error(`${messages.PASSWORD_FAILURE}`))
   })
 
   return (loginSchema.validate(loginPayload)?.error?.message)
@@ -25,9 +25,9 @@ export const validateLogin = (loginPayload: IValidateLoginRegister): string | un
 export const validateRegister = (registerPayload: IValidateLoginRegister): string | undefined => {
   const registerSchema = Joi.object({
     email: Joi.string().email({ tlds: { allow: false } }).required(),
-    password: Joi.string().pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/).required().error(new Error(`${messages.PASSWORD_FAILURE}`))
+    password: Joi.string().pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d$&+,:;=?@#|'<>.^*()%!-]{8,}$/).required().error(new Error(`${messages.PASSWORD_FAILURE}`))
   })
-
+  console.log(registerPayload)
   return (registerSchema.validate(registerPayload)?.error?.message)
 }
 

@@ -1,5 +1,5 @@
 import Joi from 'joi'
-import { IValidateNote, IValidateNotification } from '../../config/interfaces/link.interface'
+import { IValidateNote, IValidateNotification } from '../../config/interfaces/link.validation.interface'
 import { stringLengths } from '../../config/stringLengths'
 import { directsTo } from '../../config/enumTypes'
 

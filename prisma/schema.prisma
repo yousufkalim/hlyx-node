@@ -77,6 +77,7 @@ model Card {
   Links             Link[]    @relation("CardOneRef")
   LinksDuplicate    Link[]    @relation("CardTwoRef") // IMPORTANT NOTE: This is only included to make prisma happy; however, this should not be referenced in any queries
   LinkPhoto         LinkPhoto[]
+  ShareContact      SharedContact[]
   // Auth
   cardName          String
   slug              String?   @unique
@@ -287,6 +288,20 @@ model Link {
 
   @@unique([cardOne, cardTwo])
   @@unique([id, cardOne, cardTwo]) // For Link Notifications
+}
+
+model SharedContact {
+  id              String   @id @default(uuid())
+  Card            Card     @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
+  cardId          String
+  fullName        String
+  company         String
+  jobTitle        String
+  phone           String
+  email           String
+  message         String
+  notes           String?
+  createdAt       DateTime  @default(now())
 }
 
 model LinkNotes {
