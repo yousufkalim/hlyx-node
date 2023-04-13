@@ -57,5 +57,6 @@ export const stringLengths = {
   SLUG_MAX: 50,
   NOTE_MAX: 200,
   CARD_NAME_MIN: 3,
-  CARD_NAME_MAX: 50
+  CARD_NAME_MAX: 50,
+  SHARED_CONTACT_MESSAGE_MAX: 200
 }

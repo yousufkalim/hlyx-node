@@ -1,5 +1,5 @@
 import { Request } from 'express'
-import { ILinks } from './link.interface'
+import { ILinks } from './link.validation.interface'
 
 export interface IUser {
   id: string
