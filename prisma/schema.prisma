@@ -325,7 +325,8 @@ model SharedContact {
   contactId       String   @id @default(uuid())
   Card            Card     @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
-  status          SharedContactStatus @default(active)
+  contactImage    String?
+  status          SharedContactStatus @default(requested)
   fullName        String
   company         String?
   jobTitle        String?
@@ -442,6 +443,7 @@ enum NotificationDirectsTo {
 }
 
 enum SharedContactStatus {
-  active
+  requested
   archived
+  saved
 }

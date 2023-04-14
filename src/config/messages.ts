@@ -68,7 +68,7 @@ export const messages = {
   NOTE_NOT_FOUND: 'Note not found',
   NOTE_UNAUTHORIZED: 'Note was not authored by authenticated user',
   MUTE_INVALID: 'Cannot mute a link the is not already accepted',
-  NOTIFICATION_CREATE_CALLED_INCORRECTLY: 'Somehow called internal function incorrectly',
+  NOTIFICATION_CREATE_CALLED_INCORRECTLY: 'Internal issue creatinga notification',
   NOTIFICATION_CONTACT_INVALID: 'When sharing a contact, details should be a valid cardId',
   NOTIFICATION_NOT_FOUND: 'Notification not found',
   NOTIFICATION_UNAUTHORIZED: 'Notification belongs to another authenticated user',

@@ -108,7 +108,8 @@ router.delete('/notification/delete/:notificationId', authenticate, notification
 
 // Shared Contact Routes
 router.post('/contact/create', SharedContactController.create)
-router.get('/contact/find/active/:userId', authenticate, userAuthorization, SharedContactController.getActive)
+router.get('/contact/find/saved/:userId', authenticate, userAuthorization, SharedContactController.getSaved)
+router.get('/contact/find/requested/:userId', authenticate, userAuthorization, SharedContactController.getRequested)
 router.get('/contact/find/archived/:userId', authenticate, userAuthorization, SharedContactController.getArchived)
 router.put('/contact/update/status/:contactId', authenticate, sharedContactAuthorization, SharedContactController.updateStatus)
 router.put('/contact/update/note/:contactId', authenticate, sharedContactAuthorization, SharedContactController.updateNote)

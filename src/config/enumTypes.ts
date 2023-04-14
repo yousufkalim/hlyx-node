@@ -20,4 +20,4 @@ export const templateIds = ['DEFAULT', 'FULL']
 
 export const linksTypes = ['requested', 'accepted', 'declined', 'blocked']
 
-export const sharedContactStatus = ['active', 'archived']
+export const sharedContactStatus = ['requested', 'saved', 'archived']
