@@ -55,11 +55,6 @@ export interface IValidateNote {
   note: string
 }
 
-export interface IValidateNotification {
-  message: string
-  directsTo: string
-}
-
 export interface INotificationArray {
   cardId: string
   notificaiton: INotification
