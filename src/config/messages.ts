@@ -64,12 +64,16 @@ export const messages = {
   LINK_CARD_ID_NOT_FOUND: 'Card ID added as link for card that is not in our system',
   LINK_NOT_BLOCKED: 'This link is not blocked by you.',
   LINK_NOTE_MUTED: 'This link is not blocked by you.',
-  NOTE_NOT_ACCEPTED: 'Cannot access note routes for a link whose status is not accepted',
+  NOTE_NOT_ACCEPTED: 'Cannot access note routes for a contact/link whose status is not accepted',
   NOTE_NOT_FOUND: 'Note not found',
   NOTE_UNAUTHORIZED: 'Note was not authored by authenticated user',
   MUTE_INVALID: 'Cannot mute a link the is not already accepted',
+  NOTIFICATION_CREATE_CALLED_INCORRECTLY: 'Somehow called internal function incorrectly',
   NOTIFICATION_CONTACT_INVALID: 'When sharing a contact, details should be a valid cardId',
   NOTIFICATION_NOT_FOUND: 'Notification not found',
   NOTIFICATION_UNAUTHORIZED: 'Notification belongs to another authenticated user',
-  NOTIFACITION_OUT_OF_SYNC: 'Notifications are out of sync within our database'
+  NOTIFACITION_OUT_OF_SYNC: 'Notifications are out of sync within our database',
+  CONTACT_NOT_FOUND: 'Contact not found',
+  CONTACT_OUT_OF_SYNC: 'Contacts are out of sync within our database',
+  CONTACT_UNAUTHORIZED: 'Contact belongs to another authenticated user'
 }

@@ -58,5 +58,6 @@ export const stringLengths = {
   NOTE_MAX: 200,
   CARD_NAME_MIN: 3,
   CARD_NAME_MAX: 50,
-  SHARED_CONTACT_MESSAGE_MAX: 200
+  MESSAGE_MAX: 400,
+  LOCATION_MAX: 100
 }

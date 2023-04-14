@@ -4,8 +4,11 @@ import AuthController from '../controllers/auth.controller'
 import UserController from '../controllers/user.controller'
 import CardController from '../controllers/card.controller'
 import LinkController from '../controllers/link.controller'
+import SharedContactController from '../controllers/sharedContact.controller'
+import NotificationController from '../controllers/notification.controller'
+
 import { authenticate } from '../middleware/authentication'
-import { userAuthorization, cardAuthorization, linkAuthorization, noteAuthorization, notificationAuthorization } from '../middleware/authorization'
+import { userAuthorization, cardAuthorization, linkAuthorization, noteAuthorization, notificationAuthorization, sharedContactAuthorization } from '../middleware/authorization'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { config } from '../config/env.config.validations'
@@ -45,11 +48,13 @@ router.get('/card/find/portfolio-page/:cardId', CardController.getPortfolio)
 router.post('/card/add/cover-photo/:cardId', authenticate, cardAuthorization, CardController.addCoverPhoto)
 router.put('/card/update/cover-photo/:cardId', authenticate, cardAuthorization, CardController.updateCoverPhoto)
 router.get('/card/find/cover-photos/:cardId', authenticate, cardAuthorization, CardController.findCoverPhotos)
+router.delete('/card/delete/cover-photo/:cardId', authenticate, cardAuthorization, CardController.deleteCoverPhoto)
 
 // Card Company Icon
 router.post('/card/add/company-icon/:cardId', authenticate, cardAuthorization, CardController.addCompanyIcon)
 router.put('/card/update/company-icon/:cardId', authenticate, cardAuthorization, CardController.updateCompanyIcon)
 router.get('/card/find/company-icon/:cardId', authenticate, cardAuthorization, CardController.findCompanyIcons)
+router.delete('/card/delete/company-icon/:cardId', authenticate, cardAuthorization, CardController.deleteCompanyIcon)
 
 // Card Update Info Routes
 router.put('/card/update/card-name/:cardId', authenticate, cardAuthorization, CardController.updateCardName)
@@ -89,17 +94,25 @@ router.delete('/link/delete/note/:noteId', authenticate, noteAuthorization, Link
 // Link Images
 router.post('/link/add/link-photo/:linkId', authenticate, linkAuthorization, LinkController.addLinkPhoto)
 router.get('/link/find/link-photo/:linkId', authenticate, linkAuthorization, LinkController.findLinkPhotos)
+router.delete('/link/delete/link-photo/:linkId', authenticate, linkAuthorization, LinkController.deleteLinkPhoto)
 
 // Link Favorites
 router.put('/link/add/favorites/:linkId', authenticate, linkAuthorization, LinkController.addToFavorites)
 router.put('/link/remove/favorites/:linkId', authenticate, linkAuthorization, LinkController.removeFavorites)
 
 // Notificaiton Routes
-router.post('/notification/create', authenticate, linkAuthorization, LinkController.createNotification)
-router.put('/notification/archive/:notificationId', authenticate, notificationAuthorization, LinkController.archiveNotification)
-router.delete('/notification/delete/:notificationId', authenticate, notificationAuthorization, LinkController.deleteNotification)
-router.get('/notification/get/active/:userId', authenticate, userAuthorization, LinkController.getActiveNotification)
-router.get('/notification/get/archived/:userId', authenticate, userAuthorization, LinkController.getArchivedNotification)
+router.get('/notification/find/active/:userId', authenticate, userAuthorization, NotificationController.getActiveNotification)
+router.get('/notification/find/archived/:userId', authenticate, userAuthorization, NotificationController.getArchivedNotification)
+router.put('/notification/update/archive/:notificationId', authenticate, notificationAuthorization, NotificationController.archiveNotification)
+router.delete('/notification/delete/:notificationId', authenticate, notificationAuthorization, NotificationController.deleteNotification)
+
+// Shared Contact Routes
+router.post('/contact/create', SharedContactController.create)
+router.get('/contact/find/active/:userId', authenticate, userAuthorization, SharedContactController.getActive)
+router.get('/contact/find/archived/:userId', authenticate, userAuthorization, SharedContactController.getArchived)
+router.put('/contact/update/status/:contactId', authenticate, sharedContactAuthorization, SharedContactController.updateStatus)
+router.put('/contact/update/note/:contactId', authenticate, sharedContactAuthorization, SharedContactController.updateNote)
+router.delete('/contact/delete/:contactId', authenticate, sharedContactAuthorization, SharedContactController.deleteContact)
 
 // Health Check
 router.get('/health-check', (req: Request, res: Response) => {
