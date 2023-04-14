@@ -4,7 +4,7 @@ import AuthController from '../controllers/auth.controller'
 import UserController from '../controllers/user.controller'
 import CardController from '../controllers/card.controller'
 import LinkController from '../controllers/link.controller'
-import SharedContactController from '../controllers/sharedContact.controller'
+import ContactRequstController from '../controllers/contactRequest.controller'
 import NotificationController from '../controllers/notification.controller'
 
 import { authenticate } from '../middleware/authentication'
@@ -107,13 +107,13 @@ router.put('/notification/update/archive/:notificationId', authenticate, notific
 router.delete('/notification/delete/:notificationId', authenticate, notificationAuthorization, NotificationController.deleteNotification)
 
 // Shared Contact Routes
-router.post('/contact/create', SharedContactController.create)
-router.get('/contact/find/saved/:userId', authenticate, userAuthorization, SharedContactController.getSaved)
-router.get('/contact/find/requested/:userId', authenticate, userAuthorization, SharedContactController.getRequested)
-router.get('/contact/find/archived/:userId', authenticate, userAuthorization, SharedContactController.getArchived)
-router.put('/contact/update/status/:contactId', authenticate, sharedContactAuthorization, SharedContactController.updateStatus)
-router.put('/contact/update/note/:contactId', authenticate, sharedContactAuthorization, SharedContactController.updateNote)
-router.delete('/contact/delete/:contactId', authenticate, sharedContactAuthorization, SharedContactController.deleteContact)
+router.post('/contact/create', ContactRequstController.create)
+router.get('/contact/find/saved/:userId', authenticate, userAuthorization, ContactRequstController.getSaved)
+router.get('/contact/find/requested/:userId', authenticate, userAuthorization, ContactRequstController.getRequested)
+router.get('/contact/find/archived/:userId', authenticate, userAuthorization, ContactRequstController.getArchived)
+router.put('/contact/update/status/:contactId', authenticate, sharedContactAuthorization, ContactRequstController.updateStatus)
+router.put('/contact/update/note/:contactId', authenticate, sharedContactAuthorization, ContactRequstController.updateNote)
+router.delete('/contact/delete/:contactId', authenticate, sharedContactAuthorization, ContactRequstController.deleteContact)
 
 // Health Check
 router.get('/health-check', (req: Request, res: Response) => {

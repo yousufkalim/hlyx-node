@@ -1,5 +1,5 @@
 import Joi from 'joi'
-import { IValidateSharedContact, IValidateContactSharedContact } from '../../config/interfaces/sharedContact.validation.interface'
+import { IValidateContactRequest, IValidateContactNote } from '../../config/interfaces/contactRequest.validation.interface'
 import { stringLengths } from '../../config/stringLengths'
 
 /**
@@ -7,7 +7,7 @@ import { stringLengths } from '../../config/stringLengths'
  * @param sharedContactPayload
  * @returns Error message
  */
-export const validateSharedContactCreate = (sharedContactPayload: IValidateSharedContact): string | undefined => {
+export const validateSharedContactCreate = (sharedContactPayload: IValidateContactRequest): string | undefined => {
   const sharedContactSchema = Joi.object({
     cardId: Joi.string().required(),
     fullName: Joi.string().min(stringLengths.FULL_NAME_MIN).max(stringLengths.FULL_NAME_MAX).required(),
@@ -27,7 +27,7 @@ export const validateSharedContactCreate = (sharedContactPayload: IValidateShare
  * @param noteUpdatePayload
  * @returns Error message
  */
-export const validateSharedContactNote = (noteUpdatePayload: IValidateContactSharedContact): string | undefined => {
+export const validateSharedContactNote = (noteUpdatePayload: IValidateContactNote): string | undefined => {
   const sharedContactNoteSchema = Joi.object({
     notes: Joi.string().max(stringLengths.NOTE_MAX).required()
   })

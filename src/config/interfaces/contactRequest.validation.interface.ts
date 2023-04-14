@@ -1,4 +1,4 @@
-export interface IValidateSharedContact {
+export interface IValidateContactRequest {
   cardId: string
   fullName: string
   company?: string
@@ -9,12 +9,12 @@ export interface IValidateSharedContact {
   message?: string
 }
 
-export interface IValidateContactSharedContact {
+export interface IValidateContactNote {
   notes?: string
 }
 
-export interface INewSharedContact {
-  ShareContacts: {
+export interface INewContactRequest {
+  Contacts: {
     create: {
       fullName: string
       company?: string

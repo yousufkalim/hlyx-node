@@ -5,17 +5,17 @@ import { RequestNotification, RequestUserAuth } from '../config/interfaces/commo
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { sharedContactControllerParams } from '../config/params'
-import { validateSharedContactCreate, validateSharedContactNote } from '../utils/validations/sharedContact.controller.validation'
-import { INewSharedContact } from '../config/interfaces/sharedContact.validation.interface'
+import { validateSharedContactCreate, validateSharedContactNote } from '../utils/validations/contactRequest.controller.validation'
+import { INewContactRequest } from '../config/interfaces/contactRequest.validation.interface'
 import { sharedContactStatus } from '../config/enumTypes'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
 import { awsUploadFile } from '../utils/aws-image'
 
 import BaseController from './base.controller'
-import { db } from '../utils/db'
 import notificationController from './notification.controller'
+import { db } from '../utils/db'
 
-class SharedContactController extends BaseController {
+class ContactRequestController extends BaseController {
   // Create new contact request
   create = async (req: Request, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, sharedContactControllerParams)
@@ -39,8 +39,8 @@ class SharedContactController extends BaseController {
         })
       }
 
-      const data: INewSharedContact = {
-        ShareContacts: {
+      const data: INewContactRequest = {
+        Contacts: {
           create: {
             fullName,
             company,
@@ -79,17 +79,17 @@ class SharedContactController extends BaseController {
         // AWS API Call
         const contactImage = await awsUploadFile(file.data, req.params.userId, 'profile-photo', file.name, file.mimetype)
 
-        data.ShareContacts.create.contactImage = contactImage
+        data.Contacts.create.contactImage = contactImage
       }
 
       // Create shared contact and return
-      const sharedContact = await db.card.update({
+      const contactRequest = await db.card.update({
         where: {
           cardId: params.cardId
         },
         data,
         select: {
-          ShareContacts: {
+          Contacts: {
             select: {
               contactId: true
             },
@@ -104,7 +104,7 @@ class SharedContactController extends BaseController {
       const reqNotification: RequestNotification = req
       reqNotification.notification = {
         cardId: params.cardId,
-        directsTo: 'sharedContact',
+        directsTo: 'contactRequest',
         message
       }
 
@@ -114,7 +114,7 @@ class SharedContactController extends BaseController {
       }
 
       return res.status(200).json({
-        contactId: sharedContact.ShareContacts[0].contactId,
+        contactId: contactRequest.Contacts[0].contactId,
         code: codes.OK,
         message: messages.SUCCESS
       })
@@ -134,7 +134,7 @@ class SharedContactController extends BaseController {
         },
         select: {
           cardId: true,
-          ShareContacts: {
+          Contacts: {
             where: {
               status: 'requested'
             }
@@ -163,7 +163,7 @@ class SharedContactController extends BaseController {
         },
         select: {
           cardId: true,
-          ShareContacts: {
+          Contacts: {
             where: {
               status: 'saved'
             }
@@ -192,7 +192,7 @@ class SharedContactController extends BaseController {
         },
         select: {
           cardId: true,
-          ShareContacts: {
+          Contacts: {
             where: {
               status: 'archived'
             }
@@ -223,7 +223,7 @@ class SharedContactController extends BaseController {
       }
 
       // Update and return
-      const contact = await db.sharedContact.update({
+      const contact = await db.contact.update({
         where: {
           contactId: req.params.contactId
         },
@@ -257,7 +257,7 @@ class SharedContactController extends BaseController {
       }
 
       // Update and return
-      const contact = await db.sharedContact.update({
+      const contact = await db.contact.update({
         where: {
           contactId: req.params.contactId
         },
@@ -280,7 +280,7 @@ class SharedContactController extends BaseController {
   deleteContact = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Delete and Return
-      await db.sharedContact.delete({ where: { contactId: req.params.contactId } })
+      await db.contact.delete({ where: { contactId: req.params.contactId } })
       return res.status(200).json({
         code: codes.OK,
         message: messages.SUCCESS
@@ -292,4 +292,4 @@ class SharedContactController extends BaseController {
   }
 }
 
-export default new SharedContactController()
+export default new ContactRequestController()
