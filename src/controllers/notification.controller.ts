@@ -8,7 +8,7 @@ import BaseController from './base.controller'
 import { db } from '../utils/db'
 
 class NotificationController extends BaseController {
-  // Create Notification
+  // Create Notification (called by other internal functions)
   createNotification = async (req: RequestNotification, res: Response): Promise<Response> => {
     try {
       // Confirm req.notifcation is set
@@ -18,7 +18,7 @@ class NotificationController extends BaseController {
 
       // Validate Input
       if (req.notification.directsTo !== 'linkRequest' && req.notification.directsTo !== 'message' &&
-          req.notification.directsTo !== 'contactRequest' && req.notification.directsTo !== 'sharedContact') {
+          req.notification.directsTo !== 'contactRequest') {
         throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
       }
 
@@ -58,6 +58,8 @@ class NotificationController extends BaseController {
       return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
+
+  // Create Shared Contact Notification
 
   // Get Active Notifications
   getActiveNotification = async (req: RequestUserAuth, res: Response): Promise<Response> => {

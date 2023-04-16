@@ -147,11 +147,14 @@ class LinkController extends BaseController {
       //   }
       // })
 
+      const linkId = card.Links[0].id
+      // Create Notification
       const reqNotification: RequestNotification = req as Request
       reqNotification.notification = {
         cardId: params.cardId,
         directsTo: 'linkRequest',
-        message
+        message,
+        idDirectedTo: linkId
       }
 
       const notification = await notificationController.createNotification(req, res)
@@ -161,7 +164,7 @@ class LinkController extends BaseController {
 
       // Return
       return res.status(200).json({
-        link: card.Links[0].id,
+        linkId,
         code: codes.OK,
         message: messages.SUCCESS
       })

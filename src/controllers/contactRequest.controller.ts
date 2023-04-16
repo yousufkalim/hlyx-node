@@ -101,11 +101,15 @@ class ContactRequestController extends BaseController {
         }
       })
 
+      const contactId = contactRequest.Contacts[0].contactId
+
+      // Create notification
       const reqNotification: RequestNotification = req
       reqNotification.notification = {
         cardId: params.cardId,
         directsTo: 'contactRequest',
-        message
+        message,
+        idDirectedTo: contactId
       }
 
       const notification = await notificationController.createNotification(req, res)
@@ -114,7 +118,7 @@ class ContactRequestController extends BaseController {
       }
 
       return res.status(200).json({
-        contactId: contactRequest.Contacts[0].contactId,
+        contactId,
         code: codes.OK,
         message: messages.SUCCESS
       })

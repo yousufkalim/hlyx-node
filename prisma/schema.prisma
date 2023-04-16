@@ -345,6 +345,7 @@ model Notification {
   status          NotificationStatus   @default(active)
   message         String?
   directsTo       NotificationDirectsTo
+  idDirectedTo    String?
   updatedAt       DateTime  @updatedAt
 }
 
