@@ -6,6 +6,7 @@ export interface IArrayLink {
 export interface IArrayLinkWithBaseInfo {
   myCardId: string
   Links: ILinkWithBaseInfo[]
+  _count: number
 }
 
 export interface ILinkWithBaseInfo {
@@ -27,6 +28,7 @@ export interface ILinks {
   status?: string
   recentChangeBy?: string
   bothUserBlock?: boolean
+  bothUserMute?: boolean
   photos?: ILinkPhoto[]
   notifications?: INotification[]
   updatedAt: Date

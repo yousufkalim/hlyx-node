@@ -1,6 +1,6 @@
 import { Response } from 'express'
 
-import { RequestNotification, RequestUserAuth } from '../config/interfaces/common.interface'
+import { RequestNotification, RequestUserAuth, ICreateNotification } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 
@@ -9,10 +9,10 @@ import { db } from '../utils/db'
 
 class NotificationController extends BaseController {
   // Create Notification (called by other internal functions)
-  createNotification = async (req: RequestNotification, res: Response): Promise<Response> => {
+  createNotification = async (req: RequestNotification): Promise<ICreateNotification> => {
     try {
       // Confirm req.notifcation is set
-      if (!req.notification?.cardId || !req.notification?.directsTo) {
+      if (!req.notification?.cardId || !req.notification?.directsTo || !req.notification?.idDirectedTo) {
         throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
       }
 
@@ -31,7 +31,8 @@ class NotificationController extends BaseController {
           Notifications: {
             create: {
               directsTo: req.notification.directsTo,
-              message: req.notification.message
+              message: req.notification.message,
+              idDirectedTo: req.notification.idDirectedTo
             }
           }
         },
@@ -48,14 +49,15 @@ class NotificationController extends BaseController {
         }
       })
 
-      return res.status(200).json({
+      return {
         notificationId: notificaiton.Notifications[0].notificationId,
-        code: codes.OK,
-        message: messages.SUCCESS
-      })
+        success: true
+      }
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return {
+        success: false
+      }
     }
   }
 
@@ -70,6 +72,15 @@ class NotificationController extends BaseController {
           userId: req.params.userId
         },
         select: {
+          _count: {
+            select: {
+              Notifications: {
+                where: {
+                  status: 'active'
+                }
+              }
+            }
+          },
           cardId: true,
           Notifications: {
             where: {
@@ -102,6 +113,15 @@ class NotificationController extends BaseController {
           userId: req.params.userId
         },
         select: {
+          _count: {
+            select: {
+              Notifications: {
+                where: {
+                  status: 'archived'
+                }
+              }
+            }
+          },
           cardId: true,
           Notifications: {
             where: {

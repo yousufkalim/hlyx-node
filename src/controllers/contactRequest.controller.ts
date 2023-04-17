@@ -77,7 +77,7 @@ class ContactRequestController extends BaseController {
           })
         }
         // AWS API Call
-        const contactImage = await awsUploadFile(file.data, req.params.userId, 'profile-photo', file.name, file.mimetype)
+        const contactImage = await awsUploadFile(file.data, '', 'contact-request', file.name, file.mimetype)
 
         data.Contacts.create.contactImage = contactImage
       }
@@ -112,8 +112,8 @@ class ContactRequestController extends BaseController {
         idDirectedTo: contactId
       }
 
-      const notification = await notificationController.createNotification(req, res)
-      if (notification.statusCode !== 200) {
+      const notification = await notificationController.createNotification(req)
+      if (!notification.success) {
         throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
       }
 
@@ -137,6 +137,15 @@ class ContactRequestController extends BaseController {
           userId: req.params.userId
         },
         select: {
+          _count: {
+            select: {
+              Contacts: {
+                where: {
+                  status: 'requested'
+                }
+              }
+            }
+          },
           cardId: true,
           Contacts: {
             where: {
@@ -166,6 +175,15 @@ class ContactRequestController extends BaseController {
           userId: req.params.userId
         },
         select: {
+          _count: {
+            select: {
+              Contacts: {
+                where: {
+                  status: 'saved'
+                }
+              }
+            }
+          },
           cardId: true,
           Contacts: {
             where: {
@@ -195,6 +213,15 @@ class ContactRequestController extends BaseController {
           userId: req.params.userId
         },
         select: {
+          _count: {
+            select: {
+              Contacts: {
+                where: {
+                  status: 'archived'
+                }
+              }
+            }
+          },
           cardId: true,
           Contacts: {
             where: {
