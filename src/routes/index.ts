@@ -18,6 +18,7 @@ const router = Router()
 // Authentication Routes
 router.post('/auth/register', AuthController.register)
 router.post('/auth/login', AuthController.login)
+router.get('/auth/navigation', authenticate, AuthController.navigationHelper)
 router.post('/auth/send-code-email', AuthController.sendCodeEmail)
 router.post('/auth/verify-code-email', authenticate, AuthController.verifyCodeEmail)
 router.post('/auth/verify-code-password-reset', AuthController.verifyCodePassword)

@@ -189,6 +189,53 @@ class AuthController extends BaseController {
     }
   }
 
+  // Navigation Helper
+  navigationHelper = async (req: RequestUserAuth, res: Response): Promise<Response | undefined> => {
+    try {
+      /* IDK WHY USERBIO RETURNS NULL ON SELECT HERE SO THIS IS THE WORK AROUND FOR NOW */
+      // Verify User Exists
+      const user = await db.userAuth.findUnique({
+        where: {
+          id: req.user?.id
+        },
+        select: {
+          isEmailVerified: true,
+          isPhoneVerified: true,
+          userBio: {
+            select: {
+              isOnBoardingComplete: true
+            }
+          }
+        }
+      })
+      /* WORK AROUND */
+      const userBio = await db.userBio.findUnique({
+        where: {
+          id: req.user?.id
+        },
+        select: {
+          isOnBoardingComplete: true
+        }
+      })
+      if (!user) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.USER_NOT_FOUND
+        })
+      }
+      return res.status(200).json({
+        isEmailVerified: user.isEmailVerified,
+        isPhoneVerified: user.isPhoneVerified,
+        isOnboardingComplete: userBio?.isOnBoardingComplete,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
   // Send verification code to specified email
   sendCodeEmail = async (req: Request, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, authControllerParams)

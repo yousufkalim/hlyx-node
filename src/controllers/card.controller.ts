@@ -60,6 +60,15 @@ class CardController extends BaseController {
           cardId: req.params.cardId
         },
         select: {
+          _count: {
+            select: {
+              emails: true,
+              phones: true,
+              websites: true,
+              socialMedias: true,
+              additionalLinks: true
+            }
+          },
           coverPhoto: true,
           companyIcon: true,
           fullName: true,
@@ -131,6 +140,15 @@ class CardController extends BaseController {
           cardId: req.params.cardId
         },
         select: {
+          _count: {
+            select: {
+              education: true,
+              accolades: true,
+              achievements: true,
+              businessGoals: true,
+              businessNeeds: true
+            }
+          },
           fullName: true,
           userAvatar: true,
           city: true,
@@ -216,6 +234,11 @@ class CardController extends BaseController {
           cardId: req.params.cardId
         },
         select: {
+          _count: {
+            select: {
+              services: true
+            }
+          },
           services: {
             select: {
               type: true,
@@ -256,6 +279,11 @@ class CardController extends BaseController {
           cardId: req.params.cardId
         },
         select: {
+          _count: {
+            select: {
+              portfolio: true
+            }
+          },
           portfolioTemplate: true,
           portfolio: {
             select: {
@@ -457,12 +485,21 @@ class CardController extends BaseController {
   findCoverPhotos = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Grab images and return
-      const images = await db.cardCoverPhotos.findMany({
+      const images = await db.card.findMany({
         where: {
           cardId: req.params.cardId
         },
         select: {
-          pathToFile: true
+          _count: {
+            select: {
+              coverPhotos: true
+            }
+          },
+          coverPhotos: {
+            select: {
+              pathToFile: true
+            }
+          }
         }
       })
       return res.status(200).json({
@@ -644,12 +681,21 @@ class CardController extends BaseController {
   findCompanyIcons = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Grab images and return
-      const images = await db.cardCompanyIcons.findMany({
+      const images = await db.card.findMany({
         where: {
           cardId: req.params.cardId
         },
         select: {
-          pathToFile: true
+          _count: {
+            select: {
+              companyIcons: true
+            }
+          },
+          companyIcons: {
+            select: {
+              pathToFile: true
+            }
+          }
         }
       })
       return res.status(200).json({

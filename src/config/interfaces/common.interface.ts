@@ -37,3 +37,8 @@ export interface IEmail {
   text: string
   html: string
 }
+
+export interface ICreateNotification {
+  notificationId?: string
+  success: boolean
+}
