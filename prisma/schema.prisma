@@ -77,7 +77,7 @@ model Card {
   Links             Link[]    @relation("CardOneRef")
   LinksDuplicate    Link[]    @relation("CardTwoRef") // IMPORTANT NOTE: This is only included to make prisma happy; however, this should not be referenced in any queries
   LinkPhoto         LinkPhoto[]
-  ShareContacts     SharedContact[]
+  Contacts          Contact[]
   Notifications     Notification[]
   // Auth
   cardName          String
@@ -321,11 +321,12 @@ model LinkPhoto {
   @@id([linkId, pathToFile])
 }
 
-model SharedContact {
+model Contact {
   contactId       String   @id @default(uuid())
   Card            Card     @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
-  status          SharedContactStatus @default(active)
+  contactImage    String?
+  status          ContactStatus @default(requested)
   fullName        String
   company         String?
   jobTitle        String?
@@ -344,6 +345,7 @@ model Notification {
   status          NotificationStatus   @default(active)
   message         String?
   directsTo       NotificationDirectsTo
+  idDirectedTo    String?
   updatedAt       DateTime  @updatedAt
 }
 
@@ -441,7 +443,8 @@ enum NotificationDirectsTo {
   sharedContact
 }
 
-enum SharedContactStatus {
-  active
+enum ContactStatus {
+  requested
   archived
+  saved
 }

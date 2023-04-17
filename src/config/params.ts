@@ -97,6 +97,7 @@ export const linkControllerParams = [
   'cardOne',
   'cardTwo',
   'status',
+  'message',
   'note'
 ]
 

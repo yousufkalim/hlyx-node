@@ -212,7 +212,7 @@ export const notificationAuthorization = async (req: RequestUserAuth, res: Respo
 export const sharedContactAuthorization = async (req: RequestUserAuth, res: Response, next: NextFunction): Promise<any> => {
   try {
     // Verify Contact Exists
-    const contact = await db.sharedContact.findUnique({ where: { contactId: req.params.contactId } })
+    const contact = await db.contact.findUnique({ where: { contactId: req.params.contactId } })
     if (!contact) {
       return res.status(400).json({
         code: codes.BAD_REQUEST,

@@ -1,7 +1,7 @@
-import { Response } from 'express'
+import { Request, Response } from 'express'
 import { UploadedFile } from 'express-fileupload'
 
-import { RequestLink, RequestUserAuth } from '../config/interfaces/common.interface'
+import { RequestLink, RequestUserAuth, RequestNotification } from '../config/interfaces/common.interface'
 import { IArrayLink, IArrayLinkWithBaseInfo, ILinkWithBaseInfo } from '../config/interfaces/link.validation.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
@@ -12,14 +12,26 @@ import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
 import { awsUploadFile, awsDeleteFile } from '../utils/aws-image'
 
 import BaseController from './base.controller'
+import notificationController from './notification.controller'
 import { db } from '../utils/db'
+import { stringLengths } from '../config/stringLengths'
 
 class LinkController extends BaseController {
   // Create a link
   create = async (req: RequestLink, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, linkControllerParams)
-    const { cardOne, cardTwo, status } = params
+    const { cardOne, cardTwo, status, message } = params
     try {
+      // Validate Input
+      if (message) {
+        if (message.length > stringLengths.MESSAGE_MAX) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            messages: `Message should be a string shorter than ${stringLengths.MESSAGE_MAX} characters`
+          })
+        }
+      }
+
       const foundCardOne = await db.card.findUnique({ where: { cardId: req.body.cardOne } })
       const foundCardTwo = await db.card.findUnique({ where: { cardId: req.body.cardTwo } })
       if (!foundCardOne || !foundCardTwo) {
@@ -135,9 +147,24 @@ class LinkController extends BaseController {
       //   }
       // })
 
+      const linkId = card.Links[0].id
+      // Create Notification
+      const reqNotification: RequestNotification = req as Request
+      reqNotification.notification = {
+        cardId: params.cardId,
+        directsTo: 'linkRequest',
+        message,
+        idDirectedTo: linkId
+      }
+
+      const notification = await notificationController.createNotification(req, res)
+      if (notification.statusCode !== 200) {
+        throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
+      }
+
       // Return
       return res.status(200).json({
-        link: card.Links[0].id,
+        linkId,
         code: codes.OK,
         message: messages.SUCCESS
       })

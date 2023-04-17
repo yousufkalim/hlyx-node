@@ -1,16 +1,22 @@
 import { Request, Response } from 'express'
+import { UploadedFile } from 'express-fileupload'
 
-import { RequestUserAuth } from '../config/interfaces/common.interface'
+import { RequestNotification, RequestUserAuth } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { sharedContactControllerParams } from '../config/params'
-import { validateSharedContactCreate, validateSharedContactNote } from '../utils/validations/sharedContact.controller.validation'
+import { validateSharedContactCreate, validateSharedContactNote } from '../utils/validations/contactRequest.controller.validation'
+import { INewContactRequest } from '../config/interfaces/contactRequest.validation.interface'
 import { sharedContactStatus } from '../config/enumTypes'
+import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
+import { awsUploadFile } from '../utils/aws-image'
 
 import BaseController from './base.controller'
+import notificationController from './notification.controller'
 import { db } from '../utils/db'
 
-class SharedContactController extends BaseController {
+class ContactRequestController extends BaseController {
+  // Create new contact request
   create = async (req: Request, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, sharedContactControllerParams)
     const { fullName, company, jobTitle, phone, email, location, message } = params
@@ -33,26 +39,57 @@ class SharedContactController extends BaseController {
         })
       }
 
+      const data: INewContactRequest = {
+        Contacts: {
+          create: {
+            fullName,
+            company,
+            jobTitle,
+            phone,
+            email,
+            location,
+            message
+          }
+        }
+      }
+
+      // Handle Image
+      if (req.files) {
+        const file = req.files.contactImage as UploadedFile
+        if (!file) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: `${messages.INVALID_FILE_LABEL} contactImage`
+          })
+        }
+        // Verify Acceptable MIME Type
+        if (!ACCEPTABLE_MIME_TYPES.includes(file.mimetype)) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.INVALID_MIME_TYPE
+          })
+        }
+        // Verify Image Size
+        if (file.size > MAX_BYTES) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.FILE_SIZE_OVER_10
+          })
+        }
+        // AWS API Call
+        const contactImage = await awsUploadFile(file.data, req.params.userId, 'profile-photo', file.name, file.mimetype)
+
+        data.Contacts.create.contactImage = contactImage
+      }
+
       // Create shared contact and return
-      const sharedContact = await db.card.update({
+      const contactRequest = await db.card.update({
         where: {
           cardId: params.cardId
         },
-        data: {
-          ShareContacts: {
-            create: {
-              fullName,
-              company,
-              jobTitle,
-              phone,
-              email,
-              location,
-              message
-            }
-          }
-        },
+        data,
         select: {
-          ShareContacts: {
+          Contacts: {
             select: {
               contactId: true
             },
@@ -64,8 +101,24 @@ class SharedContactController extends BaseController {
         }
       })
 
+      const contactId = contactRequest.Contacts[0].contactId
+
+      // Create notification
+      const reqNotification: RequestNotification = req
+      reqNotification.notification = {
+        cardId: params.cardId,
+        directsTo: 'contactRequest',
+        message,
+        idDirectedTo: contactId
+      }
+
+      const notification = await notificationController.createNotification(req, res)
+      if (notification.statusCode !== 200) {
+        throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
+      }
+
       return res.status(200).json({
-        contactId: sharedContact.ShareContacts[0].contactId,
+        contactId,
         code: codes.OK,
         message: messages.SUCCESS
       })
@@ -75,7 +128,8 @@ class SharedContactController extends BaseController {
     }
   }
 
-  getActive = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+  // Get all requested contact requests
+  getRequested = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Find all cards associated with user
       const cards = await db.card.findMany({
@@ -84,9 +138,9 @@ class SharedContactController extends BaseController {
         },
         select: {
           cardId: true,
-          ShareContacts: {
+          Contacts: {
             where: {
-              status: 'active'
+              status: 'requested'
             }
           }
         }
@@ -103,6 +157,36 @@ class SharedContactController extends BaseController {
     }
   }
 
+  // Get all saved contact requests
+  getSaved = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      // Find all cards associated with user
+      const cards = await db.card.findMany({
+        where: {
+          userId: req.params.userId
+        },
+        select: {
+          cardId: true,
+          Contacts: {
+            where: {
+              status: 'saved'
+            }
+          }
+        }
+      })
+
+      return res.status(200).json({
+        cards,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Get all archived contact requests
   getArchived = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Find all cards associated with user
@@ -112,7 +196,7 @@ class SharedContactController extends BaseController {
         },
         select: {
           cardId: true,
-          ShareContacts: {
+          Contacts: {
             where: {
               status: 'archived'
             }
@@ -143,7 +227,7 @@ class SharedContactController extends BaseController {
       }
 
       // Update and return
-      const contact = await db.sharedContact.update({
+      const contact = await db.contact.update({
         where: {
           contactId: req.params.contactId
         },
@@ -177,7 +261,7 @@ class SharedContactController extends BaseController {
       }
 
       // Update and return
-      const contact = await db.sharedContact.update({
+      const contact = await db.contact.update({
         where: {
           contactId: req.params.contactId
         },
@@ -200,7 +284,7 @@ class SharedContactController extends BaseController {
   deleteContact = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Delete and Return
-      await db.sharedContact.delete({ where: { contactId: req.params.contactId } })
+      await db.contact.delete({ where: { contactId: req.params.contactId } })
       return res.status(200).json({
         code: codes.OK,
         message: messages.SUCCESS
@@ -212,4 +296,4 @@ class SharedContactController extends BaseController {
   }
 }
 
-export default new SharedContactController()
+export default new ContactRequestController()
