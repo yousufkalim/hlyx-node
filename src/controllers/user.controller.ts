@@ -4,14 +4,16 @@ import { UploadedFile } from 'express-fileupload'
 import { RequestUserAuth } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
-import { userControllerParams } from '../config/params'
+import { addCardParams, userControllerParams } from '../config/params'
 import { validateUserUpdate } from '../utils/validations/user.controller.validation'
+import { validateCardName } from '../utils/validations/card.controller.validation'
 import { arrayLimits } from '../config/arrayLimits'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
 import { awsDeleteFile, awsUploadFile } from '../utils/aws-image'
 
 import BaseController from './base.controller'
 import { db } from '../utils/db'
+import { templateIds } from '../config/enumTypes'
 
 class UserController extends BaseController {
   // Return logged in User's Bio
@@ -159,7 +161,30 @@ class UserController extends BaseController {
 
   // Add a card to user
   addCard = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const params = this.filterParams(req.body, addCardParams)
+    const { cardName, templateId } = params
     try {
+      // Validate Input
+      const validationError = validateCardName(params)
+      if (validationError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+      if (templateId && !templateIds.includes(templateId)) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.TEMPLATE_ID_FAIL
+        })
+      }
+
+      /*
+      * INCOMPLETE:
+      * IF TEMPLATE ID IS FULL VALIDATE USER HAS ACCESS
+      *
+      */
+
       // Verify user exists
       const user = await db.userBio.findUnique({
         where: {
@@ -195,7 +220,7 @@ class UserController extends BaseController {
       // Create Card data
       const cardData: any = {
         fullName: `${user.firstName} ${user.middleInitial ?? ''} ${user.lastName}`.replace(/ +(?= )/g, ''),
-        cardName: `${user.firstName} ${user.middleInitial ?? ''} ${user.lastName}'s Card`.replace(/ +(?= )/g, ''),
+        cardName,
         company: user.company ?? undefined,
         profTitle: user.profTitle ?? undefined,
         industry: user.industry ?? undefined,
@@ -211,6 +236,9 @@ class UserController extends BaseController {
       }
 
       // Add optional fields if set
+      if (templateId) {
+        cardData.templateId = templateId
+      }
       if (user.phone) {
         cardData.phones = {
           create: {

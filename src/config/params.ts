@@ -22,6 +22,11 @@ export const userControllerParams = [
   'zipcode'
 ]
 
+export const addCardParams = [
+  'cardName',
+  'templateId'
+]
+
 export const cardControllerParams = [
   'cardName',
   'fullName',
