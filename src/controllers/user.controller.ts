@@ -7,13 +7,13 @@ import { messages } from '../config/messages'
 import { addCardParams, userControllerParams } from '../config/params'
 import { validateUserUpdate } from '../utils/validations/user.controller.validation'
 import { validateCardName } from '../utils/validations/card.controller.validation'
+import { templateIds } from '../config/enumTypes'
 import { arrayLimits } from '../config/arrayLimits'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
 import { awsDeleteFile, awsUploadFile } from '../utils/aws-image'
 
 import BaseController from './base.controller'
 import { db } from '../utils/db'
-import { templateIds } from '../config/enumTypes'
 
 class UserController extends BaseController {
   // Return logged in User's Bio
