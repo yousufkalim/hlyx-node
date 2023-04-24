@@ -35,6 +35,7 @@ export const messages = {
   PASSWORD_FAILURE: 'Password fails to match the Minimum eight characters, at least one letter and one number',
   ONBOARDING_INCOMPLETE: 'Please finish the onboarding process before adding a card',
   CARD_NOT_FOUND: 'Card not found',
+  CARD_NOT_PUBLIC: 'Cannot request contact with a private card',
   EXCEEDS_CARD_LIMIT: 'Adding another card would exceed the allotted amount allowed',
   EXCEEDS_PHOTO_LIMIT: 'Adding another photo would exceed the allotted amount allowed',
   EXCEEDS_NOTE_LIMIT: 'Adding another note would exceed the allotted amount allowed',

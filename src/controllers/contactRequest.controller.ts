@@ -39,6 +39,14 @@ class ContactRequestController extends BaseController {
         })
       }
 
+      // Verify Card is Public
+      if (!card.publicCard) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.CARD_NOT_PUBLIC
+        })
+      }
+
       const data: INewContactRequest = {
         Contacts: {
           create: {
