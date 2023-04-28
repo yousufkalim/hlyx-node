@@ -2,7 +2,7 @@ import Joi from 'joi'
 import { IValidateCardName, IValidateCardFullName, IValidateCardContactPage, IValidateCardAboutPage, IValidateCardServices, IValidateCardPortfolio, IValidateCardSlug } from '../../config/interfaces/card.validation.interface'
 import { stringLengths } from '../../config/stringLengths'
 import { emailTypes, phoneTypes, academicLevels, additionalLinksType, degreeTypes, businessGoalsStatus, businessNeedsStatus, servicesTypes, socialMedia } from '../../config/enumTypes'
-import { stateAbbreviations } from '../../config/stateAbbreviations'
+import { stateNames } from '../../config/stateNames'
 import { arrayLimits } from '../../config/arrayLimits'
 
 /**
@@ -53,7 +53,7 @@ export const validateCardContactPage = (cardContactPagePayload: IValidateCardCon
     })),
     country: Joi.string().max(stringLengths.COUNTRY_MAX),
     city: Joi.string().max(stringLengths.CITY_MAX),
-    state: Joi.string().valid(...Object.values(stateAbbreviations)),
+    state: Joi.string().valid(...Object.values(stateNames)),
     streetAddress: Joi.string().max(stringLengths.STREET_MAX),
     zipcode: Joi.string().min(stringLengths.ZIPCODE_MIN).max(stringLengths.ZIPCODE_MAX).pattern(/^[0-9]+$/),
     socialMedias: Joi.array().max(arrayLimits.MAX_SOCIAL_MEDIA).items(Joi.object({

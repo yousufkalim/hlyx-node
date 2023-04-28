@@ -1,7 +1,7 @@
 import Joi from 'joi'
 import { IValidateUserUpdate } from '../../config/interfaces/user.validation.interface'
 import { stringLengths } from '../../config/stringLengths'
-import { stateAbbreviations } from '../../config/stateAbbreviations'
+import { stateNames } from '../../config/stateNames'
 
 /**
  *
@@ -20,7 +20,7 @@ export const validateUserUpdate = (userUpdatePayload: IValidateUserUpdate): stri
     website: Joi.string().max(stringLengths.WEBSITES_MAX),
     country: Joi.string().max(stringLengths.COUNTRY_MAX),
     city: Joi.string().max(stringLengths.CITY_MAX),
-    state: Joi.string().valid(...Object.values(stateAbbreviations)),
+    state: Joi.string().valid(...Object.values(stateNames)),
     zipcode: Joi.string().min(stringLengths.ZIPCODE_MIN).max(stringLengths.ZIPCODE_MAX).pattern(/^[0-9]+$/)
   })
   return (userUpdateSchema.validate(userUpdatePayload)?.error?.message)
