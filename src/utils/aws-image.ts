@@ -15,12 +15,13 @@ export const awsUploadFile = async (
   fileType: string
 ): Promise<string> => {
   const Bucket = config.get('aws_bucket_name') as string
+  const env = config.get('env') as string
 
   const uploadResult = await s3
     .upload({
       Bucket,
       Body: dataBuffer,
-      Key: `${id}-${randomUUID()}-${classifier}-${fileName}`,
+      Key: `${env}/${id}-${randomUUID()}-${classifier}-${fileName}`,
       ContentType: fileType,
       ACL: 'public-read'
     })
@@ -32,10 +33,12 @@ export const awsUploadFile = async (
 export const awsDeleteFile = async (fileName: string): Promise<boolean | undefined> => {
   const Bucket = config.get('aws_bucket_name') as string
 
-  const deleteResult = await s3.deleteObject({
-    Bucket,
-    Key: fileName
-  }).promise()
+  const deleteResult = await s3
+    .deleteObject({
+      Bucket,
+      Key: fileName
+    })
+    .promise()
 
   return deleteResult.DeleteMarker
 }

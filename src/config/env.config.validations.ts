@@ -4,8 +4,8 @@ import convict from 'convict'
 const config = convict({
   env: {
     doc: 'The application environment.',
-    format: ['production', 'development'],
-    default: 'development',
+    format: ['prod', 'demo', 'dev'],
+    default: process.env.NODE_ENV,
     env: 'NODE_ENV'
   },
   port: {
