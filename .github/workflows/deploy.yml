@@ -62,6 +62,12 @@ jobs:
         with:
           node-version: 14
 
+      # The third step installs the dependencies and creates a build.
+      - name: Install deps and build project
+        run: |
+          yarn install
+          yarn run build
+
       # The third step transfers the code to the remote server using the Secure Copy (SCP) protocol.
       # The source directory is set to .,!./uploads, which excludes the uploads directory from being transferred.
       # Ensure that this is set correctly according to your application's file structure.
@@ -72,7 +78,7 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.REMOTE_KEY }}
           rm: true
-          source: '.'
+          source: '.,!./node_modules'
           target: ${{ env.RELEASE_PATH }}/current
 
       # The fourth step creates shared folders for the uploads directory and the node_modules directory and creates symbolic links
@@ -115,6 +121,5 @@ jobs:
           script: |
             cd ${{ env.RELEASE_PATH }}/current
             yarn install
-            yarn run build
             pm2 delete -s ${{ vars.APP_NAME }}-${{ env.NODE_ENV }} || :
             pm2 start dist/src/server.js --name "${{ vars.APP_NAME }}-${{ env.NODE_ENV }}" --update-env --env ${{ env.NODE_ENV }}
