@@ -11,20 +11,21 @@ export interface ICard {
   fullName: string
   emails?: ICardEmails[]
   phones?: ICardPhones[]
-  calendar: string
+  calendars?: ICardCalendars[]
   websites?: ICardWebsites[]
+  officeAddresses?: ICardOfficeAddresses[]
   country?: string
-  city?: string
+  city: string
   state?: string
   streetAddress?: string
   zipcode?: string
   socialMedias?: ICardSocialMedias[]
   additionalLinks?: ICardAdditionalLinks[]
   about?: string
-  company?: string
-  profTitle?: string
-  occupation?: string
-  industry?: string
+  company: string
+  profTitle: string
+  occupation: string
+  industry: string
   education?: ICardEducation[]
   accolades?: string[]
   achievements?: ICardAchievements[]
@@ -48,13 +49,24 @@ export interface IValidateCardFullName {
   fullName: string
 }
 
+export enum IProfileLayoutEnum {
+  'minimal',
+  'premium'
+}
+
 export interface IValidateCardContactPage {
+  fullName: string
+  cardName: string
+  publicCard?: boolean
+  profileLayout: IProfileLayoutEnum
+  isPrivate?: boolean
+  userAvatar: string
   emails?: ICardEmails[]
   phones?: ICardPhones[]
-  calendar: string
+  calendar: ICardCalendars[]
   websites?: ICardWebsites[]
   country?: string
-  city?: string
+  city: string
   state?: string
   streetAddress?: string
   zipcode?: string
@@ -64,10 +76,10 @@ export interface IValidateCardContactPage {
 
 export interface IValidateCardAboutPage {
   about?: string
-  company?: string
-  profTitle?: string
-  occupation?: string
-  industry?: string
+  company: string
+  profTitle: string
+  occupation: string
+  industry: string
   education?: ICardEducation[]
   accolades?: ICardAccolades[]
   achievements?: ICardAchievements[]
@@ -111,10 +123,36 @@ interface ICardPhones {
   cardId: string
 }
 
+interface ICardCalendars {
+  id: string
+  label?: string
+  title: string
+  url: string
+  cardId: string
+}
+
 interface ICardWebsites {
   id: string
   url: string
   description?: string
+  cardId: string
+}
+
+interface ICardOfficeAddresses {
+  id: string
+  label?: string
+  city: string
+  streetAddress: string
+  state?: string
+  zipcode?: string
+  cardId: string
+}
+
+interface ICardCalendars {
+  id: string
+  label?: string
+  title: string
+  url: string
   cardId: string
 }
 

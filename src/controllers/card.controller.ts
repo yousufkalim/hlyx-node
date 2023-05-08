@@ -5,7 +5,15 @@ import { RequestUserAuth } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { cardAboutPageParams, cardContactPageParams, cardControllerParams } from '../config/params'
-import { validateCardName, validateCardFullName, validateCardContactPage, validateCardAboutPage, validateCardServices, validateCardPortfolio, validateCardSlug } from '../utils/validations/card.controller.validation'
+import {
+  validateCardName,
+  validateCardFullName,
+  validateCardContactPage,
+  validateCardAboutPage,
+  validateCardServices,
+  validateCardPortfolio,
+  validateCardSlug
+} from '../utils/validations/card.controller.validation'
 import { templateIds } from '../config/enumTypes'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
 import { awsUploadFile, awsDeleteFile } from '../utils/aws-image'
@@ -49,7 +57,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -86,7 +96,13 @@ class CardController extends BaseController {
               type: true
             }
           },
-          calendar: true,
+          calendars: {
+            select: {
+              label: true,
+              title: true,
+              url: true
+            }
+          },
           websites: {
             select: {
               url: true,
@@ -129,7 +145,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -223,7 +241,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -268,7 +288,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -313,7 +335,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -349,7 +373,13 @@ class CardController extends BaseController {
         })
       }
       // AWS API Call
-      const pathToFile = await awsUploadFile(file.data, req.params.cardId, 'cover-photo', file.name, file.mimetype)
+      const pathToFile = await awsUploadFile(
+        file.data,
+        req.params.cardId,
+        'cover-photo',
+        file.name,
+        file.mimetype
+      )
 
       const data: any = {
         coverPhotos: {
@@ -376,7 +406,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -431,7 +463,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -477,7 +511,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -509,7 +545,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -545,7 +583,13 @@ class CardController extends BaseController {
         })
       }
       // AWS API Call
-      const pathToFile = await awsUploadFile(file.data, req.params.cardId, 'company-icon', file.name, file.mimetype)
+      const pathToFile = await awsUploadFile(
+        file.data,
+        req.params.cardId,
+        'company-icon',
+        file.name,
+        file.mimetype
+      )
 
       const data: any = {
         companyIcons: {
@@ -572,7 +616,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -627,7 +673,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -673,7 +721,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -705,7 +755,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -736,7 +788,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -767,7 +821,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -853,7 +909,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -942,7 +1000,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -973,9 +1033,13 @@ class CardController extends BaseController {
       */
       const featuredServices: any = services.filter((service: any) => service.type === 'featured')
       const featuredPositionings = featuredServices.map((a: any) => a.positioning)
-      featuredPositionings.sort((a: any, b: any) => { return a - b })
-      if (featuredPositionings.length !== new Set(featuredPositionings).size ||
-          featuredPositionings.length - 1 !== featuredPositionings[featuredPositionings.length - 1]) {
+      featuredPositionings.sort((a: any, b: any) => {
+        return a - b
+      })
+      if (
+        featuredPositionings.length !== new Set(featuredPositionings).size ||
+        featuredPositionings.length - 1 !== featuredPositionings[featuredPositionings.length - 1]
+      ) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: messages.POSITIONING_ERROR_SERVICE
@@ -984,9 +1048,13 @@ class CardController extends BaseController {
 
       const mainServices: any = services.filter((service: any) => service.type === 'main')
       const mainPositionings = mainServices.map((a: any) => a.positioning)
-      mainPositionings.sort((a: any, b: any) => { return a - b })
-      if (mainPositionings.length !== new Set(mainPositionings).size ||
-          mainPositionings.length - 1 !== mainPositionings[mainPositionings.length - 1]) {
+      mainPositionings.sort((a: any, b: any) => {
+        return a - b
+      })
+      if (
+        mainPositionings.length !== new Set(mainPositionings).size ||
+        mainPositionings.length - 1 !== mainPositionings[mainPositionings.length - 1]
+      ) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: messages.POSITIONING_ERROR_SERVICE
@@ -1013,7 +1081,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -1049,7 +1119,13 @@ class CardController extends BaseController {
         })
       }
       // AWS API Call
-      const pathToFile = await awsUploadFile(file.data, req.params.cardId, 'portfolio-image', file.name, file.mimetype)
+      const pathToFile = await awsUploadFile(
+        file.data,
+        req.params.cardId,
+        'portfolio-image',
+        file.name,
+        file.mimetype
+      )
 
       // Update and return
       await db.card.update({
@@ -1069,7 +1145,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -1105,10 +1183,14 @@ class CardController extends BaseController {
       })
 
       // Verify Uniqueness / Accuracy of Positioning
-      portfolio.sort((a: any, b: any) => { return a.positioning - b.positioning })
+      portfolio.sort((a: any, b: any) => {
+        return a.positioning - b.positioning
+      })
       const positionings = portfolio.map((a: any) => a.positioning)
-      if (positionings.length !== new Set(positionings).size ||
-          positionings.length - 1 !== positionings[positionings.length - 1]) {
+      if (
+        positionings.length !== new Set(positionings).size ||
+        positionings.length - 1 !== positionings[positionings.length - 1]
+      ) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: messages.POSITIONING_ERROR_SERVICE
@@ -1135,7 +1217,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -1190,7 +1274,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -1221,7 +1307,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -1265,7 +1353,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -1296,7 +1386,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -1314,7 +1406,9 @@ class CardController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 }

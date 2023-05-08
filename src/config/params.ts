@@ -1,11 +1,4 @@
-export const authControllerParams = [
-  'email',
-  'password',
-  'code',
-  'phone',
-  'accessToken',
-  'id'
-]
+export const authControllerParams = ['email', 'password', 'code', 'phone', 'accessToken', 'id']
 
 export const userControllerParams = [
   'firstName',
@@ -25,10 +18,14 @@ export const userControllerParams = [
 export const cardControllerParams = [
   'cardName',
   'fullName',
+  'profileLayout',
+  'isPrivate',
   'coverPhoto',
+  'userAvatar',
   'emails',
   'phones',
-  'calendar',
+  'calendars',
+  'officeAddresses',
   'websites',
   'country',
   'city',
@@ -93,13 +90,7 @@ export const cardAboutPageParams = [
   'motto'
 ]
 
-export const linkControllerParams = [
-  'cardOne',
-  'cardTwo',
-  'status',
-  'message',
-  'note'
-]
+export const linkControllerParams = ['cardOne', 'cardTwo', 'status', 'message', 'note']
 
 export const sharedContactControllerParams = [
   'cardId',
