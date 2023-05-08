@@ -25,6 +25,11 @@ class UserController extends BaseController {
           id: req.user?.id
         },
         include: {
+          _count: {
+            select: {
+              cards: true
+            }
+          },
           cards: {
             select: {
               cardId: true
@@ -412,12 +417,21 @@ class UserController extends BaseController {
   findProfilePhotos = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Grab images and return
-      const images = await db.userPhoto.findMany({
+      const images = await db.userBio.findMany({
         where: {
-          userId: req.params.userId
+          id: req.params.userId
         },
         select: {
-          pathToFile: true
+          _count: {
+            select: {
+              profilePhotos: true
+            }
+          },
+          profilePhotos: {
+            select: {
+              pathToFile: true
+            }
+          }
         }
       })
       return res.status(200).json({

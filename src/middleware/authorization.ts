@@ -106,7 +106,10 @@ export const linkAuthorization = async (req: RequestLink, res: Response, next: N
         recipient: link.cardOne
       }
     } else {
-      throw Error('Link Authorization failed.')
+      return res.status(400).json({
+        code: codes.BAD_REQUEST,
+        message: messages.LINK_UNAUTHORIZED
+      })
     }
     next()
   } catch (error: any) {

@@ -133,41 +133,33 @@ class LinkController extends BaseController {
         }
       })
 
-      // // Connect Other Card to Link
-      // await db.card.update({
-      //   where: {
-      //     cardId: req.card.requester
-      //   },
-      //   data: {
-      //     Links: {
-      //       connect: {
-      //         id: card.Links[0].id
-      //       }
-      //     }
-      //   }
-      // })
-
       const linkId = card.Links[0].id
-      // Create Notification
-      const reqNotification: RequestNotification = req as Request
-      reqNotification.notification = {
-        cardId: params.cardId,
-        directsTo: 'linkRequest',
-        message,
-        idDirectedTo: linkId
-      }
 
-      const notification = await notificationController.createNotification(req, res)
-      if (notification.statusCode !== 200) {
-        throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
-      }
-
-      // Return
-      return res.status(200).json({
+      const returnData: any = {
         linkId,
         code: codes.OK,
         message: messages.SUCCESS
-      })
+      }
+
+      // // Create Notification if requested
+      if (status === 'requested') {
+        const reqNotification: RequestNotification = req as Request
+        reqNotification.notification = {
+          cardId: req.card.recipient,
+          directsTo: 'linkRequest',
+          message,
+          idDirectedTo: linkId
+        }
+
+        const notification = await notificationController.createNotification(reqNotification)
+        if (!notification.success) {
+          throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
+        }
+        returnData.notificationId = notification.notificationId
+      }
+
+      // Return
+      return res.status(200).json(returnData)
     } catch (error: any) {
       console.error(error)
       return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
@@ -386,7 +378,7 @@ class LinkController extends BaseController {
       }
 
       // If both users have muted then undo flag
-      if (req.link.bothUserBlock) {
+      if (req.link.bothUserMute) {
         await db.link.update({
           where: {
             id: req.link.id
@@ -430,6 +422,11 @@ class LinkController extends BaseController {
           cardId: req.params.cardId
         },
         select: {
+          _count: {
+            select: {
+              Links: true
+            }
+          },
           cardId: true,
           Links: {
             where: {
@@ -468,6 +465,7 @@ class LinkController extends BaseController {
       const cardLinks = await this.#getInfoPerCard(card)
 
       return res.status(200).json({
+        _count: cardLinks?.length,
         cardLinks,
         code: codes.OK,
         message: messages.SUCCESS
@@ -840,7 +838,13 @@ class LinkController extends BaseController {
       }
 
       // Verify number of notes is under maximum
-      const existingNotes = await db.linkNotes.findMany({ where: { authorId: req.card.requester } })
+      const existingNotes = await db.linkNotes.findMany({
+        where:
+        {
+          linkId: req.link.id,
+          authorId: req.card.requester
+        }
+      })
       if (existingNotes.length >= arrayLimits.MAX_NOTES) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -883,14 +887,28 @@ class LinkController extends BaseController {
         })
       }
 
-      // // Find notes and return
-      const notes = await db.linkNotes.findMany({
+      const notes = await db.link.findMany({
         where: {
-          linkId: req.link.id,
-          authorId: req.card.requester
+          id: req.link.id
         },
-        orderBy: {
-          updatedAt: 'desc'
+        select: {
+          _count: {
+            select: {
+              notes: {
+                where: {
+                  authorId: req.card.requester
+                }
+              }
+            }
+          },
+          notes: {
+            where: {
+              authorId: req.card.requester
+            },
+            orderBy: {
+              updatedAt: 'desc'
+            }
+          }
         }
       })
       return res.status(200).json({
@@ -957,7 +975,7 @@ class LinkController extends BaseController {
   }
 
   /* Link Photos */
-  // Adds new Link Photo (TEST WITH AWS)
+  // Adds new Link Photo
   addLinkPhoto = async (req: RequestLink, res: Response): Promise<Response> => {
     try {
       // Confirm req.card & req.link are set
@@ -1003,7 +1021,7 @@ class LinkController extends BaseController {
         })
       }
       // AWS API Call
-      const pathToFile = await awsUploadFile(file.data, req.params.userId, 'link-photo', file.name, file.mimetype)
+      const pathToFile = await awsUploadFile(file.data, req.link.id, 'link-photo', file.name, file.mimetype)
 
       // Update and return
       await db.link.update({
@@ -1037,12 +1055,21 @@ class LinkController extends BaseController {
       }
 
       // Grab images and return
-      const images = await db.linkPhoto.findMany({
+      const images = await db.link.findMany({
         where: {
-          linkId: req.link.id
+          id: req.link.id
         },
         select: {
-          pathToFile: true
+          _count: {
+            select: {
+              photos: true
+            }
+          },
+          photos: {
+            select: {
+              pathToFile: true
+            }
+          }
         }
       })
       return res.status(200).json({
@@ -1197,7 +1224,8 @@ class LinkController extends BaseController {
         }
         returnArray.push({
           myCardId: userCard.cardId,
-          Links: linkInfo
+          Links: linkInfo,
+          _count: linkInfo.length
         })
       }
       return returnArray
