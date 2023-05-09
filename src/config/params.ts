@@ -21,7 +21,6 @@ export const cardControllerParams = [
   'profileLayout',
   'isPrivate',
   'coverPhoto',
-  'userAvatar',
   'emails',
   'phones',
   'calendars',

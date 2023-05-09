@@ -4,7 +4,6 @@ export interface ICard {
   slug: string
   publicCard: boolean
   templateID: string
-  userAvatar: string
   coverPhoto?: string
   coverPhotos: ICardCoverPhotos[]
   companyIcon: string
@@ -60,7 +59,6 @@ export interface IValidateCardContactPage {
   publicCard?: boolean
   profileLayout: IProfileLayoutEnum
   isPrivate?: boolean
-  userAvatar: string
   emails?: ICardEmails[]
   phones?: ICardPhones[]
   calendar: ICardCalendars[]

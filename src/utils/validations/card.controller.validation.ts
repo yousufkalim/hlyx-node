@@ -64,7 +64,6 @@ export const validateCardContactPage = (
     fullName: Joi.string().max(stringLengths.NAME_MAX).required(),
     cardName: Joi.string().max(stringLengths.NAME_MAX).required(),
     profileLayout: Joi.string().valid(...Object.values(profileLayoutTypes)),
-    userAvatar: Joi.string().required(),
     headerPhoto: Joi.string(),
     emails: Joi.array()
       .max(arrayLimits.MAX_EMAILS)
@@ -120,7 +119,7 @@ export const validateCardContactPage = (
           label: Joi.string().allow('').max(stringLengths.NAME_MAX),
           streetAddress: Joi.string().max(stringLengths.STREET_MAX).required(),
           city: Joi.string().max(stringLengths.CITY_MAX).required(),
-          state: Joi.string().max(stringLengths.STATE_MAX),
+          state: Joi.string().valid(...Object.values(stateAbbreviations)),
           zipcode: Joi.string().max(stringLengths.ZIPCODE_MAX)
         })
       ),

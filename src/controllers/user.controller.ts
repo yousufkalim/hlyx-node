@@ -180,21 +180,10 @@ class UserController extends BaseController {
 
   // Add a card to user
   addCard = async (req: RequestUserAuth, res: Response): Promise<Response> => {
-    // console.log('Request body ', req.body)
     try {
       const params = this.filterParams(req.body, cardControllerParams)
-      const {
-        fullName,
-        cardName,
-        profTitle,
-        profileLayout,
-        city,
-        company,
-        industry,
-        userAvatar,
-        occupation
-      } = params
-      console.log('Params ', params)
+      const { fullName, cardName, profTitle, profileLayout, city, company, industry, occupation } =
+        params
       // Verify user exists
       const user = await db.userBio.findUnique({
         where: {
@@ -204,7 +193,6 @@ class UserController extends BaseController {
           cards: true
         }
       })
-      console.log('USER => ', user)
       if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -242,7 +230,6 @@ class UserController extends BaseController {
         cardName,
         city,
         profileLayout,
-        userAvatar,
         country: user.country ?? undefined,
         state: params?.state ?? undefined,
         zipcode: params.zipcode ?? undefined,
@@ -266,7 +253,7 @@ class UserController extends BaseController {
       const cardAboutValidationError = validateCardAboutPage(cardAboutData)
       if (cardAboutValidationError) {
         return res.status(400).json({
-          code: codes.INTERNAL_SERVER_ERROR,
+          code: codes.BAD_REQUEST,
           message: cardAboutValidationError
         })
       }
@@ -322,9 +309,66 @@ class UserController extends BaseController {
         }
       }
 
+      /*  ====  Validation for Cover Photo  ===== */
+      const coverPhoto = req.files?.coverPhoto as UploadedFile
+      if (coverPhoto) {
+        // Verify Acceptable MIME Type
+        if (!ACCEPTABLE_MIME_TYPES.includes(coverPhoto.mimetype)) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.INVALID_MIME_TYPE
+          })
+        }
+        // Verify Image Size
+        if (coverPhoto.size > MAX_BYTES) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.FILE_SIZE_OVER_10
+          })
+        }
+
+        // AWS API Call
+        const coverPhotoPath = await awsUploadFile(
+          coverPhoto.data,
+          req.body.id,
+          'cover-photo',
+          coverPhoto.name,
+          coverPhoto.mimetype
+        )
+        cardAboutData.coverPhoto = coverPhotoPath
+      }
+
+      /*  ====  Validation for Company Icon  ===== */
+      const companyIcon = req.files?.companyIcon as UploadedFile
+      if (companyIcon) {
+        // Verify Acceptable MIME Type
+        if (!ACCEPTABLE_MIME_TYPES.includes(companyIcon.mimetype)) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.INVALID_MIME_TYPE
+          })
+        }
+        // Verify Image Size
+        if (companyIcon.size > MAX_BYTES) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.FILE_SIZE_OVER_10
+          })
+        }
+
+        const companyIconPath = await awsUploadFile(
+          companyIcon.data,
+          req.body.id,
+          'company-icon',
+          companyIcon.name,
+          companyIcon.mimetype
+        )
+
+        cardAboutData.companyIcon = companyIconPath
+      }
+
       const data = { ...cardContactData, ...cardAboutData }
 
-      console.log('Card data ', data)
       // Update UserBio, create Card, and return
       const createdCard = await db.userBio.update({
         where: { id: req.params.userId },
@@ -356,7 +400,6 @@ class UserController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
-      console.error(error.message)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
