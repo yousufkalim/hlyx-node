@@ -191,13 +191,6 @@ router.put(
   CardController.updatePortfolioPage
 )
 
-// Card Update Settings Routes
-router.put(
-  '/card/update/public-visibility/:cardId',
-  authenticate,
-  cardAuthorization,
-  CardController.updatePublicVisibility
-)
 router.put(
   '/card/update/template/:cardId',
   authenticate,
@@ -206,6 +199,14 @@ router.put(
 )
 router.put('/card/update/slug/:cardId', authenticate, cardAuthorization, CardController.updateSlug)
 router.delete('/card/delete/:cardId', authenticate, cardAuthorization, CardController.delete)
+
+// Card Update Settings Routes
+router.put(
+  '/card/update/public-visibility/:cardId',
+  authenticate,
+  cardAuthorization,
+  CardController.updatePublicVisibility
+)
 
 // Link Routes
 router.post('/link/create', authenticate, LinkController.create)

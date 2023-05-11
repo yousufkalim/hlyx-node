@@ -9,7 +9,10 @@ import { RequestUserAuth, RequestUserPreference } from '../config/interfaces/com
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { cardControllerParams, userControllerParams, userPreferenceParams } from '../config/params'
-import { validateUserUpdate } from '../utils/validations/user.controller.validation'
+import {
+  validateUserPreferences,
+  validateUserUpdate
+} from '../utils/validations/user.controller.validation'
 import { arrayLimits } from '../config/arrayLimits'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
 import { awsDeleteFile, awsUploadFile } from '../utils/aws-image'
@@ -587,27 +590,42 @@ class UserController extends BaseController {
 
   updateSettings = async (req: RequestUserPreference, res: Response): Promise<Response> => {
     try {
-      const params = this.filterParams(req.query, userPreferenceParams)
-      const options = Object.keys(params)
-      if (options?.length === 0) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: messages.USER_SETTING_SINGLE_OPTION
+      const user = await db.userAuth.findUnique({ where: { id: req.params?.userId } })
+
+      if (!user) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.USER_NOT_FOUND
         })
       }
-      if (options?.length > 1) {
+      const params = this.filterParams(req.query, userPreferenceParams)
+      const validationError = validateUserPreferences(params)
+      if (validationError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+
+      const options = Object.keys(params)
+      if (options?.length === 0) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: messages.USER_SETTING_VALIDATE
         })
       }
+      if (options?.length > 1) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.USER_SETTING_SINGLE_OPTION
+        })
+      }
       const value = params[options[0]]
       const key = options[0]
       const data = {
-        [key]: value
+        [key]: key === 'twoFactorauth' ? value : JSON.parse(value)
       }
-      console.log('Request ', data)
-      const response = await db.userAuth.update({
+      await db.userAuth.update({
         where: { id: req.params.userId },
         data: {
           userPreference: {
@@ -615,12 +633,11 @@ class UserController extends BaseController {
           }
         }
       })
-      console.log('Response =>  ', response)
       return res.status(200).json({
-        code: codes.OK
+        code: codes.OK,
+        message: messages.SUCCESS
       })
     } catch (error: any) {
-      console.log('Error ', error.message)
       return res.status(500).json({
         code: codes.INTERNAL_SERVER_ERROR,
         message: messages.SERVER_FAILURE

@@ -83,5 +83,6 @@ export const messages = {
   CONTACT_OUT_OF_SYNC: 'Contacts are out of sync within our database',
   CONTACT_UNAUTHORIZED: 'Contact belongs to another authenticated user',
   USER_SETTING_SINGLE_OPTION: 'User can only select 1 option at same time',
-  USER_SETTING_VALIDATE: 'User must select some option'
+  USER_SETTING_VALIDATE: 'User must select some option',
+  SEARCH_TYPE_SELECT: 'You should select search type by which you want to search'
 }

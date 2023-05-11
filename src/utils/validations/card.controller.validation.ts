@@ -63,7 +63,9 @@ export const validateCardContactPage = (
   const contactPageSchema = Joi.object({
     fullName: Joi.string().max(stringLengths.NAME_MAX).required(),
     cardName: Joi.string().max(stringLengths.NAME_MAX).required(),
-    profileLayout: Joi.string().valid(...Object.values(profileLayoutTypes)),
+    profileLayout: Joi.string()
+      .valid(...Object.values(profileLayoutTypes))
+      .required(),
     headerPhoto: Joi.string(),
     emails: Joi.array()
       .max(arrayLimits.MAX_EMAILS)
@@ -88,8 +90,7 @@ export const validateCardContactPage = (
             .required(),
           extention: Joi.string()
             .max(stringLengths.PHONE_EXT_MAX)
-            .pattern(/^[0-9]+$/)
-            .allow(''),
+            .pattern(/^[0-9]+$/),
           type: Joi.string()
             .valid(...Object.values(phoneTypes))
             .required()

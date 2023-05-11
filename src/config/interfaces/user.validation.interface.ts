@@ -12,3 +12,13 @@ export interface IValidateUserUpdate {
   state?: string
   zipcode?: string
 }
+
+export interface IValidateUserPreference {
+  twoFactorAuth: TwoFactorAuth
+}
+
+export enum TwoFactorAuth {
+  none,
+  phoneTypes,
+  email
+}

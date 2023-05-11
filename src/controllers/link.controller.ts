@@ -497,6 +497,15 @@ class LinkController extends BaseController {
   // Find all links associated with user
   userAllLinks = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
+      const { searchBy, search } = req.query
+      if (search) {
+        if (!searchBy) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.SEARCH_TYPE_SELECT
+          })
+        }
+      }
       // Find all cards associated with user
       const cards = await db.card.findMany({
         where: {
@@ -830,7 +839,6 @@ class LinkController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
-      console.error('Deletee card error => ', error)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
