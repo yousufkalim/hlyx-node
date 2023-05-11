@@ -14,9 +14,6 @@
 -- CreateEnum
 CREATE TYPE "ProfileLayout" AS ENUM ('minimal', 'premium');
 
--- AlterEnum
-ALTER TYPE "EmailType" ADD VALUE 'alternate';
-
 -- AlterTable
 ALTER TABLE "Card" DROP COLUMN "calendar",
 ADD COLUMN     "profileLayout" "ProfileLayout" NOT NULL,
