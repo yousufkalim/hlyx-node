@@ -1,10 +1,14 @@
+import {
+  validateCardAboutPage,
+  validateCardContactPage
+} from './../utils/validations/card.controller.validation'
 import { Response } from 'express'
 import { UploadedFile } from 'express-fileupload'
 
 import { RequestUserAuth } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
-import { userControllerParams } from '../config/params'
+import { cardControllerParams, userControllerParams } from '../config/params'
 import { validateUserUpdate } from '../utils/validations/user.controller.validation'
 import { arrayLimits } from '../config/arrayLimits'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
@@ -49,7 +53,9 @@ class UserController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -90,7 +96,13 @@ class UserController extends BaseController {
         }
 
         // AWS API Call
-        const pathToFile = await awsUploadFile(file.data, req.params.userId, 'profile-photo', file.name, file.mimetype)
+        const pathToFile = await awsUploadFile(
+          file.data,
+          req.params.userId,
+          'profile-photo',
+          file.name,
+          file.mimetype
+        )
         // Prepare params for update
         params.profileAvatar = pathToFile
         params.profilePhotos = {
@@ -113,7 +125,9 @@ class UserController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -158,13 +172,18 @@ class UserController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
   // Add a card to user
   addCard = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
+      const params = this.filterParams(req.body, cardControllerParams)
+      const { fullName, cardName, profTitle, profileLayout, city, company, industry, occupation } =
+        params
       // Verify user exists
       const user = await db.userBio.findUnique({
         where: {
@@ -197,47 +216,165 @@ class UserController extends BaseController {
         })
       }
 
+      // Card About Data
+      const cardAboutData: any = {
+        company,
+        profTitle,
+        industry,
+        occupation
+      }
+
       // Create Card data
-      const cardData: any = {
-        fullName: `${user.firstName} ${user.middleInitial ?? ''} ${user.lastName}`.replace(/ +(?= )/g, ''),
-        cardName: `${user.firstName} ${user.middleInitial ?? ''} ${user.lastName}'s Card`.replace(/ +(?= )/g, ''),
-        company: user.company ?? undefined,
-        profTitle: user.profTitle ?? undefined,
-        industry: user.industry ?? undefined,
+      const cardContactData: any = {
+        fullName,
+        cardName,
+        city,
+        profileLayout,
         country: user.country ?? undefined,
-        city: user.city ?? undefined,
-        state: user.state ?? undefined,
-        zipcode: user.zipcode ?? undefined,
-        emails: {
-          create: {
-            email: user.email
+        state: params?.state ?? undefined,
+        zipcode: params.zipcode ?? undefined,
+        emails: params.emails,
+        phones: params.phones,
+        websites: params.websites,
+        officeAddresses: params.officeAddresses,
+        socialMedias: params.socialMedias,
+        additionalLinks: params.additionalLinks,
+        calendars: params.calendars
+      }
+
+      const cardContactValidationError = validateCardContactPage(cardContactData)
+      if (cardContactValidationError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: cardContactValidationError
+        })
+      }
+
+      const cardAboutValidationError = validateCardAboutPage(cardAboutData)
+      if (cardAboutValidationError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: cardAboutValidationError
+        })
+      }
+
+      // Add optional fields if set
+      if (params.emails?.length > 0) {
+        cardContactData.emails = {
+          createMany: {
+            data: params.emails
+          }
+        }
+      }
+      if (params.phones?.length > 0) {
+        cardContactData.phones = {
+          createMany: {
+            data: params.phones
+          }
+        }
+      }
+      if (params.calendars?.length > 0) {
+        cardContactData.calendars = {
+          createMany: {
+            data: params.calendars
+          }
+        }
+      }
+      if (params.websites?.length > 0) {
+        cardContactData.websites = {
+          createMany: {
+            data: params.websites
+          }
+        }
+      }
+      if (params.officeAddresses?.length > 0) {
+        cardContactData.officeAddresses = {
+          createMany: {
+            data: params.officeAddresses
+          }
+        }
+      }
+      if (params.socialMedias?.length > 0) {
+        cardContactData.socialMedias = {
+          createMany: {
+            data: params.socialMedias
+          }
+        }
+      }
+      if (params.additionalLinks?.length > 0) {
+        cardContactData.additionalLinks = {
+          createMany: {
+            data: params.additionalLinks
           }
         }
       }
 
-      // Add optional fields if set
-      if (user.phone) {
-        cardData.phones = {
-          create: {
-            phone: user.phone,
-            type: 'main'
-          }
+      /*  ====  Validation for Cover Photo  ===== */
+      const coverPhoto = req.files?.coverPhoto as UploadedFile
+      if (coverPhoto) {
+        // Verify Acceptable MIME Type
+        if (!ACCEPTABLE_MIME_TYPES.includes(coverPhoto.mimetype)) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.INVALID_MIME_TYPE
+          })
         }
-      }
-      if (user.website) {
-        cardData.websites = {
-          create: {
-            url: user.website
-          }
+        // Verify Image Size
+        if (coverPhoto.size > MAX_BYTES) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.FILE_SIZE_OVER_10
+          })
         }
+
+        // AWS API Call
+        const coverPhotoPath = await awsUploadFile(
+          coverPhoto.data,
+          req.body.id,
+          'cover-photo',
+          coverPhoto.name,
+          coverPhoto.mimetype
+        )
+        cardAboutData.coverPhoto = coverPhotoPath
       }
+
+      /*  ====  Validation for Company Icon  ===== */
+      const companyIcon = req.files?.companyIcon as UploadedFile
+      if (companyIcon) {
+        // Verify Acceptable MIME Type
+        if (!ACCEPTABLE_MIME_TYPES.includes(companyIcon.mimetype)) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.INVALID_MIME_TYPE
+          })
+        }
+        // Verify Image Size
+        if (companyIcon.size > MAX_BYTES) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.FILE_SIZE_OVER_10
+          })
+        }
+
+        const companyIconPath = await awsUploadFile(
+          companyIcon.data,
+          req.body.id,
+          'company-icon',
+          companyIcon.name,
+          companyIcon.mimetype
+        )
+
+        cardAboutData.companyIcon = companyIconPath
+      }
+
+      const data = { ...cardContactData, ...cardAboutData }
 
       // Update UserBio, create Card, and return
       const createdCard = await db.userBio.update({
         where: { id: req.params.userId },
         data: {
           cards: {
-            create: cardData
+            create: data
           }
         },
         select: {
@@ -249,7 +386,7 @@ class UserController extends BaseController {
         }
       })
 
-      const allCardIds = user.cards.map(a => a.cardId)
+      const allCardIds = user.cards.map((a) => a.cardId)
       let cardId = ''
       // Isolate newly create id from previous
       for (const id of createdCard.cards) {
@@ -263,8 +400,9 @@ class UserController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -300,7 +438,13 @@ class UserController extends BaseController {
         })
       }
       // AWS API Call
-      const pathToFile = await awsUploadFile(file.data, req.params.userId, 'profile-photo', file.name, file.mimetype)
+      const pathToFile = await awsUploadFile(
+        file.data,
+        req.params.userId,
+        'profile-photo',
+        file.name,
+        file.mimetype
+      )
 
       const data: any = {
         profilePhotos: {
@@ -326,7 +470,9 @@ class UserController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -381,7 +527,9 @@ class UserController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -413,7 +561,9 @@ class UserController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 }
