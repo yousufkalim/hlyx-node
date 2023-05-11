@@ -11,7 +11,14 @@ import { authControllerParams } from '../config/params'
 import { config } from '../config/env.config.validations'
 import { sendCodeToEmail, sendCodeToPhone } from '../utils/helper'
 import { twilioClient } from '../utils/twilio'
-import { validateLogin, validateRegister, validateSendVerificationCode, validateVerifyCode, validatePhone, validateVerifyPhone } from '../utils/validations/auth.controller.validation'
+import {
+  validateLogin,
+  validateRegister,
+  validateSendVerificationCode,
+  validateVerifyCode,
+  validatePhone,
+  validateVerifyPhone
+} from '../utils/validations/auth.controller.validation'
 import { db } from '../utils/db'
 
 class AuthController extends BaseController {
@@ -44,7 +51,7 @@ class AuthController extends BaseController {
           const currentTime = new Date()
           let diff = currentTime.getTime() - user.createdAt.getTime()
           // Milisecond to day conversion
-          diff = diff / (86400000)
+          diff = diff / 86400000
           if (diff > expirationTimes.DAYS_FOR_PERMA_DELETE) {
             return res.status(400).json({
               code: codes.BAD_REQUEST,
@@ -113,7 +120,9 @@ class AuthController extends BaseController {
       )
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -145,7 +154,8 @@ class AuthController extends BaseController {
       const data = {
         email,
         password: await bcrypt.hash(password, salt),
-        userBio: { create: {} }
+        userBio: { create: {} },
+        userPreference: { create: {} }
       }
 
       // Create User
@@ -232,7 +242,9 @@ class AuthController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -303,7 +315,8 @@ class AuthController extends BaseController {
       let twilioFound = true
       const verification = await twilioClient.verify.v2
         .services(config.get('email_verification_sid') as string)
-        .verificationChecks.create({ to: email, code }).catch(error => {
+        .verificationChecks.create({ to: email, code })
+        .catch((error) => {
           console.error(error)
           twilioFound = false
         })
@@ -373,7 +386,8 @@ class AuthController extends BaseController {
       let twilioFound = true
       const verification = await twilioClient.verify.v2
         .services(config.get('email_verification_sid') as string)
-        .verificationChecks.create({ to: email, code }).catch(error => {
+        .verificationChecks.create({ to: email, code })
+        .catch((error) => {
           console.error(error)
           twilioFound = false
         })
@@ -445,7 +459,7 @@ class AuthController extends BaseController {
         const currentTime = new Date()
         let diff = currentTime.getTime() - user.passwordReset.getTime()
         // Milisecond to day minute
-        diff = diff / (60000)
+        diff = diff / 60000
         if (diff > expirationTimes.MINUTES_FOR_PASSWORD_RESET) {
           return res.status(400).json({
             code: codes.BAD_REQUEST,
@@ -469,7 +483,9 @@ class AuthController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -607,7 +623,8 @@ class AuthController extends BaseController {
       let twilioFound = true
       const verification = await twilioClient.verify.v2
         .services(config.get('sms_verification_sid') as string)
-        .verificationChecks.create({ to: `+1${phone}`, code }).catch(error => {
+        .verificationChecks.create({ to: `+1${phone}`, code })
+        .catch((error) => {
           console.error(error)
           twilioFound = false
         })
@@ -677,7 +694,9 @@ class AuthController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -710,7 +729,9 @@ class AuthController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -734,7 +755,9 @@ class AuthController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 }

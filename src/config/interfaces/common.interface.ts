@@ -13,6 +13,14 @@ export interface RequestUserAuth extends Request {
   user?: IUser
 }
 
+export interface RequestUserPreference extends RequestUserAuth {
+  twoFactorAuth?: string
+  allCardsPrivate?: boolean
+  connectionViaProfileLink?: boolean
+  connectionViaQRCode?: boolean
+  connectionViaPerson?: boolean
+}
+
 export interface RequestLink extends RequestUserAuth {
   card?: {
     requester: string

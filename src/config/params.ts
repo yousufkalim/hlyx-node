@@ -15,6 +15,14 @@ export const userControllerParams = [
   'zipcode'
 ]
 
+export const userPreferenceParams = [
+  'twoFactorAuth',
+  'allCardsPrivate',
+  'connectionViaProfileLink',
+  'connectionViaQRCode',
+  'connectionViaPerson'
+]
+
 export const cardControllerParams = [
   'cardName',
   'fullName',

@@ -5,10 +5,10 @@ import {
 import { Response } from 'express'
 import { UploadedFile } from 'express-fileupload'
 
-import { RequestUserAuth } from '../config/interfaces/common.interface'
+import { RequestUserAuth, RequestUserPreference } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
-import { cardControllerParams, userControllerParams } from '../config/params'
+import { cardControllerParams, userControllerParams, userPreferenceParams } from '../config/params'
 import { validateUserUpdate } from '../utils/validations/user.controller.validation'
 import { arrayLimits } from '../config/arrayLimits'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
@@ -182,8 +182,25 @@ class UserController extends BaseController {
   addCard = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       const params = this.filterParams(req.body, cardControllerParams)
-      const { fullName, cardName, profTitle, profileLayout, city, company, industry, occupation } =
-        params
+      const {
+        fullName,
+        cardName,
+        profTitle,
+        profileLayout,
+        city,
+        company,
+        industry,
+        occupation,
+        emails,
+        phones,
+        zipcode,
+        state,
+        websites,
+        officeAddresses,
+        socialMedias,
+        additionalLinks,
+        calendars
+      } = params
       // Verify user exists
       const user = await db.userBio.findUnique({
         where: {
@@ -230,16 +247,16 @@ class UserController extends BaseController {
         cardName,
         city,
         profileLayout,
-        country: user.country ?? undefined,
-        state: params?.state ?? undefined,
-        zipcode: params.zipcode ?? undefined,
-        emails: params.emails,
-        phones: params.phones,
-        websites: params.websites,
-        officeAddresses: params.officeAddresses,
-        socialMedias: params.socialMedias,
-        additionalLinks: params.additionalLinks,
-        calendars: params.calendars
+        country: user?.country ?? undefined,
+        state: state ?? undefined,
+        zipcode: zipcode ?? undefined,
+        emails,
+        phones,
+        websites,
+        officeAddresses,
+        socialMedias,
+        additionalLinks,
+        calendars
       }
 
       const cardContactValidationError = validateCardContactPage(cardContactData)
@@ -400,6 +417,7 @@ class UserController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
+      console.log('error ', error.message)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
@@ -564,6 +582,49 @@ class UserController extends BaseController {
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  updateSettings = async (req: RequestUserPreference, res: Response): Promise<Response> => {
+    try {
+      const params = this.filterParams(req.query, userPreferenceParams)
+      const options = Object.keys(params)
+      if (options?.length === 0) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.USER_SETTING_SINGLE_OPTION
+        })
+      }
+      if (options?.length > 1) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.USER_SETTING_VALIDATE
+        })
+      }
+      const value = params[options[0]]
+      const key = options[0]
+      const data = {
+        [key]: value
+      }
+      console.log('Request ', data)
+      const response = await db.userAuth.update({
+        where: { id: req.params.userId },
+        data: {
+          userPreference: {
+            update: data
+          }
+        }
+      })
+      console.log('Response =>  ', response)
+      return res.status(200).json({
+        code: codes.OK
+      })
+    } catch (error: any) {
+      console.log('Error ', error.message)
+      return res.status(500).json({
+        code: codes.INTERNAL_SERVER_ERROR,
+        message: messages.SERVER_FAILURE
+      })
     }
   }
 }
