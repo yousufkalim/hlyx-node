@@ -4,7 +4,9 @@ import { UploadedFile } from 'express-fileupload'
 import {
   RequestLink,
   RequestUserAuth,
-  RequestNotification
+  RequestNotification,
+  ISearch,
+  IGeneralLinks
 } from '../config/interfaces/common.interface'
 import {
   IArrayLink,
@@ -14,7 +16,10 @@ import {
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { linkControllerParams } from '../config/params'
-import { validateNote } from '../utils/validations/link.controller.validation'
+import {
+  validateLinkSearchType,
+  validateNote
+} from '../utils/validations/link.controller.validation'
 import { arrayLimits } from '../config/arrayLimits'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
 import { awsUploadFile, awsDeleteFile } from '../utils/aws-image'
@@ -433,41 +438,237 @@ class LinkController extends BaseController {
   // Find all links associated with card
   cardAllLinks = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
-      const card = await db.card.findUnique({
-        where: {
-          cardId: req.params.cardId
-        },
-        select: {
-          _count: {
-            select: {
-              Links: true
-            }
-          },
-          cardId: true,
-          Links: {
+      const query = this.#getSearchQuery(req.query)
+      const { search, searchBy: searchType } = query
+
+      let card
+
+      // Get links when search apply
+      if (search && searchType) {
+        // Search by location links
+        if (searchType === 'location') {
+          card = await db.card.findUnique({
             where: {
-              status: 'accepted'
+              cardId: req.params.cardId
             },
             select: {
-              id: true,
-              cardOne: true,
-              cardTwo: true,
-              updatedAt: true
+              _count: {
+                select: {
+                  Links: true
+                }
+              },
+              cardId: true,
+              Links: {
+                where: {
+                  status: 'accepted',
+                  OR: [
+                    {
+                      CardOneRef: {
+                        OR: [
+                          {
+                            city: {
+                              contains: search,
+                              mode: 'insensitive'
+                            }
+                          },
+                          {
+                            state: {
+                              contains: search,
+                              mode: 'insensitive'
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      CardTwoRef: {
+                        OR: [
+                          {
+                            city: {
+                              contains: search,
+                              mode: 'insensitive'
+                            }
+                          },
+                          {
+                            state: {
+                              contains: search,
+                              mode: 'insensitive'
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                select: {
+                  id: true,
+                  cardOne: true,
+                  cardTwo: true,
+                  updatedAt: true
+                }
+              },
+              LinksDuplicate: {
+                where: {
+                  status: 'accepted',
+                  OR: [
+                    {
+                      CardOneRef: {
+                        OR: [
+                          {
+                            city: {
+                              contains: search,
+                              mode: 'insensitive'
+                            }
+                          },
+                          {
+                            state: {
+                              contains: search,
+                              mode: 'insensitive'
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      CardTwoRef: {
+                        OR: [
+                          {
+                            city: {
+                              contains: search,
+                              mode: 'insensitive'
+                            }
+                          },
+                          {
+                            state: {
+                              contains: search,
+                              mode: 'insensitive'
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                select: {
+                  id: true,
+                  cardOne: true,
+                  cardTwo: true,
+                  updatedAt: true
+                }
+              }
             }
-          },
-          LinksDuplicate: {
+          })
+        } else {
+          card = await db.card.findUnique({
             where: {
-              status: 'accepted'
+              cardId: req.params.cardId
             },
             select: {
-              id: true,
-              cardOne: true,
-              cardTwo: true,
-              updatedAt: true
+              _count: {
+                select: {
+                  Links: true
+                }
+              },
+              cardId: true,
+              Links: {
+                where: {
+                  status: 'accepted',
+                  OR: [
+                    {
+                      CardOneRef: {
+                        [searchType]: {
+                          contains: search,
+                          mode: 'insensitive'
+                        }
+                      }
+                    },
+                    {
+                      CardTwoRef: {
+                        [searchType]: {
+                          contains: search,
+                          mode: 'insensitive'
+                        }
+                      }
+                    }
+                  ]
+                },
+                select: {
+                  id: true,
+                  cardOne: true,
+                  cardTwo: true,
+                  updatedAt: true
+                }
+              },
+              LinksDuplicate: {
+                where: {
+                  status: 'accepted',
+                  OR: [
+                    {
+                      CardOneRef: {
+                        [searchType]: {
+                          contains: search,
+                          mode: 'insensitive'
+                        }
+                      }
+                    },
+                    {
+                      CardTwoRef: {
+                        [searchType]: {
+                          contains: search,
+                          mode: 'insensitive'
+                        }
+                      }
+                    }
+                  ]
+                },
+                select: {
+                  id: true,
+                  cardOne: true,
+                  cardTwo: true,
+                  updatedAt: true
+                }
+              }
+            }
+          })
+        }
+      } else {
+        const response = await db.card.findUnique({
+          where: {
+            cardId: req.params.cardId
+          },
+          select: {
+            _count: {
+              select: {
+                Links: true
+              }
+            },
+            cardId: true,
+            Links: {
+              where: {
+                status: 'accepted'
+              },
+              select: {
+                id: true,
+                cardOne: true,
+                cardTwo: true,
+                updatedAt: true
+              }
+            },
+            LinksDuplicate: {
+              where: {
+                status: 'accepted'
+              },
+              select: {
+                id: true,
+                cardOne: true,
+                cardTwo: true,
+                updatedAt: true
+              }
             }
           }
-        }
-      })
+        })
+        card = response
+      }
 
       if (!card) {
         return res.status(404).json({
@@ -497,15 +698,6 @@ class LinkController extends BaseController {
   // Find all links associated with user
   userAllLinks = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
-      const { searchBy, search } = req.query
-      if (search) {
-        if (!searchBy) {
-          return res.status(400).json({
-            code: codes.BAD_REQUEST,
-            message: messages.SEARCH_TYPE_SELECT
-          })
-        }
-      }
       // Find all cards associated with user
       const cards = await db.card.findMany({
         where: {
@@ -516,9 +708,13 @@ class LinkController extends BaseController {
         }
       })
 
+      // Search query parameters
+      const query = this.#getSearchQuery(req.query)
+      const { search, searchBy: searchType } = query
       // Loop through all cards, find links and return
       const favorites: IArrayLink[] = []
       const general: IArrayLink[] = []
+
       for (const card of cards) {
         // Favorites
         const favoriteLinks = await db.link.findMany({
@@ -549,28 +745,35 @@ class LinkController extends BaseController {
         })
 
         // General
-        const generalLinks = await db.link.findMany({
-          where: {
-            OR: [
-              {
-                cardOne: card.cardId,
-                status: 'accepted',
-                cardOneFavorite: false
-              },
-              {
-                cardTwo: card.cardId,
-                status: 'accepted',
-                cardTwoFavorite: false
-              }
-            ]
-          },
-          select: {
-            id: true,
-            cardOne: true,
-            cardTwo: true,
-            updatedAt: true
-          }
-        })
+        let generalLinks: IGeneralLinks[] = []
+        if (search && searchType) {
+          generalLinks = await this.#getSearchedLinks(card.cardId, searchType, search)
+        } else {
+          const response = await db.link.findMany({
+            where: {
+              OR: [
+                {
+                  cardOne: card.cardId,
+                  status: 'accepted',
+                  cardOneFavorite: false
+                },
+                {
+                  cardTwo: card.cardId,
+                  status: 'accepted',
+                  cardTwoFavorite: false
+                }
+              ]
+            },
+            select: {
+              id: true,
+              cardOne: true,
+              cardTwo: true,
+              updatedAt: true
+            }
+          })
+          generalLinks = response
+        }
+
         general.push({
           cardId: card.cardId,
           Links: generalLinks
@@ -1330,6 +1533,122 @@ class LinkController extends BaseController {
     } catch (error: any) {
       console.error(error)
     }
+  }
+
+  #getSearchQuery = (query: ISearch): ISearch => {
+    const { search, searchBy } = query
+    let searchType = searchBy
+    if (search && searchBy) {
+      const searchTypeValidationError = validateLinkSearchType({ searchBy })
+      if (searchTypeValidationError) {
+        searchType = ''
+      }
+    }
+
+    return { search, searchBy: searchType }
+  }
+
+  #getSearchedLinks = async (
+    cardId: string,
+    searchType: string,
+    search: string
+  ): Promise<IGeneralLinks[] | []> => {
+    let generalLinks = []
+    if (searchType === 'location') {
+      const response = await db.link.findMany({
+        where: {
+          OR: [
+            {
+              cardOne: cardId,
+              status: 'accepted',
+              cardOneFavorite: false,
+              CardTwoRef: {
+                OR: [
+                  {
+                    city: {
+                      contains: search,
+                      mode: 'insensitive'
+                    }
+                  },
+                  {
+                    state: {
+                      contains: search,
+                      mode: 'insensitive'
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              cardTwo: cardId,
+              status: 'accepted',
+              cardTwoFavorite: false,
+              CardOneRef: {
+                OR: [
+                  {
+                    city: {
+                      contains: search,
+                      mode: 'insensitive'
+                    }
+                  },
+                  {
+                    state: {
+                      contains: search,
+                      mode: 'insensitive'
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        select: {
+          id: true,
+          cardOne: true,
+          cardTwo: true,
+          updatedAt: true
+        }
+      })
+      generalLinks = response
+    } else {
+      const response = await db.link.findMany({
+        where: {
+          OR: [
+            {
+              cardOne: cardId,
+              status: 'accepted',
+              cardOneFavorite: false,
+              CardTwoRef: {
+                [searchType]: {
+                  contains: search,
+                  mode: 'insensitive'
+                }
+              }
+            },
+            {
+              cardTwo: cardId,
+              status: 'accepted',
+              cardTwoFavorite: false,
+              CardOneRef: {
+                [searchType]: {
+                  contains: search,
+                  mode: 'insensitive'
+                }
+              }
+            }
+          ]
+        },
+        select: {
+          id: true,
+          cardOne: true,
+          cardTwo: true,
+          updatedAt: true
+        }
+      })
+      generalLinks = response
+    }
+
+    return generalLinks
   }
 }
 

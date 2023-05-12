@@ -50,3 +50,15 @@ export interface ICreateNotification {
   notificationId?: string
   success: boolean
 }
+
+export interface ISearch {
+  searchBy?: string
+  search?: string
+}
+
+export interface IGeneralLinks {
+  updatedAt: Date
+  cardTwo: string
+  cardOne: string
+  id: string
+}
