@@ -33,10 +33,10 @@ model UserAuth {
 
 // Updated during onboarding process and used to initialize card creation
 model UserBio {
-  id                   String      @id
-  User                 UserAuth?   @relation(fields: [id, email, phone], references: [id, email, phone], onDelete: Cascade, onUpdate: Cascade)
-  profileAvatar        String      @default("routeToOurDefaultAvatar")
-  isOnBoardingComplete Boolean     @default(false)
+  id                   String          @id
+  User                 UserAuth?       @relation(fields: [id, email, phone], references: [id, email, phone], onDelete: Cascade, onUpdate: Cascade)
+  profileAvatar        String          @default("routeToOurDefaultAvatar")
+  isOnBoardingComplete Boolean         @default(false)
   // Personal Info
   firstName            String?
   middleInitial        String?
@@ -56,12 +56,54 @@ model UserBio {
   zipcode              String?
   profilePhotos        UserPhoto[]
   cards                Card[]
-  updatedAt            DateTime    @updatedAt
+  updatedAt            DateTime        @updatedAt
+  Group                Group[]
+  groups               GroupsOnUsers[]
+  GroupMessages        GroupMessages[]
 
   // Required to link with User
   @@unique([id, email, phone])
   // Required to link with Card
   @@unique([id, profileAvatar])
+}
+
+model Group {
+  id            String          @id @default(uuid())
+  groupName     String          @unique
+  description   String?
+  tags          String[]
+  groupPhoto    String?
+  isPrivate     Boolean         @default(false)
+  GroupAdmin    UserBio         @relation(fields: [adminUser], references: [id])
+  adminUser     String
+  isMuted       Boolean         @default(false)
+  isArchived    Boolean         @default(false)
+  members       GroupsOnUsers[]
+  GroupMessages GroupMessages[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model GroupsOnUsers {
+  User      UserBio  @relation(fields: [userId], references: [id])
+  userId    String // relation scalar field (used in the `@relation` attribute above)
+  Group     Group    @relation(fields: [groupId], references: [id])
+  groupId   String // relation scalar field (used in the `@relation` attribute above)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([userId, groupId])
+}
+
+model GroupMessages {
+  id        String   @id @default(uuid())
+  message   String
+  sender    UserBio  @relation(fields: [senderId], references: [id])
+  senderId  String
+  Group     Group    @relation(fields: [groupId], references: [id])
+  groupId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model UserPreferences {
@@ -499,4 +541,10 @@ enum ContactStatus {
 enum ProfileLayout {
   minimal
   premium
+}
+
+enum GroupStatus {
+  active
+  muted
+  archived
 }

@@ -15,4 +15,6 @@ app.use(express.json())
 app.use(fileUpload())
 app.use('/api/v1', router)
 
-app.listen(config.get('port'), () => console.log(`Database connected and Server is running on http://localhost:${config.get('port')}`))
+app.listen(config.get('port'), () =>
+  console.log(`Database connected and Server is running on http://localhost:${config.get('port')}`)
+)

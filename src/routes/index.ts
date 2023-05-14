@@ -14,11 +14,14 @@ import {
   linkAuthorization,
   noteAuthorization,
   notificationAuthorization,
-  sharedContactAuthorization
+  sharedContactAuthorization,
+  groupAdminAuthorization,
+  groupAuthorization
 } from '../middleware/authorization'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { config } from '../config/env.config.validations'
+import GroupController from '../controllers/group.controller'
 
 const router = Router()
 
@@ -360,6 +363,33 @@ router.delete(
   authenticate,
   sharedContactAuthorization,
   ContactRequstController.deleteContact
+)
+
+// Group Routes
+router.get(
+  '/group/all-groups/:userId',
+  authenticate,
+  userAuthorization,
+  GroupController.getAllGroups
+)
+router.get(
+  '/group/group-details/:groupId',
+  authenticate,
+  groupAuthorization,
+  GroupController.getGroupDetails
+)
+router.post('/group/create/:userId', authenticate, userAuthorization, GroupController.createGroup)
+router.put(
+  '/group/update/:groupId',
+  authenticate,
+  groupAdminAuthorization,
+  GroupController.updateGroup
+)
+router.delete(
+  '/group/delete/:groupId',
+  authenticate,
+  groupAdminAuthorization,
+  GroupController.deleteGroup
 )
 
 // Health Check

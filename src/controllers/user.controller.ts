@@ -35,6 +35,7 @@ class UserController extends BaseController {
               cards: true
             }
           },
+          groups: true,
           cards: {
             select: {
               cardId: true

@@ -6,8 +6,6 @@ import { RequestUserAuth, RequestLink } from '../config/interfaces/common.interf
 import { db } from '../utils/db'
 
 export const userAuthorization = (req: RequestUserAuth, res: Response, next: NextFunction): any => {
-  console.log('Userid ', req.user?.id)
-  console.log('params id =>  ', req.params)
   if (req.user?.role === roles.SUPER_ADMIN || req.user?.id === req.params?.userId) {
     next()
   } else {
@@ -69,7 +67,6 @@ export const linkAuthorization = async (
   next: NextFunction
 ): Promise<any> => {
   try {
-    console.log('Linkid ', req.params.linkId)
     // Verify Link exists
     const link = await db.link.findUnique({
       where: {
@@ -286,6 +283,67 @@ export const sharedContactAuthorization = async (
     next()
   } catch (error: any) {
     console.error(error)
+    return res
+      .status(500)
+      .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+  }
+}
+
+export const groupAdminAuthorization = async (
+  req: RequestUserAuth,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
+  try {
+    // Verify group exists
+    const group = await db.group.findUnique({ where: { id: req.params.groupId } })
+    if (!group) {
+      return res.status(404).json({
+        code: codes.NOT_FOUND,
+        message: messages.GROUP_NOT_FOUND
+      })
+    }
+    if (group.adminUser === req.user?.id || req.user?.role === roles.SUPER_ADMIN) {
+      next()
+    } else {
+      return res.status(403).json({
+        code: codes.FORBIDDEN,
+        message: messages.ACCESS_DENIED
+      })
+    }
+  } catch (error: any) {
+    console.error(error)
+    return res
+      .status(500)
+      .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+  }
+}
+
+export const groupAuthorization = async (
+  req: RequestUserAuth,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
+  try {
+    const group = await db.group.findUnique({
+      where: { id: req.params.groupId },
+      select: { members: { select: { userId: true } } }
+    })
+    if (!group) {
+      return res.status(404).json({
+        code: codes.NOT_FOUND,
+        message: messages.GROUP_NOT_FOUND
+      })
+    }
+    const isUserGroupMember = group?.members.find((item) => item.userId === req.user?.id)
+    if (!isUserGroupMember) {
+      return res.status(403).json({
+        code: codes.FORBIDDEN,
+        message: messages.ACCESS_DENIED
+      })
+    }
+    next()
+  } catch (error: any) {
     return res
       .status(500)
       .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })

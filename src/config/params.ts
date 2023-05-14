@@ -110,3 +110,12 @@ export const sharedContactControllerParams = [
   'location',
   'notes'
 ]
+
+export const groupControllerParams = [
+  'groupName',
+  'isPrivate',
+  'groupPhoto',
+  'tags',
+  'description',
+  'members'
+]

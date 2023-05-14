@@ -36,6 +36,7 @@ export const messages = {
     'Password fails to match the Minimum eight characters, at least one letter and one number',
   ONBOARDING_INCOMPLETE: 'Please finish the onboarding process before adding a card',
   CARD_NOT_FOUND: 'Card not found',
+  GROUP_NOT_FOUND: 'Group not found',
   EXCEEDS_CARD_LIMIT: 'Adding another card would exceed the allotted amount allowed',
   EXCEEDS_PHOTO_LIMIT: 'Adding another photo would exceed the allotted amount allowed',
   EXCEEDS_NOTE_LIMIT: 'Adding another note would exceed the allotted amount allowed',
@@ -84,5 +85,6 @@ export const messages = {
   CONTACT_UNAUTHORIZED: 'Contact belongs to another authenticated user',
   USER_SETTING_SINGLE_OPTION: 'User can only select 1 option at same time',
   USER_SETTING_VALIDATE: 'User must select some option',
-  SEARCH_TYPE_SELECT: 'You should select search type by which you want to search'
+  SEARCH_TYPE_SELECT: 'You should select search type by which you want to search',
+  GROUP_MEMBER_NOT_USER: 'You can only add the registered users in group'
 }
