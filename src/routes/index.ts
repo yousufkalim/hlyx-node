@@ -56,6 +56,7 @@ router.delete(
 
 // User Routes
 router.get('/user/find/me', authenticate, UserController.me)
+router.get('/user/find-profile/:userName', authenticate, UserController.getUserByUserName)
 router.put('/user/update/bio/:userId', authenticate, userAuthorization, UserController.updateBio)
 router.post('/user/add/card/:userId', authenticate, userAuthorization, UserController.addCard)
 router.post(
@@ -231,6 +232,12 @@ router.delete('/link/delete/:linkId', authenticate, linkAuthorization, LinkContr
 // Link Get Routes
 router.get('/link/find/card/accepted/:cardId', authenticate, LinkController.cardAllLinks)
 router.get(
+  '/link/find/user/connections/:userId',
+  authenticate,
+  userAuthorization,
+  LinkController.userAllConnections
+)
+router.get(
   '/link/find/user/accepted/:userId',
   authenticate,
   userAuthorization,
@@ -390,6 +397,14 @@ router.delete(
   authenticate,
   groupAdminAuthorization,
   GroupController.deleteGroup
+)
+
+// Group Message Routes
+router.post(
+  '/group/send-message/:groupId',
+  authenticate,
+  groupAuthorization,
+  GroupController.sendMessageInGroup
 )
 
 // Health Check

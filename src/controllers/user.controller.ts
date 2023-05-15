@@ -36,11 +36,7 @@ class UserController extends BaseController {
             }
           },
           groups: true,
-          cards: {
-            select: {
-              cardId: true
-            }
-          }
+          cards: true
         }
       })
       if (!user) {
@@ -63,10 +59,61 @@ class UserController extends BaseController {
     }
   }
 
+  // get User by UserName
+  getUserByUserName = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      const user = await db.userBio.findUnique({
+        where: {
+          userName: req.params?.userName
+        },
+        select: {
+          id: true,
+          userName: true,
+          firstName: true,
+          lastName: true,
+          company: true,
+          country: true,
+          city: true,
+          profileAvatar: true,
+          profTitle: true,
+          industry: true
+        }
+      })
+      if (!user) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.USER_NOT_FOUND
+        })
+      }
+
+      return res.status(200).json({
+        code: codes.OK,
+        messages: messages.SUCCESS
+      })
+    } catch (error: any) {
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
   // Update user
   updateBio = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, userControllerParams)
     try {
+      // Get User details
+      const userBio = await db.userBio.findUnique({
+        where: {
+          id: req.params.userId
+        },
+        select: {
+          id: true,
+          userName: true,
+          firstName: true,
+          lastName: true
+        }
+      })
+
       // Validate input
       const validationError = validateUserUpdate(params)
       if (validationError) {
@@ -114,6 +161,12 @@ class UserController extends BaseController {
             pathToFile
           }
         }
+      }
+
+      if (!userBio?.userName) {
+        const randomNumber = userBio?.id?.split('-')[0]
+        const userName = `${params.firstName?.toLowerCase()}-${params.lastName?.toLowerCase()}-${randomNumber}`
+        params.userName = userName
       }
       // Set onboarding to true
       params.isOnBoardingComplete = true
@@ -262,7 +315,7 @@ class UserController extends BaseController {
         additionalLinks,
         calendars
       }
-
+      console.log('Params ', req.body)
       const cardContactValidationError = validateCardContactPage(cardContactData)
       if (cardContactValidationError) {
         return res.status(400).json({

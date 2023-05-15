@@ -37,6 +37,7 @@ export const messages = {
   ONBOARDING_INCOMPLETE: 'Please finish the onboarding process before adding a card',
   CARD_NOT_FOUND: 'Card not found',
   GROUP_NOT_FOUND: 'Group not found',
+  GROUP_EXIST: 'Group already exist with the same name',
   EXCEEDS_CARD_LIMIT: 'Adding another card would exceed the allotted amount allowed',
   EXCEEDS_PHOTO_LIMIT: 'Adding another photo would exceed the allotted amount allowed',
   EXCEEDS_NOTE_LIMIT: 'Adding another note would exceed the allotted amount allowed',

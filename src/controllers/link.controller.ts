@@ -695,6 +695,83 @@ class LinkController extends BaseController {
     }
   }
 
+  // Find all connections associated with user ( include user links and links of user's links)
+  userAllConnections = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      // Find all cards associated with user
+      const cards = await db.card.findMany({
+        where: {
+          userId: req.params.userId
+        },
+        select: {
+          cardId: true
+        }
+      })
+
+      // Search query parameters
+      const query = this.#getSearchQuery(req.query)
+      const { search, searchBy: searchType } = query
+      // Loop through all cards, find links and return
+      const general: IArrayLink[] = []
+
+      for (const card of cards) {
+        // General
+        let generalLinks: IGeneralLinks[] = []
+        if (search && searchType) {
+          generalLinks = await this.#getSearchedLinks(card.cardId, searchType, search)
+        } else {
+          const response = await db.link.findMany({
+            where: {
+              OR: [
+                {
+                  cardOne: card.cardId,
+                  status: 'accepted',
+                  cardOneFavorite: false
+                },
+                {
+                  cardTwo: card.cardId,
+                  status: 'accepted',
+                  cardTwoFavorite: false
+                }
+              ]
+            },
+            select: {
+              id: true,
+              cardOne: true,
+              cardTwo: true,
+              updatedAt: true
+            }
+          })
+          generalLinks = response
+        }
+
+        console.log('Links ', generalLinks)
+
+        general.push({
+          cardId: card.cardId,
+          Links: generalLinks
+        })
+      }
+
+      console.log('Links ', general)
+      // console.log('Links ', general.Links?.[0])
+
+      // Grab base info and return
+      const generalLinks = await this.#getBaseInfoAllCards(general)
+
+      return res.status(200).json({
+        generalLinks,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
   // Find all links associated with user
   userAllLinks = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
@@ -774,11 +851,16 @@ class LinkController extends BaseController {
           generalLinks = response
         }
 
+        console.log('Links ', generalLinks)
+
         general.push({
           cardId: card.cardId,
           Links: generalLinks
         })
       }
+
+      console.log('Links ', general)
+      // console.log('Links ', general.Links?.[0])
 
       // Grab base info and return
       const favoriteLinks = await this.#getBaseInfoAllCards(favorites)

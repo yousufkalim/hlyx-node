@@ -41,6 +41,7 @@ model UserBio {
   firstName            String?
   middleInitial        String?
   lastName             String?
+  userName             String?         @unique
   email                String
   phone                String?
   // Profession

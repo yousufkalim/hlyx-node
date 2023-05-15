@@ -9,6 +9,7 @@ import { awsUploadFile } from '../utils/aws-image'
 import { db } from '../utils/db'
 import { validateGroupCreate } from '../utils/validations/group.controller.validation'
 import BaseController from './base.controller'
+import socket, { getSocket } from '../utils/socket'
 
 class Groups extends BaseController {
   getAllGroups = async (req: RequestUserAuth, res: Response): Promise<Response | undefined> => {
@@ -108,6 +109,19 @@ class Groups extends BaseController {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: validationError
+        })
+      }
+
+      const group = await db.group.findFirst({
+        where: {
+          groupName: params.groupName
+        }
+      })
+
+      if (group) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.GROUP_EXIST
         })
       }
 
@@ -216,6 +230,7 @@ class Groups extends BaseController {
   updateGroup = async (req: RequestUserAuth, res: Response): Promise<Response | undefined> => {
     try {
       // Filter body params
+      socket.emit('update-group', { data: { message: 'getting groups' } })
       const params = this.filterParams(req.body, groupControllerParams)
       const groupData = { ...params }
       const paramMembers = params.members
@@ -388,10 +403,46 @@ class Groups extends BaseController {
 
   deleteGroup = async (req: RequestUserAuth, res: Response): Promise<Response | undefined> => {
     try {
+      // Remove Group members except admin
+      await db.groupsOnUsers.deleteMany({
+        where: {
+          groupId: req.params.groupId
+        }
+      })
+      await db.group.delete({
+        where: {
+          id: req.params.groupId
+        }
+      })
       return res.status(200).json({
-        code: codes.OK
+        code: codes.OK,
+        message: messages.SUCCESS
       })
     } catch (error: any) {
+      return res.status(500).json({
+        code: codes.INTERNAL_SERVER_ERROR,
+        message: messages.SERVER_FAILURE
+      })
+    }
+  }
+
+  sendMessageInGroup = async (
+    req: RequestUserAuth,
+    res: Response
+  ): Promise<Response | undefined> => {
+    try {
+      // send message
+      const sockets = getSocket()
+      console.log('Socket ', sockets)
+
+      sockets.emit('update-group', { data: { message: 'testing' } })
+
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.log('Send message ', error.message)
       return res.status(500).json({
         code: codes.INTERNAL_SERVER_ERROR,
         message: messages.SERVER_FAILURE
