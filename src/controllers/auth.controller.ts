@@ -155,7 +155,8 @@ class AuthController extends BaseController {
         email,
         password: await bcrypt.hash(password, salt),
         userBio: { create: {} },
-        userPreference: { create: {} }
+        userPreference: { create: {} },
+        userNotification: { create: {} }
       }
 
       // Create User

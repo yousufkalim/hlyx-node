@@ -91,6 +91,12 @@ router.put(
   userAuthorization,
   UserController.updateSettings
 )
+router.put(
+  '/user/update/notification-setting/:userId',
+  authenticate,
+  userAuthorization,
+  UserController.updateNotificationSetting
+)
 
 // Card Routes
 router.get('/card/find/base-info/:cardId', CardController.getBaseInfo)
@@ -152,6 +158,13 @@ router.delete(
 )
 
 // Card Update Info Routes
+router.put(
+  '/card/update/card-details/:cardId',
+  authenticate,
+  cardAuthorization,
+  CardController.updateCard
+)
+
 router.put(
   '/card/update/card-name/:cardId',
   authenticate,

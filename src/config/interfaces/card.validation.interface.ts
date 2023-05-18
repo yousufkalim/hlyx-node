@@ -157,7 +157,9 @@ interface ICardCalendars {
 interface ICardSocialMedias {
   id: string
   platform: string
-  handle: string
+  handle?: string
+  profileUrl: string
+  label: string
   cardId: string
 }
 

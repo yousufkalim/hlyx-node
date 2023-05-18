@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/indent */
 import {
   validateCardAboutPage,
   validateCardContactPage
@@ -8,8 +9,14 @@ import { UploadedFile } from 'express-fileupload'
 import { RequestUserAuth, RequestUserPreference } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
-import { cardControllerParams, userControllerParams, userPreferenceParams } from '../config/params'
 import {
+  cardControllerParams,
+  userControllerParams,
+  userNotificationParams,
+  userPreferenceParams
+} from '../config/params'
+import {
+  validateUserNotification,
   validateUserPreferences,
   validateUserUpdate
 } from '../utils/validations/user.controller.validation'
@@ -45,9 +52,29 @@ class UserController extends BaseController {
           message: messages.USER_NOT_FOUND
         })
       }
+
+      const userPreferences = await db.userAuth.findUnique({
+        where: {
+          id: req.user?.id
+        },
+        select: {
+          userPreference: {
+            select: {
+              twoFactorAuth: true,
+              allCardsPrivate: true,
+              connectionViaProfileLink: true,
+              connectionViaQRCode: true,
+              connectionViaPerson: true,
+              connectionViaContacts: true
+            }
+          }
+        }
+      })
+
+      const data = { ...user, userPreferences: userPreferences?.userPreference }
       // Return
       return res.status(200).json({
-        user,
+        user: data,
         code: codes.OK,
         message: messages.SUCCESS
       })
@@ -87,6 +114,7 @@ class UserController extends BaseController {
       }
 
       return res.status(200).json({
+        user,
         code: codes.OK,
         messages: messages.SUCCESS
       })
@@ -238,7 +266,16 @@ class UserController extends BaseController {
   // Add a card to user
   addCard = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
-      const params = this.filterParams(req.body, cardControllerParams)
+      const body: any = {}
+      for (const item in req.body) {
+        try {
+          body[item] = JSON.parse(req.body[item])
+        } catch (err) {
+          body[item] = req.body[item]
+        }
+      }
+
+      const params = this.filterParams(body, cardControllerParams)
       const {
         fullName,
         cardName,
@@ -315,7 +352,6 @@ class UserController extends BaseController {
         additionalLinks,
         calendars
       }
-      console.log('Params ', req.body)
       const cardContactValidationError = validateCardContactPage(cardContactData)
       if (cardContactValidationError) {
         return res.status(400).json({
@@ -474,7 +510,6 @@ class UserController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
-      console.log('error ', error.message)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
@@ -676,14 +711,113 @@ class UserController extends BaseController {
       }
       const value = params[options[0]]
       const key = options[0]
-      const data = {
-        [key]: key === 'twoFactorauth' ? value : JSON.parse(value)
-      }
-      await db.userAuth.update({
+
+      const data =
+        key === 'twoFactorAuth'
+          ? { twoFactorAuth: value }
+          : key === 'connectionViaPerson'
+          ? {
+              [key]: JSON.parse(value),
+              connectionViaProfileLink: false,
+              connectionViaQRCode: false
+            }
+          : key === 'connectionViaProfileLink' || key === 'connectionViaQRCode'
+          ? {
+              [key]: JSON.parse(value),
+              connectionViaPerson: false
+            }
+          : { [key]: JSON.parse(value) }
+      // const getData = (): any => {
+      //   let finalData = {}
+      //   if (key === 'twoFactorauth') {
+      //     finalData = {
+      //       [key]: value
+      //     }
+      //   }
+      //   // Disable both if connectionViaPerson option toggle
+      //   if (key === 'connectionViaPerson') {
+      //     finalData = {
+      //       [key]: JSON.parse(value),
+      //       connectionViaProfileLink: false,
+      //       connectionViaQRCode: false
+      //     }
+      //   }
+      //   // Disable connectionViaPerson if any of followig options toggle
+      //   if (key === 'connectionViaProfileLink' || key === 'connectionViaQRCode') {
+      //     finalData = {
+      //       [key]: JSON.parse(value),
+      //       connectionViaPerson: false
+      //     }
+      //   } else {
+      //     // Parse the boolean value
+      //     finalData = {
+      //       [key]: JSON.parse(value)
+      //     }
+      //   }
+      //   return finalData
+      // }
+      // const data = getData()
+      const userPreferences = await db.userAuth.update({
         where: { id: req.params.userId },
         data: {
           userPreference: {
             update: data
+          }
+        },
+        select: {
+          userPreference: {
+            select: {
+              twoFactorAuth: true,
+              allCardsPrivate: true,
+              connectionViaProfileLink: true,
+              connectionViaQRCode: true,
+              connectionViaPerson: true,
+              connectionViaContacts: true
+            }
+          }
+        }
+      })
+      return res.status(200).json({
+        data: userPreferences.userPreference,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      return res.status(500).json({
+        code: codes.INTERNAL_SERVER_ERROR,
+        message: messages.SERVER_FAILURE
+      })
+    }
+  }
+
+  updateNotificationSetting = async (
+    req: RequestUserPreference,
+    res: Response
+  ): Promise<Response> => {
+    try {
+      const user = await db.userAuth.findUnique({ where: { id: req.params?.userId } })
+
+      if (!user) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.USER_NOT_FOUND
+        })
+      }
+      const params = this.filterParams(req.body, userNotificationParams)
+
+      const validationError = validateUserNotification(params)
+      if (validationError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+
+      await db.userAuth.update({
+        where: { id: req.params.userId },
+        data: {
+          userNotification: {
+            update: params
           }
         }
       })

@@ -139,7 +139,9 @@ export const validateCardContactPage = (
           platform: Joi.string()
             .valid(...Object.values(socialMedia))
             .required(),
-          handle: Joi.string().max(stringLengths.HANDLES_MAX).required()
+          handle: Joi.string().max(stringLengths.HANDLES_MAX),
+          label: Joi.string().max(stringLengths.NAME_MAX),
+          profileUrl: Joi.string().max(stringLengths.WEBSITES_MAX).hostname().required()
         })
       ),
     additionalLinks: Joi.array()

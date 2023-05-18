@@ -1,6 +1,10 @@
 import { Response } from 'express'
 
-import { RequestNotification, RequestUserAuth, ICreateNotification } from '../config/interfaces/common.interface'
+import {
+  RequestNotification,
+  RequestUserAuth,
+  ICreateNotification
+} from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 
@@ -12,13 +16,20 @@ class NotificationController extends BaseController {
   createNotification = async (req: RequestNotification): Promise<ICreateNotification> => {
     try {
       // Confirm req.notifcation is set
-      if (!req.notification?.cardId || !req.notification?.directsTo || !req.notification?.idDirectedTo) {
+      if (
+        !req.notification?.cardId ||
+        !req.notification?.directsTo ||
+        !req.notification?.idDirectedTo
+      ) {
         throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
       }
 
       // Validate Input
-      if (req.notification.directsTo !== 'linkRequest' && req.notification.directsTo !== 'message' &&
-          req.notification.directsTo !== 'contactRequest') {
+      if (
+        req.notification.directsTo !== 'linkRequest' &&
+        req.notification.directsTo !== 'message' &&
+        req.notification.directsTo !== 'contactRequest'
+      ) {
         throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
       }
 
@@ -100,7 +111,9 @@ class NotificationController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -141,7 +154,9 @@ class NotificationController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -163,7 +178,9 @@ class NotificationController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -182,7 +199,9 @@ class NotificationController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 }

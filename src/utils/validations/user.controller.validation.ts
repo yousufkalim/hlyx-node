@@ -41,7 +41,22 @@ export const validateUserPreferences = (
     allCardsPrivate: Joi.boolean(),
     connectionViaProfileLink: Joi.boolean(),
     connectionViaQRCode: Joi.boolean(),
-    connectionViaPerson: Joi.boolean()
+    connectionViaPerson: Joi.boolean(),
+    connectionViaContacts: Joi.boolean()
   })
   return userPreferenceSchema.validate(userPreferencePayload)?.error?.message
+}
+
+export const validateUserNotification = (
+  userNotificationPayload: IValidateUserPreference
+): string | undefined => {
+  const userNotificationSchema = Joi.object({
+    newLinkRequest: Joi.boolean(),
+    newMessage: Joi.boolean(),
+    groupMessages: Joi.boolean(),
+    profileShare: Joi.boolean(),
+    acceptedLinkRequest: Joi.boolean(),
+    accountSecurity: Joi.boolean()
+  })
+  return userNotificationSchema.validate(userNotificationPayload)?.error?.message
 }

@@ -12,20 +12,21 @@ datasource db {
 }
 
 model UserAuth {
-  id              String           @id @default(uuid())
-  email           String           @unique
-  phone           String?          @unique
-  password        String
-  isEmailVerified Boolean          @default(false)
-  isPhoneVerified Boolean          @default(false)
-  isPaused        Boolean          @default(false)
-  isDeleted       Boolean          @default(false)
-  passwordReset   DateTime?
-  role            Role             @default(USER)
-  userBio         UserBio?
-  userPreference  UserPreferences?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  id               String            @id @default(uuid())
+  email            String            @unique
+  phone            String?           @unique
+  password         String
+  isEmailVerified  Boolean           @default(false)
+  isPhoneVerified  Boolean           @default(false)
+  isPaused         Boolean           @default(false)
+  isDeleted        Boolean           @default(false)
+  passwordReset    DateTime?
+  role             Role              @default(USER)
+  userBio          UserBio?
+  userPreference   UserPreferences?
+  userNotification UserNotification?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
   // Required to pass to UserBio
   @@unique([id, email, phone])
@@ -114,8 +115,21 @@ model UserPreferences {
   connectionViaProfileLink Boolean           @default(false)
   connectionViaQRCode      Boolean           @default(false)
   connectionViaPerson      Boolean           @default(false)
+  connectionViaContacts    Boolean           @default(false)
   User                     UserAuth          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId                   String            @unique
+}
+
+model UserNotification {
+  id                  String   @id @default(uuid())
+  User                UserAuth @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId              String   @unique
+  newLinkRequest      Boolean  @default(false)
+  newMessage          Boolean  @default(false)
+  groupMessages       Boolean  @default(false)
+  profileShare        Boolean  @default(false)
+  acceptedLinkRequest Boolean  @default(false)
+  accountSecurity     Boolean  @default(false)
 }
 
 model UserPhoto {
@@ -230,11 +244,13 @@ model CardWebsites {
 }
 
 model CardSocialMedias {
-  id       String               @id @default(uuid())
-  platform SocialMediaPlatforms
-  handle   String
-  Card     Card                 @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
-  cardId   String
+  id         String               @id @default(uuid())
+  platform   SocialMediaPlatforms
+  handle     String?
+  profileUrl String
+  label      String?
+  Card       Card                 @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
+  cardId     String
 }
 
 model CardAdditionalLinks {

@@ -20,7 +20,17 @@ export const userPreferenceParams = [
   'allCardsPrivate',
   'connectionViaProfileLink',
   'connectionViaQRCode',
-  'connectionViaPerson'
+  'connectionViaPerson',
+  'connectionViaContacts'
+]
+
+export const userNotificationParams = [
+  'newLinkRequest',
+  'newMessage',
+  'groupMessages',
+  'profileShare',
+  'acceptedLinkRequest',
+  'accountSecurity'
 ]
 
 export const cardControllerParams = [

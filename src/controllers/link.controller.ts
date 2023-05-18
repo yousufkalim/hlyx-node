@@ -713,12 +713,38 @@ class LinkController extends BaseController {
       const { search, searchBy: searchType } = query
       // Loop through all cards, find links and return
       const general: IArrayLink[] = []
+      const connectedLinks: IArrayLink[] = []
 
       for (const card of cards) {
         // General
         let generalLinks: IGeneralLinks[] = []
+        let allLinks: IGeneralLinks[] = []
         if (search && searchType) {
           generalLinks = await this.#getSearchedLinks(card.cardId, searchType, search)
+          const response = await db.link.findMany({
+            where: {
+              OR: [
+                {
+                  cardOne: card.cardId,
+                  status: 'accepted',
+                  cardOneFavorite: false
+                },
+                {
+                  cardTwo: card.cardId,
+                  status: 'accepted',
+                  cardTwoFavorite: false
+                }
+              ]
+            },
+            select: {
+              id: true,
+              cardOne: true,
+              cardTwo: true,
+              updatedAt: true
+            }
+          })
+
+          allLinks = response
         } else {
           const response = await db.link.findMany({
             where: {
@@ -742,6 +768,7 @@ class LinkController extends BaseController {
               updatedAt: true
             }
           })
+
           generalLinks = response
         }
 
@@ -751,15 +778,50 @@ class LinkController extends BaseController {
           cardId: card.cardId,
           Links: generalLinks
         })
+
+        connectedLinks.push({
+          cardId: card.cardId,
+          Links: allLinks
+        })
       }
 
       console.log('Links ', general)
-      // console.log('Links ', general.Links?.[0])
 
       // Grab base info and return
       const generalLinks = await this.#getBaseInfoAllCards(general)
+      const linksWithoutSearch = await this.#getBaseInfoAllCards(connectedLinks)
+
+      // console.log('Cards ', cards)
+      // Find Mututal Connections
+      const myCardIds = cards.map((item) => item.cardId)
+      const otherCardIds = []
+      if (linksWithoutSearch) {
+        for (const otherLinkObj of linksWithoutSearch) {
+          // console.log('Extra links', otherLinkObj)
+          for (const otherLink of otherLinkObj.Links) {
+            otherCardIds.push(otherLink.cardId)
+          }
+        }
+      }
+      let mutualCards: any = []
+      if (otherCardIds.length > 0) {
+        const otherCards = await this.#getBaseInfoAllCardsOthers(
+          myCardIds,
+          otherCardIds,
+          searchType,
+          search
+        )
+        // console.log('CARSd =====> ', otherCards)
+        mutualCards = otherCards
+      }
+
+      console.log('Other ids ', otherCardIds)
+      // const otherLinks = await general.links
+
+      // console.log('General link ', generalLinks?.[1].Links?.[0])
 
       return res.status(200).json({
+        mutualLinks: mutualCards,
         generalLinks,
         code: codes.OK,
         message: messages.SUCCESS
@@ -1566,6 +1628,7 @@ class LinkController extends BaseController {
     try {
       const returnArray: IArrayLinkWithBaseInfo[] = []
       for (const userCard of arrayLinks) {
+        console.log('Single UserCard => ', userCard)
         const linkInfo = await this.#getInfoPerCard(userCard)
         if (!linkInfo) {
           throw Error(messages.LINK_CARD_ID_NOT_FOUND)
@@ -1731,6 +1794,201 @@ class LinkController extends BaseController {
     }
 
     return generalLinks
+  }
+
+  /* Private Functions */
+  #getBaseInfoAllCardsOthers = async (
+    myCards: string[],
+    otherCards: string[],
+    searchType: string | undefined,
+    search: string | undefined
+  ): Promise<any[] | undefined> => {
+    try {
+      const allOtherLinks: any = []
+      let allCards: any = []
+      for (const otherCard of otherCards) {
+        const response = await db.link.findMany({
+          where: {
+            cardOne: {
+              notIn: myCards
+            },
+            cardTwo: {
+              notIn: myCards
+            },
+            OR: [
+              {
+                cardOne: otherCard,
+                status: 'accepted',
+                cardOneFavorite: false
+              },
+              {
+                cardTwo: otherCard,
+                status: 'accepted',
+                cardTwoFavorite: false
+              }
+            ]
+          },
+          select: {
+            id: true,
+            cardOne: true,
+            cardTwo: true,
+            updatedAt: true
+          }
+        })
+
+        // console.log("Response others ", response)
+        // console.log('Response here-------  ', response)
+        allOtherLinks.push(...response)
+
+        // generalLinks = response
+      }
+
+      // console.log('Here are final links => ', allOtherLinks)
+
+      if (allOtherLinks.length > 0) {
+        const filteredOtherCardIds = allOtherLinks.map((item: any) =>
+          otherCards.includes(item.cardOne) ? item.cardTwo : item.cardOne
+        )
+
+        console.log('filtered other cards..... ', filteredOtherCardIds)
+
+        if (filteredOtherCardIds.length > 0) {
+          const otherCards = await this.#getInfoOfOtherCard(
+            filteredOtherCardIds,
+            searchType,
+            search
+          )
+          allCards = otherCards
+        }
+        // this.#getInfoOfOtherCard()
+      }
+
+      return allCards
+    } catch (error: any) {
+      // const returnArray: IArrayLinkWithBaseInfo[] = []
+      // for (const userCard of arrayLinks) {
+      //   const linkInfo = await this.#getInfoPerCard(userCard)
+      //   if (!linkInfo) {
+      //     throw Error(messages.LINK_CARD_ID_NOT_FOUND)
+      //   }
+      //   returnArray.push({
+      //     myCardId: userCard.cardId,
+      //     Links: linkInfo,
+      //     _count: linkInfo.length
+      //   })
+      // }
+      // return returnArray
+      console.error(error)
+    }
+  }
+
+  #getInfoOfOtherCard = async (
+    otherCardIds: string[],
+    searchType: string | undefined,
+    search: string | undefined
+  ): Promise<ILinkWithBaseInfo[] | undefined> => {
+    try {
+      const cards: ILinkWithBaseInfo[] = []
+      for (const card of otherCardIds) {
+        console.log('Enter array', searchType)
+        console.log('Enter array', search)
+
+        if (searchType && search) {
+          if (searchType === 'location') {
+            console.log('Enter location', searchType)
+            console.log('Enter location', search)
+            const otherCard = await db.card.findFirst({
+              where: {
+                cardId: card,
+                OR: [
+                  {
+                    city: {
+                      contains: search,
+                      mode: 'insensitive'
+                    }
+                  },
+                  {
+                    state: {
+                      contains: search,
+                      mode: 'insensitive'
+                    }
+                  }
+                ]
+              },
+              select: {
+                cardId: true,
+                slug: true,
+                publicCard: true,
+                userAvatar: true,
+                fullName: true,
+                profTitle: true,
+                company: true,
+                city: true,
+                state: true
+              }
+            })
+            // if (!otherCard) {
+            //   throw Error(messages.LINK_CARD_ID_NOT_FOUND)
+            // }
+            console.log('Find latest other ', otherCard)
+            if (otherCard) {
+              cards.push(otherCard)
+            }
+          } else {
+            const otherCard = await db.card.findFirst({
+              where: {
+                cardId: card,
+                [searchType]: {
+                  contains: search,
+                  mode: 'insensitive'
+                }
+              },
+              select: {
+                cardId: true,
+                slug: true,
+                publicCard: true,
+                userAvatar: true,
+                fullName: true,
+                profTitle: true,
+                company: true,
+                city: true,
+                state: true
+              }
+            })
+            // if (!otherCard) {
+            //   throw Error(messages.LINK_CARD_ID_NOT_FOUND)
+            // }
+            if (otherCard) {
+              cards.push(otherCard)
+            }
+          }
+        } else {
+          const otherCard = await db.card.findUnique({
+            where: {
+              cardId: card
+            },
+            select: {
+              cardId: true,
+              slug: true,
+              publicCard: true,
+              userAvatar: true,
+              fullName: true,
+              profTitle: true,
+              company: true,
+              city: true,
+              state: true
+            }
+          })
+          if (!otherCard) {
+            throw Error(messages.LINK_CARD_ID_NOT_FOUND)
+          }
+          cards.push(otherCard)
+        }
+      }
+      return cards
+    } catch (error: any) {
+      console.error(error)
+    }
   }
 }
 

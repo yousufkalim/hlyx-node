@@ -14,7 +14,21 @@ export interface IValidateUserUpdate {
 }
 
 export interface IValidateUserPreference {
-  twoFactorAuth: TwoFactorAuth
+  twoFactorAuth?: TwoFactorAuth
+  allCardsPrivate?: boolean
+  connectionViaProfileLink?: boolean
+  connectionViaQRCode?: boolean
+  connectionViaPerson?: boolean
+  connectionViaContacts?: boolean
+}
+
+export interface IValidateUserNotification {
+  newLinkRequest?: boolean
+  newMessage?: boolean
+  groupMessages?: boolean
+  profileShare?: boolean
+  acceptedLinkRequest?: boolean
+  accountSecurity?: boolean
 }
 
 export enum TwoFactorAuth {
