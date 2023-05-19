@@ -17,7 +17,7 @@ export const degreeTypes = ['Associates', 'Bachelors', 'Masters', 'Doctorate']
 export const profileLayoutTypes = ['minimal', 'premium']
 
 export const socialMedia = [
-  'linkedIn',
+  'linkedin',
   'youtube',
   'slack',
   'reddit',

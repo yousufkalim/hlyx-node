@@ -10,6 +10,7 @@ import { messages } from '../config/messages'
 
 import BaseController from './base.controller'
 import { db } from '../utils/db'
+import { getSocket } from '../utils/socket'
 
 class NotificationController extends BaseController {
   // Create Notification (called by other internal functions)
@@ -48,9 +49,15 @@ class NotificationController extends BaseController {
           }
         },
         select: {
+          userId: true,
           Notifications: {
             select: {
-              notificationId: true
+              notificationId: true,
+              cardId: true,
+              status: true,
+              message: true,
+              directsTo: true,
+              idDirectedTo: true
             },
             orderBy: {
               updatedAt: 'desc'
@@ -59,6 +66,10 @@ class NotificationController extends BaseController {
           }
         }
       })
+
+      const sockets = getSocket()
+
+      sockets.emit(`notifications_${notificaiton.userId}`, { notifications: notificaiton })
 
       return {
         notificationId: notificaiton.Notifications[0].notificationId,
@@ -73,6 +84,72 @@ class NotificationController extends BaseController {
   }
 
   // Create Shared Contact Notification
+  createNotificationOfSharedCard = async (
+    req: RequestNotification
+  ): Promise<ICreateNotification> => {
+    try {
+      // Confirm req.notifcation is set
+      if (
+        !req.notification?.cardId ||
+        !req.notification?.directsTo ||
+        !req.notification?.idDirectedTo
+      ) {
+        throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
+      }
+
+      // Validate Input
+      if (req.notification.directsTo !== 'sharedContact') {
+        throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
+      }
+
+      // Create
+      const notificaiton = await db.card.update({
+        where: {
+          cardId: req.notification.cardId
+        },
+        data: {
+          Notifications: {
+            create: {
+              directsTo: req.notification.directsTo,
+              message: req.notification.message,
+              idDirectedTo: req.notification.idDirectedTo
+            }
+          }
+        },
+        select: {
+          userId: true,
+          Notifications: {
+            select: {
+              notificationId: true,
+              cardId: true,
+              status: true,
+              message: true,
+              directsTo: true,
+              idDirectedTo: true
+            },
+            orderBy: {
+              updatedAt: 'desc'
+            },
+            take: 1
+          }
+        }
+      })
+
+      const sockets = getSocket()
+
+      sockets.emit(`notifications_${notificaiton.userId}`, { notifications: notificaiton })
+
+      return {
+        notificationId: notificaiton.Notifications[0].notificationId,
+        success: true
+      }
+    } catch (error: any) {
+      console.error(error)
+      return {
+        success: false
+      }
+    }
+  }
 
   // Get Active Notifications
   getActiveNotification = async (req: RequestUserAuth, res: Response): Promise<Response> => {

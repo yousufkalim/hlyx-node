@@ -224,9 +224,21 @@ router.put(
   cardAuthorization,
   CardController.updatePublicVisibility
 )
+router.put(
+  '/card/update/card-activation/:cardId',
+  authenticate,
+  cardAuthorization,
+  CardController.updateCardActivation
+)
 
 // Link Routes
 router.post('/link/create', authenticate, LinkController.create)
+router.post(
+  '/link/share/card/:cardId',
+  authenticate,
+  linkAuthorization,
+  LinkController.sharedProfileCard
+)
 router.put('/link/update/:linkId', authenticate, linkAuthorization, LinkController.update)
 router.put(
   '/link/update/unblock/:linkId',

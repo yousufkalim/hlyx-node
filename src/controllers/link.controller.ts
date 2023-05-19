@@ -743,7 +743,6 @@ class LinkController extends BaseController {
               updatedAt: true
             }
           })
-
           allLinks = response
         } else {
           const response = await db.link.findMany({
@@ -770,9 +769,8 @@ class LinkController extends BaseController {
           })
 
           generalLinks = response
+          allLinks = response
         }
-
-        console.log('Links ', generalLinks)
 
         general.push({
           cardId: card.cardId,
@@ -785,19 +783,15 @@ class LinkController extends BaseController {
         })
       }
 
-      console.log('Links ', general)
-
       // Grab base info and return
       const generalLinks = await this.#getBaseInfoAllCards(general)
       const linksWithoutSearch = await this.#getBaseInfoAllCards(connectedLinks)
 
-      // console.log('Cards ', cards)
       // Find Mututal Connections
       const myCardIds = cards.map((item) => item.cardId)
       const otherCardIds = []
       if (linksWithoutSearch) {
         for (const otherLinkObj of linksWithoutSearch) {
-          // console.log('Extra links', otherLinkObj)
           for (const otherLink of otherLinkObj.Links) {
             otherCardIds.push(otherLink.cardId)
           }
@@ -811,14 +805,8 @@ class LinkController extends BaseController {
           searchType,
           search
         )
-        // console.log('CARSd =====> ', otherCards)
         mutualCards = otherCards
       }
-
-      console.log('Other ids ', otherCardIds)
-      // const otherLinks = await general.links
-
-      // console.log('General link ', generalLinks?.[1].Links?.[0])
 
       return res.status(200).json({
         mutualLinks: mutualCards,
@@ -913,16 +901,11 @@ class LinkController extends BaseController {
           generalLinks = response
         }
 
-        console.log('Links ', generalLinks)
-
         general.push({
           cardId: card.cardId,
           Links: generalLinks
         })
       }
-
-      console.log('Links ', general)
-      // console.log('Links ', general.Links?.[0])
 
       // Grab base info and return
       const favoriteLinks = await this.#getBaseInfoAllCards(favorites)
@@ -1621,6 +1604,22 @@ class LinkController extends BaseController {
     }
   }
 
+  sharedProfileCard = async (req: RequestLink, res: Response): Promise<Response> => {
+    try {
+      // Shared card functionality with notifications
+
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
   /* Private Functions */
   #getBaseInfoAllCards = async (
     arrayLinks: IArrayLink[]
@@ -1628,7 +1627,6 @@ class LinkController extends BaseController {
     try {
       const returnArray: IArrayLinkWithBaseInfo[] = []
       for (const userCard of arrayLinks) {
-        console.log('Single UserCard => ', userCard)
         const linkInfo = await this.#getInfoPerCard(userCard)
         if (!linkInfo) {
           throw Error(messages.LINK_CARD_ID_NOT_FOUND)
@@ -1835,22 +1833,13 @@ class LinkController extends BaseController {
             updatedAt: true
           }
         })
-
-        // console.log("Response others ", response)
-        // console.log('Response here-------  ', response)
         allOtherLinks.push(...response)
-
-        // generalLinks = response
       }
-
-      // console.log('Here are final links => ', allOtherLinks)
 
       if (allOtherLinks.length > 0) {
         const filteredOtherCardIds = allOtherLinks.map((item: any) =>
           otherCards.includes(item.cardOne) ? item.cardTwo : item.cardOne
         )
-
-        console.log('filtered other cards..... ', filteredOtherCardIds)
 
         if (filteredOtherCardIds.length > 0) {
           const otherCards = await this.#getInfoOfOtherCard(
@@ -1890,13 +1879,8 @@ class LinkController extends BaseController {
     try {
       const cards: ILinkWithBaseInfo[] = []
       for (const card of otherCardIds) {
-        console.log('Enter array', searchType)
-        console.log('Enter array', search)
-
         if (searchType && search) {
           if (searchType === 'location') {
-            console.log('Enter location', searchType)
-            console.log('Enter location', search)
             const otherCard = await db.card.findFirst({
               where: {
                 cardId: card,
@@ -1930,7 +1914,6 @@ class LinkController extends BaseController {
             // if (!otherCard) {
             //   throw Error(messages.LINK_CARD_ID_NOT_FOUND)
             // }
-            console.log('Find latest other ', otherCard)
             if (otherCard) {
               cards.push(otherCard)
             }

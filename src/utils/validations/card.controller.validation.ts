@@ -155,7 +155,6 @@ export const validateCardContactPage = (
         })
       )
   })
-  console.log('Required ', contactPageSchema.validate(cardContactPagePayload)?.error?.message)
   return contactPageSchema.validate(cardContactPagePayload)?.error?.message
 }
 

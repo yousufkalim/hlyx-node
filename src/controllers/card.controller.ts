@@ -34,6 +34,7 @@ class CardController extends BaseController {
           coverPhoto: true,
           slug: true,
           publicCard: true,
+          activeCard: true,
           templateId: true,
           userAvatar: true,
           fullName: true,
@@ -82,6 +83,7 @@ class CardController extends BaseController {
           },
           coverPhoto: true,
           companyIcon: true,
+          company: true,
           fullName: true,
           profTitle: true,
           emails: {
@@ -110,6 +112,15 @@ class CardController extends BaseController {
               description: true
             }
           },
+          officeAddresses: {
+            select: {
+              city: true,
+              state: true,
+              label: true,
+              zipcode: true,
+              streetAddress: true
+            }
+          },
           country: true,
           city: true,
           state: true,
@@ -118,7 +129,9 @@ class CardController extends BaseController {
           socialMedias: {
             select: {
               platform: true,
-              handle: true
+              handle: true,
+              profileUrl: true,
+              label: true
             }
           },
           additionalLinks: {
@@ -1300,6 +1313,39 @@ class CardController extends BaseController {
         },
         data: {
           publicCard
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Update Card Active status
+  updateCardActivation = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const { activeCard } = req.body
+    try {
+      // Validate Input
+      if (activeCard !== true && activeCard !== false) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.BOOLEAN_FAIL
+        })
+      }
+
+      // Update and return
+      await db.card.update({
+        where: {
+          cardId: req.params.cardId
+        },
+        data: {
+          activeCard
         }
       })
       return res.status(200).json({

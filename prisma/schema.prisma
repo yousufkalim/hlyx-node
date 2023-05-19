@@ -153,6 +153,7 @@ model Card {
   cardName          String
   slug              String?                         @unique
   publicCard        Boolean                         @default(true)
+  activeCard        Boolean                         @default(true)
   templateId        TemplateIdentification          @default(DEFAULT)
   profileLayout     ProfileLayout
   isPrivate         Boolean                         @default(false)
@@ -357,7 +358,7 @@ model CardCalendars {
 
 model CardOfficeAddresses {
   id            String  @id @default(uuid())
-  Card          Card    @relation(fields: [cardId], references: [cardId])
+  Card          Card    @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
   cardId        String
   label         String?
   streetAddress String
@@ -478,7 +479,7 @@ enum PhoneType {
 
 enum SocialMediaPlatforms {
   // Add more once list of supported platforms is finalized
-  linkedIn
+  linkedin
   youtube
   slack
   reddit
@@ -547,6 +548,7 @@ enum NotificationDirectsTo {
   message
   contactRequest
   sharedContact
+  sharedCard
 }
 
 enum ContactStatus {

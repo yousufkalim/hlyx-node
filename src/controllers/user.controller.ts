@@ -182,6 +182,7 @@ class UserController extends BaseController {
           file.name,
           file.mimetype
         )
+
         // Prepare params for update
         params.profileAvatar = pathToFile
         params.profilePhotos = {
@@ -510,6 +511,7 @@ class UserController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
+      console.log('Error ', error.message)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
