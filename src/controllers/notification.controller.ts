@@ -93,9 +93,7 @@ class NotificationController extends BaseController {
   ): Promise<any> => {
     try {
       const response = { success: false }
-      console.log('Shared with ', sharedWithLinks)
       if (sharedWithLinks) {
-        console.log('Shared with inner ', sharedWithLinks)
         for (const link of sharedWithLinks) {
           // Confirm req.notifcation is set
           if (!link?.directsTo || !link?.idDirectedTo) {
@@ -103,7 +101,7 @@ class NotificationController extends BaseController {
           }
 
           // Validate Input
-          if (link.directsTo !== 'sharedContact') {
+          if (link.directsTo !== 'sharedCard') {
             throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
           }
 
@@ -141,8 +139,6 @@ class NotificationController extends BaseController {
           })
 
           const sockets = getSocket()
-
-          console.log('Socket ', sockets)
 
           sockets.emit(`notifications_${notificaiton.userId}`, { notifications: notificaiton })
 

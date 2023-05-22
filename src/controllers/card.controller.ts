@@ -1704,7 +1704,7 @@ class CardController extends BaseController {
           })
         }
         const obj = {
-          directsTo: 'sharedContact',
+          directsTo: 'sharedCard',
           idDirectedTo: linkCard,
           message: req.body.message
         }
