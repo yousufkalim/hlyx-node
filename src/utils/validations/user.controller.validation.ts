@@ -1,7 +1,11 @@
 import Joi from 'joi'
-import { IValidateUserUpdate } from '../../config/interfaces/user.validation.interface'
+import {
+  IValidateUserPreference,
+  IValidateUserUpdate
+} from '../../config/interfaces/user.validation.interface'
 import { stringLengths } from '../../config/stringLengths'
 import { stateAbbreviations } from '../../config/stateAbbreviations'
+import { twoFactorAuthTypes } from '../../config/enumTypes'
 
 /**
  *
@@ -21,7 +25,38 @@ export const validateUserUpdate = (userUpdatePayload: IValidateUserUpdate): stri
     country: Joi.string().max(stringLengths.COUNTRY_MAX),
     city: Joi.string().max(stringLengths.CITY_MAX),
     state: Joi.string().valid(...Object.values(stateAbbreviations)),
-    zipcode: Joi.string().min(stringLengths.ZIPCODE_MIN).max(stringLengths.ZIPCODE_MAX).pattern(/^[0-9]+$/)
+    zipcode: Joi.string()
+      .min(stringLengths.ZIPCODE_MIN)
+      .max(stringLengths.ZIPCODE_MAX)
+      .pattern(/^[0-9]+$/)
   })
-  return (userUpdateSchema.validate(userUpdatePayload)?.error?.message)
+  return userUpdateSchema.validate(userUpdatePayload)?.error?.message
+}
+
+export const validateUserPreferences = (
+  userPreferencePayload: IValidateUserPreference
+): string | undefined => {
+  const userPreferenceSchema = Joi.object({
+    twoFactorAuth: Joi.string().valid(...Object.values(twoFactorAuthTypes)),
+    allCardsPrivate: Joi.boolean(),
+    connectionViaProfileLink: Joi.boolean(),
+    connectionViaQRCode: Joi.boolean(),
+    connectionViaPerson: Joi.boolean(),
+    connectionViaContacts: Joi.boolean()
+  })
+  return userPreferenceSchema.validate(userPreferencePayload)?.error?.message
+}
+
+export const validateUserNotification = (
+  userNotificationPayload: IValidateUserPreference
+): string | undefined => {
+  const userNotificationSchema = Joi.object({
+    newLinkRequest: Joi.boolean(),
+    newMessage: Joi.boolean(),
+    groupMessages: Joi.boolean(),
+    profileShare: Joi.boolean(),
+    acceptedLinkRequest: Joi.boolean(),
+    accountSecurity: Joi.boolean()
+  })
+  return userNotificationSchema.validate(userNotificationPayload)?.error?.message
 }

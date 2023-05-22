@@ -32,9 +32,12 @@ export const messages = {
   CODE_SENT_SUCCESS: 'Code sent to your email address, Please verify',
   CODE_SENT_PHONE_SUCCESS: 'Code texted to your phone, Please verify',
   VERIFIED_SUCCESS: 'Verified successfully',
-  PASSWORD_FAILURE: 'Password fails to match the Minimum eight characters, at least one letter and one number',
+  PASSWORD_FAILURE:
+    'Password fails to match the Minimum eight characters, at least one letter and one number',
   ONBOARDING_INCOMPLETE: 'Please finish the onboarding process before adding a card',
   CARD_NOT_FOUND: 'Card not found',
+  GROUP_NOT_FOUND: 'Group not found',
+  GROUP_EXIST: 'Group already exist with the same name',
   EXCEEDS_CARD_LIMIT: 'Adding another card would exceed the allotted amount allowed',
   EXCEEDS_PHOTO_LIMIT: 'Adding another photo would exceed the allotted amount allowed',
   EXCEEDS_NOTE_LIMIT: 'Adding another note would exceed the allotted amount allowed',
@@ -45,14 +48,18 @@ export const messages = {
   DUPLICATE_IMAGE: 'Image is a duplicate',
   ARRAY_DUPLICATE_IMAGE: 'One or more of the provided images shares the same path to file',
   BOOLEAN_FAIL: 'Your input should be a boolean',
-  DELETED_30_DAYS: 'Your account has been deleted for over 30, please reach out to our support team if you would like to reactivate your account',
-  PASSWORD_RESET_FLAG: 'You must verify a 6-digit code sent to your email within 5 minutes of requesting a password reset. Please return to the previous screen to do this.',
-  TWILIO_NOT_FOUND: 'We could not find a valid verification code request associated with this email, please request another.',
+  DELETED_30_DAYS:
+    'Your account has been deleted for over 30, please reach out to our support team if you would like to reactivate your account',
+  PASSWORD_RESET_FLAG:
+    'You must verify a 6-digit code sent to your email within 5 minutes of requesting a password reset. Please return to the previous screen to do this.',
+  TWILIO_NOT_FOUND:
+    'We could not find a valid verification code request associated with this email, please request another.',
   TEMPLATE_ID_FAIL: 'Invalid template id',
   INVALID_MIME_TYPE: 'Invalid file type: Please submit jpg, png, or jpeg only',
   FILE_SIZE_OVER_10: 'The file you have entered is over the 10 MB limit',
   FILE_REQUIRED: 'A file is required.',
-  POSITIONING_ERROR_SERVICE: 'Positionings should begin at 0 and go up by 1 (main and featured treated separately)',
+  POSITIONING_ERROR_SERVICE:
+    'Positionings should begin at 0 and go up by 1 (main and featured treated separately)',
   POSITIONING_ERROR_PORTFOLIO: 'Positionings should begin at 0 and go up by 1',
   INVALID_FILE_LABEL: 'File should be labelled',
   CARD_SLUG_ERROR: 'This URL has already been taken. Please try again',
@@ -76,5 +83,11 @@ export const messages = {
   NOTIFACITION_OUT_OF_SYNC: 'Notifications are out of sync within our database',
   CONTACT_NOT_FOUND: 'Contact not found',
   CONTACT_OUT_OF_SYNC: 'Contacts are out of sync within our database',
-  CONTACT_UNAUTHORIZED: 'Contact belongs to another authenticated user'
+  CONTACT_UNAUTHORIZED: 'Contact belongs to another authenticated user',
+  USER_SETTING_SINGLE_OPTION: 'User can only select 1 option at same time',
+  USER_SETTING_VALIDATE: 'User must select some option',
+  SEARCH_TYPE_SELECT: 'You should select search type by which you want to search',
+  GROUP_MEMBER_NOT_USER: 'You can only add the registered users in group',
+  SHARED_CARD_USER_EMPTY: 'Please select links with you want to share profile card',
+  SHARED_CARD_NOT_USER: 'Selected link not found'
 }

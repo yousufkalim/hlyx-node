@@ -12,19 +12,21 @@ datasource db {
 }
 
 model UserAuth {
-  id              String    @id @default(uuid())
-  email           String    @unique
-  phone           String?   @unique
-  password        String
-  isEmailVerified Boolean   @default(false)
-  isPhoneVerified Boolean   @default(false)
-  isPaused        Boolean   @default(false)
-  isDeleted       Boolean   @default(false)
-  passwordReset   DateTime?
-  role            Role      @default(USER)
-  userBio         UserBio?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id               String            @id @default(uuid())
+  email            String            @unique
+  phone            String?           @unique
+  password         String
+  isEmailVerified  Boolean           @default(false)
+  isPhoneVerified  Boolean           @default(false)
+  isPaused         Boolean           @default(false)
+  isDeleted        Boolean           @default(false)
+  passwordReset    DateTime?
+  role             Role              @default(USER)
+  userBio          UserBio?
+  userPreference   UserPreferences?
+  userNotification UserNotification?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
   // Required to pass to UserBio
   @@unique([id, email, phone])
@@ -32,14 +34,15 @@ model UserAuth {
 
 // Updated during onboarding process and used to initialize card creation
 model UserBio {
-  id                   String      @id
-  User                 UserAuth?   @relation(fields: [id, email, phone], references: [id, email, phone], onDelete: Cascade, onUpdate: Cascade)
-  profileAvatar        String      @default("routeToOurDefaultAvatar")
-  isOnBoardingComplete Boolean     @default(false)
+  id                   String          @id
+  User                 UserAuth?       @relation(fields: [id, email, phone], references: [id, email, phone], onDelete: Cascade, onUpdate: Cascade)
+  profileAvatar        String          @default("routeToOurDefaultAvatar")
+  isOnBoardingComplete Boolean         @default(false)
   // Personal Info
   firstName            String?
   middleInitial        String?
   lastName             String?
+  userName             String?         @unique
   email                String
   phone                String?
   // Profession
@@ -55,12 +58,78 @@ model UserBio {
   zipcode              String?
   profilePhotos        UserPhoto[]
   cards                Card[]
-  updatedAt            DateTime    @updatedAt
+  updatedAt            DateTime        @updatedAt
+  Group                Group[]
+  groups               GroupsOnUsers[]
+  GroupMessages        GroupMessages[]
 
   // Required to link with User
   @@unique([id, email, phone])
   // Required to link with Card
   @@unique([id, profileAvatar])
+}
+
+model Group {
+  id            String          @id @default(uuid())
+  groupName     String          @unique
+  description   String?
+  tags          String[]
+  groupPhoto    String?
+  isPrivate     Boolean         @default(false)
+  GroupAdmin    UserBio         @relation(fields: [adminUser], references: [id])
+  adminUser     String
+  isMuted       Boolean         @default(false)
+  isArchived    Boolean         @default(false)
+  members       GroupsOnUsers[]
+  GroupMessages GroupMessages[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model GroupsOnUsers {
+  User      UserBio  @relation(fields: [userId], references: [id])
+  userId    String // relation scalar field (used in the `@relation` attribute above)
+  Group     Group    @relation(fields: [groupId], references: [id])
+  groupId   String // relation scalar field (used in the `@relation` attribute above)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([userId, groupId])
+}
+
+model GroupMessages {
+  id        String   @id @default(uuid())
+  message   String
+  sender    UserBio  @relation(fields: [senderId], references: [id])
+  senderId  String
+  Group     Group    @relation(fields: [groupId], references: [id])
+  groupId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserPreferences {
+  id                       String            @id @default(uuid())
+  twoFactorAuth            TwoFactorAuthType @default(none)
+  allCardsPrivate          Boolean           @default(false)
+  connectionViaProfileLink Boolean           @default(false)
+  connectionViaQRCode      Boolean           @default(false)
+  connectionViaPerson      Boolean           @default(false)
+  connectionViaContacts    Boolean           @default(false)
+  User                     UserAuth          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId                   String            @unique
+}
+
+model UserNotification {
+  id                  String   @id @default(uuid())
+  User                UserAuth @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId              String   @unique
+  newLinkRequest      Boolean  @default(false)
+  newMessage          Boolean  @default(false)
+  groupMessages       Boolean  @default(false)
+  profileShare        Boolean  @default(false)
+  acceptedLinkRequest Boolean  @default(false)
+  accountSecurity     Boolean  @default(false)
 }
 
 model UserPhoto {
@@ -84,6 +153,7 @@ model Card {
   cardName          String
   slug              String?                         @unique
   publicCard        Boolean                         @default(true)
+  activeCard        Boolean                         @default(true)
   templateId        TemplateIdentification          @default(DEFAULT)
   profileLayout     ProfileLayout
   isPrivate         Boolean                         @default(false)
@@ -175,11 +245,13 @@ model CardWebsites {
 }
 
 model CardSocialMedias {
-  id       String               @id @default(uuid())
-  platform SocialMediaPlatforms
-  handle   String
-  Card     Card                 @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
-  cardId   String
+  id         String               @id @default(uuid())
+  platform   SocialMediaPlatforms
+  handle     String?
+  profileUrl String
+  label      String?
+  Card       Card                 @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
+  cardId     String
 }
 
 model CardAdditionalLinks {
@@ -286,7 +358,7 @@ model CardCalendars {
 
 model CardOfficeAddresses {
   id            String  @id @default(uuid())
-  Card          Card    @relation(fields: [cardId], references: [cardId])
+  Card          Card    @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
   cardId        String
   label         String?
   streetAddress String
@@ -407,7 +479,7 @@ enum PhoneType {
 
 enum SocialMediaPlatforms {
   // Add more once list of supported platforms is finalized
-  linkedIn
+  linkedin
   youtube
   slack
   reddit
@@ -452,6 +524,12 @@ enum PortfolioTemplateIdentification {
   DEFAULT
 }
 
+enum TwoFactorAuthType {
+  none
+  email
+  phone
+}
+
 enum LinkType {
   requested
   accepted
@@ -470,6 +548,7 @@ enum NotificationDirectsTo {
   message
   contactRequest
   sharedContact
+  sharedCard
 }
 
 enum ContactStatus {
@@ -481,4 +560,10 @@ enum ContactStatus {
 enum ProfileLayout {
   minimal
   premium
+}
+
+enum GroupStatus {
+  active
+  muted
+  archived
 }

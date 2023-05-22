@@ -1,5 +1,9 @@
 import Joi from 'joi'
-import { IValidateNote } from '../../config/interfaces/link.validation.interface'
+import { searchTypeEnum } from '../../config/enumTypes'
+import {
+  IValidateLinkSearchType,
+  IValidateNote
+} from '../../config/interfaces/link.validation.interface'
 import { stringLengths } from '../../config/stringLengths'
 
 /**
@@ -12,5 +16,13 @@ export const validateNote = (notePayload: IValidateNote): string | undefined => 
     note: Joi.string().max(stringLengths.NOTE_MAX).required()
   })
 
-  return (noteSchema.validate(notePayload)?.error?.message)
+  return noteSchema.validate(notePayload)?.error?.message
+}
+export const validateLinkSearchType = (
+  linkSearchPayload: IValidateLinkSearchType
+): string | undefined => {
+  const searchSchema = Joi.object({
+    searchBy: Joi.string().valid(...Object.values(searchTypeEnum))
+  })
+  return searchSchema.validate(linkSearchPayload)?.error?.message
 }

@@ -1,12 +1,25 @@
 import { Request, Response } from 'express'
 import { UploadedFile } from 'express-fileupload'
 
-import { RequestLink, RequestUserAuth, RequestNotification } from '../config/interfaces/common.interface'
-import { IArrayLink, IArrayLinkWithBaseInfo, ILinkWithBaseInfo } from '../config/interfaces/link.validation.interface'
+import {
+  RequestLink,
+  RequestUserAuth,
+  RequestNotification,
+  ISearch,
+  IGeneralLinks
+} from '../config/interfaces/common.interface'
+import {
+  IArrayLink,
+  IArrayLinkWithBaseInfo,
+  ILinkWithBaseInfo
+} from '../config/interfaces/link.validation.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { linkControllerParams } from '../config/params'
-import { validateNote } from '../utils/validations/link.controller.validation'
+import {
+  validateLinkSearchType,
+  validateNote
+} from '../utils/validations/link.controller.validation'
 import { arrayLimits } from '../config/arrayLimits'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
 import { awsUploadFile, awsDeleteFile } from '../utils/aws-image'
@@ -162,7 +175,9 @@ class LinkController extends BaseController {
       return res.status(200).json(returnData)
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -311,7 +326,9 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -357,7 +374,9 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -410,48 +429,246 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
   // Find all links associated with card
   cardAllLinks = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
-      const card = await db.card.findUnique({
-        where: {
-          cardId: req.params.cardId
-        },
-        select: {
-          _count: {
-            select: {
-              Links: true
-            }
-          },
-          cardId: true,
-          Links: {
+      const query = this.#getSearchQuery(req.query)
+      const { search, searchBy: searchType } = query
+
+      let card
+
+      // Get links when search apply
+      if (search && searchType) {
+        // Search by location links
+        if (searchType === 'location') {
+          card = await db.card.findUnique({
             where: {
-              status: 'accepted'
+              cardId: req.params.cardId
             },
             select: {
-              id: true,
-              cardOne: true,
-              cardTwo: true,
-              updatedAt: true
+              _count: {
+                select: {
+                  Links: true
+                }
+              },
+              cardId: true,
+              Links: {
+                where: {
+                  status: 'accepted',
+                  OR: [
+                    {
+                      CardOneRef: {
+                        OR: [
+                          {
+                            city: {
+                              contains: search,
+                              mode: 'insensitive'
+                            }
+                          },
+                          {
+                            state: {
+                              contains: search,
+                              mode: 'insensitive'
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      CardTwoRef: {
+                        OR: [
+                          {
+                            city: {
+                              contains: search,
+                              mode: 'insensitive'
+                            }
+                          },
+                          {
+                            state: {
+                              contains: search,
+                              mode: 'insensitive'
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                select: {
+                  id: true,
+                  cardOne: true,
+                  cardTwo: true,
+                  updatedAt: true
+                }
+              },
+              LinksDuplicate: {
+                where: {
+                  status: 'accepted',
+                  OR: [
+                    {
+                      CardOneRef: {
+                        OR: [
+                          {
+                            city: {
+                              contains: search,
+                              mode: 'insensitive'
+                            }
+                          },
+                          {
+                            state: {
+                              contains: search,
+                              mode: 'insensitive'
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      CardTwoRef: {
+                        OR: [
+                          {
+                            city: {
+                              contains: search,
+                              mode: 'insensitive'
+                            }
+                          },
+                          {
+                            state: {
+                              contains: search,
+                              mode: 'insensitive'
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                select: {
+                  id: true,
+                  cardOne: true,
+                  cardTwo: true,
+                  updatedAt: true
+                }
+              }
             }
-          },
-          LinksDuplicate: {
+          })
+        } else {
+          card = await db.card.findUnique({
             where: {
-              status: 'accepted'
+              cardId: req.params.cardId
             },
             select: {
-              id: true,
-              cardOne: true,
-              cardTwo: true,
-              updatedAt: true
+              _count: {
+                select: {
+                  Links: true
+                }
+              },
+              cardId: true,
+              Links: {
+                where: {
+                  status: 'accepted',
+                  OR: [
+                    {
+                      CardOneRef: {
+                        [searchType]: {
+                          contains: search,
+                          mode: 'insensitive'
+                        }
+                      }
+                    },
+                    {
+                      CardTwoRef: {
+                        [searchType]: {
+                          contains: search,
+                          mode: 'insensitive'
+                        }
+                      }
+                    }
+                  ]
+                },
+                select: {
+                  id: true,
+                  cardOne: true,
+                  cardTwo: true,
+                  updatedAt: true
+                }
+              },
+              LinksDuplicate: {
+                where: {
+                  status: 'accepted',
+                  OR: [
+                    {
+                      CardOneRef: {
+                        [searchType]: {
+                          contains: search,
+                          mode: 'insensitive'
+                        }
+                      }
+                    },
+                    {
+                      CardTwoRef: {
+                        [searchType]: {
+                          contains: search,
+                          mode: 'insensitive'
+                        }
+                      }
+                    }
+                  ]
+                },
+                select: {
+                  id: true,
+                  cardOne: true,
+                  cardTwo: true,
+                  updatedAt: true
+                }
+              }
+            }
+          })
+        }
+      } else {
+        const response = await db.card.findUnique({
+          where: {
+            cardId: req.params.cardId
+          },
+          select: {
+            _count: {
+              select: {
+                Links: true
+              }
+            },
+            cardId: true,
+            Links: {
+              where: {
+                status: 'accepted'
+              },
+              select: {
+                id: true,
+                cardOne: true,
+                cardTwo: true,
+                updatedAt: true
+              }
+            },
+            LinksDuplicate: {
+              where: {
+                status: 'accepted'
+              },
+              select: {
+                id: true,
+                cardOne: true,
+                cardTwo: true,
+                updatedAt: true
+              }
             }
           }
-        }
-      })
+        })
+        card = response
+      }
 
       if (!card) {
         return res.status(404).json({
@@ -472,7 +689,136 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Find all connections associated with user ( include user links and links of user's links)
+  userAllConnections = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      // Find all cards associated with user
+      const cards = await db.card.findMany({
+        where: {
+          userId: req.params.userId
+        },
+        select: {
+          cardId: true
+        }
+      })
+
+      // Search query parameters
+      const query = this.#getSearchQuery(req.query)
+      const { search, searchBy: searchType } = query
+      // Loop through all cards, find links and return
+      const general: IArrayLink[] = []
+      const connectedLinks: IArrayLink[] = []
+
+      for (const card of cards) {
+        // General
+        let generalLinks: IGeneralLinks[] = []
+        let allLinks: IGeneralLinks[] = []
+        if (search && searchType) {
+          generalLinks = await this.#getSearchedLinks(card.cardId, searchType, search)
+          const response = await db.link.findMany({
+            where: {
+              OR: [
+                {
+                  cardOne: card.cardId,
+                  status: 'accepted',
+                  cardOneFavorite: false
+                },
+                {
+                  cardTwo: card.cardId,
+                  status: 'accepted',
+                  cardTwoFavorite: false
+                }
+              ]
+            },
+            select: {
+              id: true,
+              cardOne: true,
+              cardTwo: true,
+              updatedAt: true
+            }
+          })
+          allLinks = response
+        } else {
+          const response = await db.link.findMany({
+            where: {
+              OR: [
+                {
+                  cardOne: card.cardId,
+                  status: 'accepted',
+                  cardOneFavorite: false
+                },
+                {
+                  cardTwo: card.cardId,
+                  status: 'accepted',
+                  cardTwoFavorite: false
+                }
+              ]
+            },
+            select: {
+              id: true,
+              cardOne: true,
+              cardTwo: true,
+              updatedAt: true
+            }
+          })
+
+          generalLinks = response
+          allLinks = response
+        }
+
+        general.push({
+          cardId: card.cardId,
+          Links: generalLinks
+        })
+
+        connectedLinks.push({
+          cardId: card.cardId,
+          Links: allLinks
+        })
+      }
+
+      // Grab base info and return
+      const generalLinks = await this.#getBaseInfoAllCards(general)
+      const linksWithoutSearch = await this.#getBaseInfoAllCards(connectedLinks)
+
+      // Find Mututal Connections
+      const myCardIds = cards.map((item) => item.cardId)
+      const otherCardIds = []
+      if (linksWithoutSearch) {
+        for (const otherLinkObj of linksWithoutSearch) {
+          for (const otherLink of otherLinkObj.Links) {
+            otherCardIds.push(otherLink.cardId)
+          }
+        }
+      }
+      let mutualCards: any = []
+      if (otherCardIds.length > 0) {
+        const otherCards = await this.#getBaseInfoAllCardsOthers(
+          myCardIds,
+          otherCardIds,
+          searchType,
+          search
+        )
+        mutualCards = otherCards
+      }
+
+      return res.status(200).json({
+        mutualLinks: mutualCards,
+        generalLinks,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -489,9 +835,13 @@ class LinkController extends BaseController {
         }
       })
 
+      // Search query parameters
+      const query = this.#getSearchQuery(req.query)
+      const { search, searchBy: searchType } = query
       // Loop through all cards, find links and return
       const favorites: IArrayLink[] = []
       const general: IArrayLink[] = []
+
       for (const card of cards) {
         // Favorites
         const favoriteLinks = await db.link.findMany({
@@ -522,28 +872,35 @@ class LinkController extends BaseController {
         })
 
         // General
-        const generalLinks = await db.link.findMany({
-          where: {
-            OR: [
-              {
-                cardOne: card.cardId,
-                status: 'accepted',
-                cardOneFavorite: false
-              },
-              {
-                cardTwo: card.cardId,
-                status: 'accepted',
-                cardTwoFavorite: false
-              }
-            ]
-          },
-          select: {
-            id: true,
-            cardOne: true,
-            cardTwo: true,
-            updatedAt: true
-          }
-        })
+        let generalLinks: IGeneralLinks[] = []
+        if (search && searchType) {
+          generalLinks = await this.#getSearchedLinks(card.cardId, searchType, search)
+        } else {
+          const response = await db.link.findMany({
+            where: {
+              OR: [
+                {
+                  cardOne: card.cardId,
+                  status: 'accepted',
+                  cardOneFavorite: false
+                },
+                {
+                  cardTwo: card.cardId,
+                  status: 'accepted',
+                  cardTwoFavorite: false
+                }
+              ]
+            },
+            select: {
+              id: true,
+              cardOne: true,
+              cardTwo: true,
+              updatedAt: true
+            }
+          })
+          generalLinks = response
+        }
+
         general.push({
           cardId: card.cardId,
           Links: generalLinks
@@ -562,7 +919,9 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -627,7 +986,9 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -695,7 +1056,9 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -762,7 +1125,9 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -804,8 +1169,9 @@ class LinkController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -839,8 +1205,7 @@ class LinkController extends BaseController {
 
       // Verify number of notes is under maximum
       const existingNotes = await db.linkNotes.findMany({
-        where:
-        {
+        where: {
           linkId: req.link.id,
           authorId: req.card.requester
         }
@@ -868,7 +1233,9 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -918,7 +1285,9 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -951,7 +1320,9 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -970,7 +1341,9 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -984,7 +1357,9 @@ class LinkController extends BaseController {
       }
 
       // Verify Under Maximum Amount of Link Images
-      const imagesBelongToUser = req.link.photos.filter(element => element.cardId === req.card?.requester)
+      const imagesBelongToUser = req.link.photos.filter(
+        (element) => element.cardId === req.card?.requester
+      )
       if (imagesBelongToUser.length >= arrayLimits.MAX_LINK_IMAGES) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -1021,7 +1396,13 @@ class LinkController extends BaseController {
         })
       }
       // AWS API Call
-      const pathToFile = await awsUploadFile(file.data, req.link.id, 'link-photo', file.name, file.mimetype)
+      const pathToFile = await awsUploadFile(
+        file.data,
+        req.link.id,
+        'link-photo',
+        file.name,
+        file.mimetype
+      )
 
       // Update and return
       await db.link.update({
@@ -1042,7 +1423,9 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -1079,7 +1462,9 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -1134,7 +1519,9 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -1172,7 +1559,9 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -1209,12 +1598,16 @@ class LinkController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
   /* Private Functions */
-  #getBaseInfoAllCards = async (arrayLinks: IArrayLink[]): Promise<IArrayLinkWithBaseInfo[] | undefined> => {
+  #getBaseInfoAllCards = async (
+    arrayLinks: IArrayLink[]
+  ): Promise<IArrayLinkWithBaseInfo[] | undefined> => {
     try {
       const returnArray: IArrayLinkWithBaseInfo[] = []
       for (const userCard of arrayLinks) {
@@ -1264,6 +1657,302 @@ class LinkController extends BaseController {
         linkInfo.push(otherCard)
       }
       return linkInfo
+    } catch (error: any) {
+      console.error(error)
+    }
+  }
+
+  #getSearchQuery = (query: ISearch): ISearch => {
+    const { search, searchBy } = query
+    let searchType = searchBy
+    if (search && searchBy) {
+      const searchTypeValidationError = validateLinkSearchType({ searchBy })
+      if (searchTypeValidationError) {
+        searchType = ''
+      }
+    }
+
+    return { search, searchBy: searchType }
+  }
+
+  #getSearchedLinks = async (
+    cardId: string,
+    searchType: string,
+    search: string
+  ): Promise<IGeneralLinks[] | []> => {
+    let generalLinks = []
+    if (searchType === 'location') {
+      const response = await db.link.findMany({
+        where: {
+          OR: [
+            {
+              cardOne: cardId,
+              status: 'accepted',
+              cardOneFavorite: false,
+              CardTwoRef: {
+                OR: [
+                  {
+                    city: {
+                      contains: search,
+                      mode: 'insensitive'
+                    }
+                  },
+                  {
+                    state: {
+                      contains: search,
+                      mode: 'insensitive'
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              cardTwo: cardId,
+              status: 'accepted',
+              cardTwoFavorite: false,
+              CardOneRef: {
+                OR: [
+                  {
+                    city: {
+                      contains: search,
+                      mode: 'insensitive'
+                    }
+                  },
+                  {
+                    state: {
+                      contains: search,
+                      mode: 'insensitive'
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        select: {
+          id: true,
+          cardOne: true,
+          cardTwo: true,
+          updatedAt: true
+        }
+      })
+      generalLinks = response
+    } else {
+      const response = await db.link.findMany({
+        where: {
+          OR: [
+            {
+              cardOne: cardId,
+              status: 'accepted',
+              cardOneFavorite: false,
+              CardTwoRef: {
+                [searchType]: {
+                  contains: search,
+                  mode: 'insensitive'
+                }
+              }
+            },
+            {
+              cardTwo: cardId,
+              status: 'accepted',
+              cardTwoFavorite: false,
+              CardOneRef: {
+                [searchType]: {
+                  contains: search,
+                  mode: 'insensitive'
+                }
+              }
+            }
+          ]
+        },
+        select: {
+          id: true,
+          cardOne: true,
+          cardTwo: true,
+          updatedAt: true
+        }
+      })
+      generalLinks = response
+    }
+
+    return generalLinks
+  }
+
+  /* Private Functions */
+  #getBaseInfoAllCardsOthers = async (
+    myCards: string[],
+    otherCards: string[],
+    searchType: string | undefined,
+    search: string | undefined
+  ): Promise<any[] | undefined> => {
+    try {
+      const allOtherLinks: any = []
+      let allCards: any = []
+      for (const otherCard of otherCards) {
+        const response = await db.link.findMany({
+          where: {
+            cardOne: {
+              notIn: myCards
+            },
+            cardTwo: {
+              notIn: myCards
+            },
+            OR: [
+              {
+                cardOne: otherCard,
+                status: 'accepted',
+                cardOneFavorite: false
+              },
+              {
+                cardTwo: otherCard,
+                status: 'accepted',
+                cardTwoFavorite: false
+              }
+            ]
+          },
+          select: {
+            id: true,
+            cardOne: true,
+            cardTwo: true,
+            updatedAt: true
+          }
+        })
+        allOtherLinks.push(...response)
+      }
+
+      if (allOtherLinks.length > 0) {
+        const filteredOtherCardIds = allOtherLinks.map((item: any) =>
+          otherCards.includes(item.cardOne) ? item.cardTwo : item.cardOne
+        )
+
+        if (filteredOtherCardIds.length > 0) {
+          const otherCards = await this.#getInfoOfOtherCard(
+            filteredOtherCardIds,
+            searchType,
+            search
+          )
+          allCards = otherCards
+        }
+        // this.#getInfoOfOtherCard()
+      }
+
+      return allCards
+    } catch (error: any) {
+      // const returnArray: IArrayLinkWithBaseInfo[] = []
+      // for (const userCard of arrayLinks) {
+      //   const linkInfo = await this.#getInfoPerCard(userCard)
+      //   if (!linkInfo) {
+      //     throw Error(messages.LINK_CARD_ID_NOT_FOUND)
+      //   }
+      //   returnArray.push({
+      //     myCardId: userCard.cardId,
+      //     Links: linkInfo,
+      //     _count: linkInfo.length
+      //   })
+      // }
+      // return returnArray
+      console.error(error)
+    }
+  }
+
+  #getInfoOfOtherCard = async (
+    otherCardIds: string[],
+    searchType: string | undefined,
+    search: string | undefined
+  ): Promise<ILinkWithBaseInfo[] | undefined> => {
+    try {
+      const cards: ILinkWithBaseInfo[] = []
+      for (const card of otherCardIds) {
+        if (searchType && search) {
+          if (searchType === 'location') {
+            const otherCard = await db.card.findFirst({
+              where: {
+                cardId: card,
+                OR: [
+                  {
+                    city: {
+                      contains: search,
+                      mode: 'insensitive'
+                    }
+                  },
+                  {
+                    state: {
+                      contains: search,
+                      mode: 'insensitive'
+                    }
+                  }
+                ]
+              },
+              select: {
+                cardId: true,
+                slug: true,
+                publicCard: true,
+                userAvatar: true,
+                fullName: true,
+                profTitle: true,
+                company: true,
+                city: true,
+                state: true
+              }
+            })
+            // if (!otherCard) {
+            //   throw Error(messages.LINK_CARD_ID_NOT_FOUND)
+            // }
+            if (otherCard) {
+              cards.push(otherCard)
+            }
+          } else {
+            const otherCard = await db.card.findFirst({
+              where: {
+                cardId: card,
+                [searchType]: {
+                  contains: search,
+                  mode: 'insensitive'
+                }
+              },
+              select: {
+                cardId: true,
+                slug: true,
+                publicCard: true,
+                userAvatar: true,
+                fullName: true,
+                profTitle: true,
+                company: true,
+                city: true,
+                state: true
+              }
+            })
+            // if (!otherCard) {
+            //   throw Error(messages.LINK_CARD_ID_NOT_FOUND)
+            // }
+            if (otherCard) {
+              cards.push(otherCard)
+            }
+          }
+        } else {
+          const otherCard = await db.card.findUnique({
+            where: {
+              cardId: card
+            },
+            select: {
+              cardId: true,
+              slug: true,
+              publicCard: true,
+              userAvatar: true,
+              fullName: true,
+              profTitle: true,
+              company: true,
+              city: true,
+              state: true
+            }
+          })
+          if (!otherCard) {
+            throw Error(messages.LINK_CARD_ID_NOT_FOUND)
+          }
+          cards.push(otherCard)
+        }
+      }
+      return cards
     } catch (error: any) {
       console.error(error)
     }

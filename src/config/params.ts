@@ -15,6 +15,24 @@ export const userControllerParams = [
   'zipcode'
 ]
 
+export const userPreferenceParams = [
+  'twoFactorAuth',
+  'allCardsPrivate',
+  'connectionViaProfileLink',
+  'connectionViaQRCode',
+  'connectionViaPerson',
+  'connectionViaContacts'
+]
+
+export const userNotificationParams = [
+  'newLinkRequest',
+  'newMessage',
+  'groupMessages',
+  'profileShare',
+  'acceptedLinkRequest',
+  'accountSecurity'
+]
+
 export const cardControllerParams = [
   'cardName',
   'fullName',
@@ -101,4 +119,13 @@ export const sharedContactControllerParams = [
   'message',
   'location',
   'notes'
+]
+
+export const groupControllerParams = [
+  'groupName',
+  'isPrivate',
+  'groupPhoto',
+  'tags',
+  'description',
+  'members'
 ]

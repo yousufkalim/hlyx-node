@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { UploadedFile } from 'express-fileupload'
 
-import { RequestUserAuth } from '../config/interfaces/common.interface'
+import { ISharedCard, RequestUserAuth } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { cardAboutPageParams, cardContactPageParams, cardControllerParams } from '../config/params'
@@ -20,6 +20,8 @@ import { awsUploadFile, awsDeleteFile } from '../utils/aws-image'
 
 import BaseController from './base.controller'
 import { db } from '../utils/db'
+import notificationController from './notification.controller'
+// import { arrayLimits } from '../config/arrayLimits'
 
 class CardController extends BaseController {
   getBaseInfo = async (req: Request, res: Response): Promise<Response> => {
@@ -33,6 +35,7 @@ class CardController extends BaseController {
           coverPhoto: true,
           slug: true,
           publicCard: true,
+          activeCard: true,
           templateId: true,
           userAvatar: true,
           fullName: true,
@@ -81,6 +84,7 @@ class CardController extends BaseController {
           },
           coverPhoto: true,
           companyIcon: true,
+          company: true,
           fullName: true,
           profTitle: true,
           emails: {
@@ -109,6 +113,15 @@ class CardController extends BaseController {
               description: true
             }
           },
+          officeAddresses: {
+            select: {
+              city: true,
+              state: true,
+              label: true,
+              zipcode: true,
+              streetAddress: true
+            }
+          },
           country: true,
           city: true,
           state: true,
@@ -117,7 +130,9 @@ class CardController extends BaseController {
           socialMedias: {
             select: {
               platform: true,
-              handle: true
+              handle: true,
+              profileUrl: true,
+              label: true
             }
           },
           additionalLinks: {
@@ -1313,6 +1328,39 @@ class CardController extends BaseController {
     }
   }
 
+  // Update Card Active status
+  updateCardActivation = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const { activeCard } = req.body
+    try {
+      // Validate Input
+      if (activeCard !== true && activeCard !== false) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.BOOLEAN_FAIL
+        })
+      }
+
+      // Update and return
+      await db.card.update({
+        where: {
+          cardId: req.params.cardId
+        },
+        data: {
+          activeCard
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
   // Update Slug
   updateSlug = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, ['slug'])
@@ -1380,6 +1428,291 @@ class CardController extends BaseController {
           templateId
         }
       })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Update a card to user
+  updateCard = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      const body: any = {}
+      for (const item in req.body) {
+        try {
+          body[item] = JSON.parse(req.body[item])
+        } catch (err) {
+          body[item] = req.body[item]
+        }
+      }
+
+      const params = this.filterParams(body, cardControllerParams)
+      const {
+        fullName,
+        cardName,
+        country,
+        profTitle,
+        profileLayout,
+        city,
+        company,
+        industry,
+        occupation,
+        emails,
+        phones,
+        zipcode,
+        state,
+        websites,
+        officeAddresses,
+        socialMedias,
+        additionalLinks,
+        calendars
+      } = params
+      // Verify user exists
+      const card = await db.card.findUnique({
+        where: {
+          cardId: req.params.cardId
+        },
+        select: {
+          cardId: true,
+          User: {
+            select: {
+              id: true,
+              cards: true,
+              isOnBoardingComplete: true
+            }
+          }
+        }
+      })
+      if (!card) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.CARD_NOT_FOUND
+        })
+      }
+
+      // Card About Data
+      const cardAboutData: any = {
+        company,
+        profTitle,
+        industry,
+        occupation
+      }
+
+      // Create Card data
+      const cardContactData: any = {
+        fullName,
+        cardName,
+        city,
+        profileLayout,
+        country,
+        state,
+        zipcode,
+        emails,
+        phones,
+        websites,
+        officeAddresses,
+        socialMedias,
+        additionalLinks,
+        calendars
+      }
+      const cardContactValidationError = validateCardContactPage(cardContactData)
+      if (cardContactValidationError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: cardContactValidationError
+        })
+      }
+
+      const cardAboutValidationError = validateCardAboutPage(cardAboutData)
+      if (cardAboutValidationError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: cardAboutValidationError
+        })
+      }
+
+      // Add optional fields if set
+      if (params.emails) {
+        cardContactData.emails = {
+          create: params.emails
+        }
+        await db.cardEmails.deleteMany({ where: { cardId: req.params.cardId } })
+      }
+      if (params.phones) {
+        cardContactData.phones = {
+          create: params.phones
+        }
+        await db.cardPhones.deleteMany({ where: { cardId: req.params.cardId } })
+      }
+      if (params.calendars) {
+        cardContactData.calendars = {
+          create: params.calendars
+        }
+        await db.cardCalendars.deleteMany({ where: { cardId: req.params.cardId } })
+      }
+      if (params.websites) {
+        cardContactData.websites = {
+          create: params.websites
+        }
+        await db.cardWebsites.deleteMany({ where: { cardId: req.params.cardId } })
+      }
+      if (params.officeAddresses) {
+        cardContactData.officeAddresses = {
+          create: params.officeAddresses
+        }
+        await db.cardOfficeAddresses.deleteMany({ where: { cardId: req.params.cardId } })
+      }
+      if (params.socialMedias) {
+        cardContactData.socialMedias = {
+          create: params.socialMedias
+        }
+        await db.cardSocialMedias.deleteMany({ where: { cardId: req.params.cardId } })
+      }
+      if (params.additionalLinks) {
+        cardContactData.additionalLinks = {
+          create: params.additionalLinks
+        }
+        await db.cardAdditionalLinks.deleteMany({ where: { cardId: req.params.cardId } })
+      }
+
+      /*  ====  Validation for Cover Photo  ===== */
+      const coverPhoto = req.files?.coverPhoto as UploadedFile
+      if (coverPhoto) {
+        // Verify Acceptable MIME Type
+        if (!ACCEPTABLE_MIME_TYPES.includes(coverPhoto.mimetype)) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.INVALID_MIME_TYPE
+          })
+        }
+        // Verify Image Size
+        if (coverPhoto.size > MAX_BYTES) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.FILE_SIZE_OVER_10
+          })
+        }
+
+        // AWS API Call
+        const coverPhotoPath = await awsUploadFile(
+          coverPhoto.data,
+          req.body.id,
+          'cover-photo',
+          coverPhoto.name,
+          coverPhoto.mimetype
+        )
+        cardAboutData.coverPhoto = coverPhotoPath
+      }
+
+      /*  ====  Validation for Company Icon  ===== */
+      const companyIcon = req.files?.companyIcon as UploadedFile
+      if (companyIcon) {
+        // Verify Acceptable MIME Type
+        if (!ACCEPTABLE_MIME_TYPES.includes(companyIcon.mimetype)) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.INVALID_MIME_TYPE
+          })
+        }
+        // Verify Image Size
+        if (companyIcon.size > MAX_BYTES) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.FILE_SIZE_OVER_10
+          })
+        }
+
+        const companyIconPath = await awsUploadFile(
+          companyIcon.data,
+          req.body.id,
+          'company-icon',
+          companyIcon.name,
+          companyIcon.mimetype
+        )
+
+        cardAboutData.companyIcon = companyIconPath
+      }
+
+      const data = { ...cardContactData, ...cardAboutData }
+
+      // Update UserBio, create Card, and return
+      const updatedCard = await db.card.update({
+        where: { cardId: req.params.cardId },
+        data,
+        select: {
+          cardId: true
+        }
+      })
+
+      return res.status(200).json({
+        cardId: updatedCard.cardId,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  sharedProfileCard = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      // Shared card functionality with notifications
+      const linksWithShared: string[] = req.body.sharedWith
+
+      const card = await db.card.findUnique({
+        where: {
+          cardId: req.params.cardId
+        },
+        select: {
+          cardId: true
+        }
+      })
+
+      if (!card) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.CARD_NOT_FOUND
+        })
+      }
+
+      if (!linksWithShared || linksWithShared?.length === 0) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.SHARED_CARD_USER_EMPTY
+        })
+      }
+
+      const arr: ISharedCard[] = []
+      for (const linkCard of linksWithShared) {
+        const card = await db.card.findUnique({
+          where: {
+            cardId: linkCard
+          }
+        })
+        if (!card) {
+          return res.status(404).json({
+            code: codes.NOT_FOUND,
+            message: messages.SHARED_CARD_NOT_USER
+          })
+        }
+        const obj = {
+          directsTo: 'sharedCard',
+          idDirectedTo: linkCard,
+          message: req.body.message
+        }
+        arr.push(obj)
+      }
+
+      await notificationController.createNotificationOfSharedCard(card.cardId, arr)
+
       return res.status(200).json({
         code: codes.OK,
         message: messages.SUCCESS

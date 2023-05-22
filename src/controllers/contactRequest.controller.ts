@@ -1,11 +1,18 @@
 import { Request, Response } from 'express'
 import { UploadedFile } from 'express-fileupload'
 
-import { RequestNotification, RequestUserAuth } from '../config/interfaces/common.interface'
+import {
+  ISearch,
+  RequestNotification,
+  RequestUserAuth
+} from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { sharedContactControllerParams } from '../config/params'
-import { validateSharedContactCreate, validateSharedContactNote } from '../utils/validations/contactRequest.controller.validation'
+import {
+  validateSharedContactCreate,
+  validateSharedContactNote
+} from '../utils/validations/contactRequest.controller.validation'
 import { INewContactRequest } from '../config/interfaces/contactRequest.validation.interface'
 import { sharedContactStatus } from '../config/enumTypes'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
@@ -14,6 +21,7 @@ import { awsUploadFile } from '../utils/aws-image'
 import BaseController from './base.controller'
 import notificationController from './notification.controller'
 import { db } from '../utils/db'
+import { validateLinkSearchType } from '../utils/validations/link.controller.validation'
 
 class ContactRequestController extends BaseController {
   // Create new contact request
@@ -77,7 +85,13 @@ class ContactRequestController extends BaseController {
           })
         }
         // AWS API Call
-        const contactImage = await awsUploadFile(file.data, '', 'contact-request', file.name, file.mimetype)
+        const contactImage = await awsUploadFile(
+          file.data,
+          '',
+          'contact-request',
+          file.name,
+          file.mimetype
+        )
 
         data.Contacts.create.contactImage = contactImage
       }
@@ -112,6 +126,7 @@ class ContactRequestController extends BaseController {
         idDirectedTo: contactId
       }
 
+      console.log('Request ', reqNotification.notification)
       const notification = await notificationController.createNotification(req)
       if (!notification.success) {
         throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
@@ -123,8 +138,10 @@ class ContactRequestController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
-      console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      console.error(error.message)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -162,45 +179,84 @@ class ContactRequestController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
   // Get all saved contact requests
   getSaved = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
+      const query = this.#getSearchQuery(req.query)
+      const { search, searchBy: searchType } = query
+
       // Find all cards associated with user
-      const cards = await db.card.findMany({
-        where: {
-          userId: req.params.userId
-        },
-        select: {
-          _count: {
-            select: {
-              Contacts: {
-                where: {
-                  status: 'saved'
+      let cardsContacts = []
+      if (search && searchType) {
+        const cards = await db.card.findMany({
+          where: {
+            userId: req.params.userId
+          },
+          select: {
+            _count: {
+              select: {
+                Contacts: {
+                  where: {
+                    status: 'saved'
+                  }
+                }
+              }
+            },
+            cardId: true,
+            Contacts: {
+              where: {
+                status: 'saved',
+                location: {
+                  contains: search,
+                  mode: 'insensitive'
                 }
               }
             }
+          }
+        })
+        cardsContacts = cards
+      } else {
+        const cards = await db.card.findMany({
+          where: {
+            userId: req.params.userId
           },
-          cardId: true,
-          Contacts: {
-            where: {
-              status: 'saved'
+          select: {
+            _count: {
+              select: {
+                Contacts: {
+                  where: {
+                    status: 'saved'
+                  }
+                }
+              }
+            },
+            cardId: true,
+            Contacts: {
+              where: {
+                status: 'saved'
+              }
             }
           }
-        }
-      })
+        })
+        cardsContacts = cards
+      }
 
       return res.status(200).json({
-        cards,
+        cards: cardsContacts,
         code: codes.OK,
         message: messages.SUCCESS
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -238,7 +294,9 @@ class ContactRequestController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -270,7 +328,9 @@ class ContactRequestController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -304,7 +364,9 @@ class ContactRequestController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 
@@ -318,8 +380,23 @@ class ContactRequestController extends BaseController {
       })
     } catch (error: any) {
       console.error(error)
-      return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
+  }
+
+  #getSearchQuery = (query: ISearch): ISearch => {
+    const { search, searchBy } = query
+    let searchType = searchBy
+    if (search && searchBy) {
+      const searchTypeValidationError = validateLinkSearchType({ searchBy })
+      if (searchTypeValidationError) {
+        searchType = ''
+      }
+    }
+
+    return { search, searchBy: searchType }
   }
 }
 

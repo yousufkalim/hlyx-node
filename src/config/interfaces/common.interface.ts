@@ -13,12 +13,21 @@ export interface RequestUserAuth extends Request {
   user?: IUser
 }
 
+export interface RequestUserPreference extends RequestUserAuth {
+  twoFactorAuth?: string
+  allCardsPrivate?: boolean
+  connectionViaProfileLink?: boolean
+  connectionViaQRCode?: boolean
+  connectionViaPerson?: boolean
+}
+
 export interface RequestLink extends RequestUserAuth {
   card?: {
     requester: string
     recipient: string
   }
   link?: ILinks
+  sharedWith?: string[]
 }
 
 export interface RequestNotification extends Request {
@@ -38,7 +47,25 @@ export interface IEmail {
   html: string
 }
 
+export interface ISharedCard {
+  directsTo: string
+  idDirectedTo: string
+  message?: string
+}
+
 export interface ICreateNotification {
   notificationId?: string
   success: boolean
+}
+
+export interface ISearch {
+  searchBy?: string
+  search?: string
+}
+
+export interface IGeneralLinks {
+  updatedAt: Date
+  cardTwo: string
+  cardOne: string
+  id: string
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/indent */
 import {
   validateCardAboutPage,
   validateCardContactPage
@@ -5,11 +6,20 @@ import {
 import { Response } from 'express'
 import { UploadedFile } from 'express-fileupload'
 
-import { RequestUserAuth } from '../config/interfaces/common.interface'
+import { RequestUserAuth, RequestUserPreference } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
-import { cardControllerParams, userControllerParams } from '../config/params'
-import { validateUserUpdate } from '../utils/validations/user.controller.validation'
+import {
+  cardControllerParams,
+  userControllerParams,
+  userNotificationParams,
+  userPreferenceParams
+} from '../config/params'
+import {
+  validateUserNotification,
+  validateUserPreferences,
+  validateUserUpdate
+} from '../utils/validations/user.controller.validation'
 import { arrayLimits } from '../config/arrayLimits'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
 import { awsDeleteFile, awsUploadFile } from '../utils/aws-image'
@@ -32,11 +42,8 @@ class UserController extends BaseController {
               cards: true
             }
           },
-          cards: {
-            select: {
-              cardId: true
-            }
-          }
+          groups: true,
+          cards: true
         }
       })
       if (!user) {
@@ -45,9 +52,29 @@ class UserController extends BaseController {
           message: messages.USER_NOT_FOUND
         })
       }
+
+      const userPreferences = await db.userAuth.findUnique({
+        where: {
+          id: req.user?.id
+        },
+        select: {
+          userPreference: {
+            select: {
+              twoFactorAuth: true,
+              allCardsPrivate: true,
+              connectionViaProfileLink: true,
+              connectionViaQRCode: true,
+              connectionViaPerson: true,
+              connectionViaContacts: true
+            }
+          }
+        }
+      })
+
+      const data = { ...user, userPreferences: userPreferences?.userPreference }
       // Return
       return res.status(200).json({
-        user,
+        user: data,
         code: codes.OK,
         message: messages.SUCCESS
       })
@@ -59,10 +86,62 @@ class UserController extends BaseController {
     }
   }
 
+  // get User by UserName
+  getUserByUserName = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      const user = await db.userBio.findUnique({
+        where: {
+          userName: req.params?.userName
+        },
+        select: {
+          id: true,
+          userName: true,
+          firstName: true,
+          lastName: true,
+          company: true,
+          country: true,
+          city: true,
+          profileAvatar: true,
+          profTitle: true,
+          industry: true
+        }
+      })
+      if (!user) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.USER_NOT_FOUND
+        })
+      }
+
+      return res.status(200).json({
+        user,
+        code: codes.OK,
+        messages: messages.SUCCESS
+      })
+    } catch (error: any) {
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
   // Update user
   updateBio = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, userControllerParams)
     try {
+      // Get User details
+      const userBio = await db.userBio.findUnique({
+        where: {
+          id: req.params.userId
+        },
+        select: {
+          id: true,
+          userName: true,
+          firstName: true,
+          lastName: true
+        }
+      })
+
       // Validate input
       const validationError = validateUserUpdate(params)
       if (validationError) {
@@ -103,6 +182,7 @@ class UserController extends BaseController {
           file.name,
           file.mimetype
         )
+
         // Prepare params for update
         params.profileAvatar = pathToFile
         params.profilePhotos = {
@@ -110,6 +190,12 @@ class UserController extends BaseController {
             pathToFile
           }
         }
+      }
+
+      if (!userBio?.userName) {
+        const randomNumber = userBio?.id?.split('-')[0]
+        const userName = `${params.firstName?.toLowerCase()}-${params.lastName?.toLowerCase()}-${randomNumber}`
+        params.userName = userName
       }
       // Set onboarding to true
       params.isOnBoardingComplete = true
@@ -181,9 +267,35 @@ class UserController extends BaseController {
   // Add a card to user
   addCard = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
-      const params = this.filterParams(req.body, cardControllerParams)
-      const { fullName, cardName, profTitle, profileLayout, city, company, industry, occupation } =
-        params
+      const body: any = {}
+      for (const item in req.body) {
+        try {
+          body[item] = JSON.parse(req.body[item])
+        } catch (err) {
+          body[item] = req.body[item]
+        }
+      }
+
+      const params = this.filterParams(body, cardControllerParams)
+      const {
+        fullName,
+        cardName,
+        profTitle,
+        profileLayout,
+        city,
+        company,
+        industry,
+        occupation,
+        emails,
+        phones,
+        zipcode,
+        state,
+        websites,
+        officeAddresses,
+        socialMedias,
+        additionalLinks,
+        calendars
+      } = params
       // Verify user exists
       const user = await db.userBio.findUnique({
         where: {
@@ -230,18 +342,17 @@ class UserController extends BaseController {
         cardName,
         city,
         profileLayout,
-        country: user.country ?? undefined,
-        state: params?.state ?? undefined,
-        zipcode: params.zipcode ?? undefined,
-        emails: params.emails,
-        phones: params.phones,
-        websites: params.websites,
-        officeAddresses: params.officeAddresses,
-        socialMedias: params.socialMedias,
-        additionalLinks: params.additionalLinks,
-        calendars: params.calendars
+        country: user?.country ?? undefined,
+        state: state ?? undefined,
+        zipcode: zipcode ?? undefined,
+        emails,
+        phones,
+        websites,
+        officeAddresses,
+        socialMedias,
+        additionalLinks,
+        calendars
       }
-
       const cardContactValidationError = validateCardContactPage(cardContactData)
       if (cardContactValidationError) {
         return res.status(400).json({
@@ -400,6 +511,7 @@ class UserController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
+      console.log('Error ', error.message)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
@@ -564,6 +676,162 @@ class UserController extends BaseController {
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  updateSettings = async (req: RequestUserPreference, res: Response): Promise<Response> => {
+    try {
+      const user = await db.userAuth.findUnique({ where: { id: req.params?.userId } })
+
+      if (!user) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.USER_NOT_FOUND
+        })
+      }
+      const params = this.filterParams(req.query, userPreferenceParams)
+      const validationError = validateUserPreferences(params)
+      if (validationError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+
+      const options = Object.keys(params)
+      if (options?.length === 0) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.USER_SETTING_VALIDATE
+        })
+      }
+      if (options?.length > 1) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.USER_SETTING_SINGLE_OPTION
+        })
+      }
+      const value = params[options[0]]
+      const key = options[0]
+
+      const data =
+        key === 'twoFactorAuth'
+          ? { twoFactorAuth: value }
+          : key === 'connectionViaPerson'
+          ? {
+              [key]: JSON.parse(value),
+              connectionViaProfileLink: false,
+              connectionViaQRCode: false
+            }
+          : key === 'connectionViaProfileLink' || key === 'connectionViaQRCode'
+          ? {
+              [key]: JSON.parse(value),
+              connectionViaPerson: false
+            }
+          : { [key]: JSON.parse(value) }
+      // const getData = (): any => {
+      //   let finalData = {}
+      //   if (key === 'twoFactorauth') {
+      //     finalData = {
+      //       [key]: value
+      //     }
+      //   }
+      //   // Disable both if connectionViaPerson option toggle
+      //   if (key === 'connectionViaPerson') {
+      //     finalData = {
+      //       [key]: JSON.parse(value),
+      //       connectionViaProfileLink: false,
+      //       connectionViaQRCode: false
+      //     }
+      //   }
+      //   // Disable connectionViaPerson if any of followig options toggle
+      //   if (key === 'connectionViaProfileLink' || key === 'connectionViaQRCode') {
+      //     finalData = {
+      //       [key]: JSON.parse(value),
+      //       connectionViaPerson: false
+      //     }
+      //   } else {
+      //     // Parse the boolean value
+      //     finalData = {
+      //       [key]: JSON.parse(value)
+      //     }
+      //   }
+      //   return finalData
+      // }
+      // const data = getData()
+      const userPreferences = await db.userAuth.update({
+        where: { id: req.params.userId },
+        data: {
+          userPreference: {
+            update: data
+          }
+        },
+        select: {
+          userPreference: {
+            select: {
+              twoFactorAuth: true,
+              allCardsPrivate: true,
+              connectionViaProfileLink: true,
+              connectionViaQRCode: true,
+              connectionViaPerson: true,
+              connectionViaContacts: true
+            }
+          }
+        }
+      })
+      return res.status(200).json({
+        data: userPreferences.userPreference,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      return res.status(500).json({
+        code: codes.INTERNAL_SERVER_ERROR,
+        message: messages.SERVER_FAILURE
+      })
+    }
+  }
+
+  updateNotificationSetting = async (
+    req: RequestUserPreference,
+    res: Response
+  ): Promise<Response> => {
+    try {
+      const user = await db.userAuth.findUnique({ where: { id: req.params?.userId } })
+
+      if (!user) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.USER_NOT_FOUND
+        })
+      }
+      const params = this.filterParams(req.body, userNotificationParams)
+
+      const validationError = validateUserNotification(params)
+      if (validationError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+
+      await db.userAuth.update({
+        where: { id: req.params.userId },
+        data: {
+          userNotification: {
+            update: params
+          }
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      return res.status(500).json({
+        code: codes.INTERNAL_SERVER_ERROR,
+        message: messages.SERVER_FAILURE
+      })
     }
   }
 }

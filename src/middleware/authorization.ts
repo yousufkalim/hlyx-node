@@ -6,8 +6,7 @@ import { RequestUserAuth, RequestLink } from '../config/interfaces/common.interf
 import { db } from '../utils/db'
 
 export const userAuthorization = (req: RequestUserAuth, res: Response, next: NextFunction): any => {
-  if (req.user?.role === roles.SUPER_ADMIN ||
-      req.user?.id === req.params?.userId) {
+  if (req.user?.role === roles.SUPER_ADMIN || req.user?.id === req.params?.userId) {
     next()
   } else {
     return res.status(403).json({
@@ -17,7 +16,11 @@ export const userAuthorization = (req: RequestUserAuth, res: Response, next: Nex
   }
 }
 
-export const adminAuthorization = (req: RequestUserAuth, res: Response, next: NextFunction): any => {
+export const adminAuthorization = (
+  req: RequestUserAuth,
+  res: Response,
+  next: NextFunction
+): any => {
   if (req.user?.role === roles.SUPER_ADMIN) {
     next()
   } else {
@@ -28,7 +31,11 @@ export const adminAuthorization = (req: RequestUserAuth, res: Response, next: Ne
   }
 }
 
-export const cardAuthorization = async (req: RequestUserAuth, res: Response, next: NextFunction): Promise<any> => {
+export const cardAuthorization = async (
+  req: RequestUserAuth,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
   try {
     // Verify card exists
     const card = await db.card.findUnique({ where: { cardId: req.params.cardId } })
@@ -48,11 +55,17 @@ export const cardAuthorization = async (req: RequestUserAuth, res: Response, nex
     }
   } catch (error: any) {
     console.error(error)
-    return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    return res
+      .status(500)
+      .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
   }
 }
 
-export const linkAuthorization = async (req: RequestLink, res: Response, next: NextFunction): Promise<any> => {
+export const linkAuthorization = async (
+  req: RequestLink,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
   try {
     // Verify Link exists
     const link = await db.link.findUnique({
@@ -92,7 +105,7 @@ export const linkAuthorization = async (req: RequestLink, res: Response, next: N
       })
     }
 
-    const cardIds = cards.cards.map(element => element.cardId)
+    const cardIds = cards.cards.map((element) => element.cardId)
 
     // Discover which card is making the request and set req.card
     if (cardIds.includes(link.cardOne)) {
@@ -114,11 +127,17 @@ export const linkAuthorization = async (req: RequestLink, res: Response, next: N
     next()
   } catch (error: any) {
     console.error(error)
-    return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    return res
+      .status(500)
+      .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
   }
 }
 
-export const noteAuthorization = async (req: RequestUserAuth, res: Response, next: NextFunction): Promise<any> => {
+export const noteAuthorization = async (
+  req: RequestUserAuth,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
   try {
     // Verify Note Exists
     const existingNote = await db.linkNotes.findUnique({
@@ -152,8 +171,12 @@ export const noteAuthorization = async (req: RequestUserAuth, res: Response, nex
     }
 
     // Verify User Matches
-    if ((req.user?.id !== existingNote.Link.CardOneRef.userId && existingNote.Link.CardTwoRef.cardId !== existingNote.authorId) ||
-        (req.user?.id !== existingNote.Link.CardTwoRef.userId && existingNote.Link.CardOneRef.cardId !== existingNote.authorId)) {
+    if (
+      (req.user?.id !== existingNote.Link.CardOneRef.userId &&
+        existingNote.Link.CardTwoRef.cardId !== existingNote.authorId) ||
+      (req.user?.id !== existingNote.Link.CardTwoRef.userId &&
+        existingNote.Link.CardOneRef.cardId !== existingNote.authorId)
+    ) {
       return res.status(400).json({
         code: codes.BAD_REQUEST,
         message: messages.NOTE_UNAUTHORIZED
@@ -170,14 +193,22 @@ export const noteAuthorization = async (req: RequestUserAuth, res: Response, nex
     next()
   } catch (error: any) {
     console.error(error)
-    return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    return res
+      .status(500)
+      .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
   }
 }
 
-export const notificationAuthorization = async (req: RequestUserAuth, res: Response, next: NextFunction): Promise<any> => {
+export const notificationAuthorization = async (
+  req: RequestUserAuth,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
   try {
     // Verify Notifcation Exists
-    const notification = await db.notification.findUnique({ where: { notificationId: req.params.notificationId } })
+    const notification = await db.notification.findUnique({
+      where: { notificationId: req.params.notificationId }
+    })
     if (!notification) {
       return res.status(400).json({
         code: codes.BAD_REQUEST,
@@ -208,11 +239,17 @@ export const notificationAuthorization = async (req: RequestUserAuth, res: Respo
     next()
   } catch (error: any) {
     console.error(error)
-    return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    return res
+      .status(500)
+      .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
   }
 }
 
-export const sharedContactAuthorization = async (req: RequestUserAuth, res: Response, next: NextFunction): Promise<any> => {
+export const sharedContactAuthorization = async (
+  req: RequestUserAuth,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
   try {
     // Verify Contact Exists
     const contact = await db.contact.findUnique({ where: { contactId: req.params.contactId } })
@@ -246,6 +283,69 @@ export const sharedContactAuthorization = async (req: RequestUserAuth, res: Resp
     next()
   } catch (error: any) {
     console.error(error)
-    return res.status(500).json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    return res
+      .status(500)
+      .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+  }
+}
+
+export const groupAdminAuthorization = async (
+  req: RequestUserAuth,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
+  try {
+    // Verify group exists
+    const group = await db.group.findUnique({ where: { id: req.params.groupId } })
+    if (!group) {
+      return res.status(404).json({
+        code: codes.NOT_FOUND,
+        message: messages.GROUP_NOT_FOUND
+      })
+    }
+    if (group.adminUser === req.user?.id || req.user?.role === roles.SUPER_ADMIN) {
+      next()
+    } else {
+      return res.status(403).json({
+        code: codes.FORBIDDEN,
+        message: messages.ACCESS_DENIED
+      })
+    }
+  } catch (error: any) {
+    console.error(error)
+    return res
+      .status(500)
+      .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+  }
+}
+
+export const groupAuthorization = async (
+  req: RequestUserAuth,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
+  try {
+    const group = await db.group.findUnique({
+      where: { id: req.params.groupId },
+      select: { members: { select: { userId: true } } }
+    })
+    if (!group) {
+      return res.status(404).json({
+        code: codes.NOT_FOUND,
+        message: messages.GROUP_NOT_FOUND
+      })
+    }
+    const isUserGroupMember = group?.members.find((item) => item.userId === req.user?.id)
+    if (!isUserGroupMember) {
+      return res.status(403).json({
+        code: codes.FORBIDDEN,
+        message: messages.ACCESS_DENIED
+      })
+    }
+    next()
+  } catch (error: any) {
+    return res
+      .status(500)
+      .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
   }
 }

@@ -3,6 +3,7 @@ export const stringLengths = {
   URL_PATH_MAX: 40,
   NAME_MIN: 3,
   NAME_MAX: 50,
+  DESC_MAX: 300,
   FULL_NAME_MIN: 5,
   FULL_NAME_MAX: 101,
   MIDDLE_INITIAL_MAX: 1,

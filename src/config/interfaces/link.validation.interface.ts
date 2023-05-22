@@ -57,6 +57,10 @@ export interface IValidateNote {
   note: string
 }
 
+export interface IValidateLinkSearchType {
+  searchBy: string
+}
+
 export interface INotificationArray {
   cardId: string
   notificaiton: INotification
