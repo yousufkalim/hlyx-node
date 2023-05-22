@@ -3,7 +3,8 @@ import { Response } from 'express'
 import {
   RequestNotification,
   RequestUserAuth,
-  ICreateNotification
+  ICreateNotification,
+  ISharedCard
 } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
@@ -69,7 +70,9 @@ class NotificationController extends BaseController {
 
       const sockets = getSocket()
 
-      sockets.emit(`notifications_${notificaiton.userId}`, { notifications: notificaiton })
+      if (sockets) {
+        sockets.emit(`notifications_${notificaiton.userId}`, { notifications: notificaiton })
+      }
 
       return {
         notificationId: notificaiton.Notifications[0].notificationId,
@@ -85,64 +88,72 @@ class NotificationController extends BaseController {
 
   // Create Shared Contact Notification
   createNotificationOfSharedCard = async (
-    req: RequestNotification
-  ): Promise<ICreateNotification> => {
+    cardId: string,
+    sharedWithLinks: ISharedCard[]
+  ): Promise<any> => {
     try {
-      // Confirm req.notifcation is set
-      if (
-        !req.notification?.cardId ||
-        !req.notification?.directsTo ||
-        !req.notification?.idDirectedTo
-      ) {
-        throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
-      }
-
-      // Validate Input
-      if (req.notification.directsTo !== 'sharedContact') {
-        throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
-      }
-
-      // Create
-      const notificaiton = await db.card.update({
-        where: {
-          cardId: req.notification.cardId
-        },
-        data: {
-          Notifications: {
-            create: {
-              directsTo: req.notification.directsTo,
-              message: req.notification.message,
-              idDirectedTo: req.notification.idDirectedTo
-            }
+      const response = { success: false }
+      console.log('Shared with ', sharedWithLinks)
+      if (sharedWithLinks) {
+        console.log('Shared with inner ', sharedWithLinks)
+        for (const link of sharedWithLinks) {
+          // Confirm req.notifcation is set
+          if (!link?.directsTo || !link?.idDirectedTo) {
+            throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
           }
-        },
-        select: {
-          userId: true,
-          Notifications: {
+
+          // Validate Input
+          if (link.directsTo !== 'sharedContact') {
+            throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
+          }
+
+          // Create
+          const notificaiton = await db.card.update({
+            where: {
+              cardId: link.idDirectedTo
+            },
+            data: {
+              Notifications: {
+                create: {
+                  directsTo: link.directsTo,
+                  message: link.message,
+                  idDirectedTo: cardId
+                }
+              }
+            },
             select: {
-              notificationId: true,
-              cardId: true,
-              status: true,
-              message: true,
-              directsTo: true,
-              idDirectedTo: true
-            },
-            orderBy: {
-              updatedAt: 'desc'
-            },
-            take: 1
-          }
+              userId: true,
+              Notifications: {
+                select: {
+                  notificationId: true,
+                  cardId: true,
+                  status: true,
+                  message: true,
+                  directsTo: true,
+                  idDirectedTo: true
+                },
+                orderBy: {
+                  updatedAt: 'desc'
+                },
+                take: 1
+              }
+            }
+          })
+
+          const sockets = getSocket()
+
+          console.log('Socket ', sockets)
+
+          sockets.emit(`notifications_${notificaiton.userId}`, { notifications: notificaiton })
+
+          response.success = true
+          // return {
+          //   notificationId: notificaiton.Notifications[0].notificationId,
+          //   success: true
+          // }
         }
-      })
-
-      const sockets = getSocket()
-
-      sockets.emit(`notifications_${notificaiton.userId}`, { notifications: notificaiton })
-
-      return {
-        notificationId: notificaiton.Notifications[0].notificationId,
-        success: true
       }
+      return response
     } catch (error: any) {
       console.error(error)
       return {

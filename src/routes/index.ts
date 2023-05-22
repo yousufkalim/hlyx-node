@@ -217,6 +217,14 @@ router.put(
 router.put('/card/update/slug/:cardId', authenticate, cardAuthorization, CardController.updateSlug)
 router.delete('/card/delete/:cardId', authenticate, cardAuthorization, CardController.delete)
 
+// Card Shared Routes
+router.post(
+  '/card/share/profile-card/:cardId',
+  authenticate,
+  cardAuthorization,
+  CardController.sharedProfileCard
+)
+
 // Card Update Settings Routes
 router.put(
   '/card/update/public-visibility/:cardId',
@@ -233,12 +241,6 @@ router.put(
 
 // Link Routes
 router.post('/link/create', authenticate, LinkController.create)
-router.post(
-  '/link/share/card/:cardId',
-  authenticate,
-  linkAuthorization,
-  LinkController.sharedProfileCard
-)
 router.put('/link/update/:linkId', authenticate, linkAuthorization, LinkController.update)
 router.put(
   '/link/update/unblock/:linkId',

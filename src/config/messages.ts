@@ -87,5 +87,7 @@ export const messages = {
   USER_SETTING_SINGLE_OPTION: 'User can only select 1 option at same time',
   USER_SETTING_VALIDATE: 'User must select some option',
   SEARCH_TYPE_SELECT: 'You should select search type by which you want to search',
-  GROUP_MEMBER_NOT_USER: 'You can only add the registered users in group'
+  GROUP_MEMBER_NOT_USER: 'You can only add the registered users in group',
+  SHARED_CARD_USER_EMPTY: 'Please select links with you want to share profile card',
+  SHARED_CARD_NOT_USER: 'Selected link not found'
 }

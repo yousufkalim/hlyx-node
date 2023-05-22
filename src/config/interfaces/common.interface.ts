@@ -27,6 +27,7 @@ export interface RequestLink extends RequestUserAuth {
     recipient: string
   }
   link?: ILinks
+  sharedWith?: string[]
 }
 
 export interface RequestNotification extends Request {
@@ -44,6 +45,12 @@ export interface IEmail {
   subject: string
   text: string
   html: string
+}
+
+export interface ISharedCard {
+  directsTo: string
+  idDirectedTo: string
+  message?: string
 }
 
 export interface ICreateNotification {

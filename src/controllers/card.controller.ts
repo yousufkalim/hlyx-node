@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { UploadedFile } from 'express-fileupload'
 
-import { RequestUserAuth } from '../config/interfaces/common.interface'
+import { ISharedCard, RequestUserAuth } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { cardAboutPageParams, cardContactPageParams, cardControllerParams } from '../config/params'
@@ -20,6 +20,7 @@ import { awsUploadFile, awsDeleteFile } from '../utils/aws-image'
 
 import BaseController from './base.controller'
 import { db } from '../utils/db'
+import notificationController from './notification.controller'
 // import { arrayLimits } from '../config/arrayLimits'
 
 class CardController extends BaseController {
@@ -1655,6 +1656,69 @@ class CardController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  sharedProfileCard = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      // Shared card functionality with notifications
+      const linksWithShared: string[] = req.body.sharedWith
+
+      const card = await db.card.findUnique({
+        where: {
+          cardId: req.params.cardId
+        },
+        select: {
+          cardId: true
+        }
+      })
+
+      if (!card) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.CARD_NOT_FOUND
+        })
+      }
+
+      if (!linksWithShared || linksWithShared?.length === 0) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.SHARED_CARD_USER_EMPTY
+        })
+      }
+
+      const arr: ISharedCard[] = []
+      for (const linkCard of linksWithShared) {
+        const card = await db.card.findUnique({
+          where: {
+            cardId: linkCard
+          }
+        })
+        if (!card) {
+          return res.status(404).json({
+            code: codes.NOT_FOUND,
+            message: messages.SHARED_CARD_NOT_USER
+          })
+        }
+        const obj = {
+          directsTo: 'sharedContact',
+          idDirectedTo: linkCard,
+          message: req.body.message
+        }
+        arr.push(obj)
+      }
+
+      await notificationController.createNotificationOfSharedCard(card.cardId, arr)
+
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })

@@ -1604,22 +1604,6 @@ class LinkController extends BaseController {
     }
   }
 
-  sharedProfileCard = async (req: RequestLink, res: Response): Promise<Response> => {
-    try {
-      // Shared card functionality with notifications
-
-      return res.status(200).json({
-        code: codes.OK,
-        message: messages.SUCCESS
-      })
-    } catch (error: any) {
-      console.error(error)
-      return res
-        .status(500)
-        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
-    }
-  }
-
   /* Private Functions */
   #getBaseInfoAllCards = async (
     arrayLinks: IArrayLink[]
