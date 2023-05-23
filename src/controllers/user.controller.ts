@@ -478,6 +478,34 @@ class UserController extends BaseController {
         cardAboutData.companyIcon = companyIconPath
       }
 
+      /*  ====  Validation for Branded Cover Photo  ===== */
+      const brandedCover = req.files?.brandedCoverPhoto as UploadedFile
+      if (brandedCover) {
+        // Verify Acceptable MIME Type
+        if (!ACCEPTABLE_MIME_TYPES.includes(brandedCover.mimetype)) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.INVALID_MIME_TYPE
+          })
+        }
+        // Verify Image Size
+        if (brandedCover.size > MAX_BYTES) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.FILE_SIZE_OVER_10
+          })
+        }
+
+        const brandCoverPath = await awsUploadFile(
+          brandedCover.data,
+          req.body.id,
+          'company-icon',
+          brandedCover.name,
+          brandedCover.mimetype
+        )
+        cardAboutData.brandedCoverPhoto = brandCoverPath
+      }
+
       const data = { ...cardContactData, ...cardAboutData }
 
       // Update UserBio, create Card, and return
@@ -832,6 +860,129 @@ class UserController extends BaseController {
         code: codes.INTERNAL_SERVER_ERROR,
         message: messages.SERVER_FAILURE
       })
+    }
+  }
+
+  userStats = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      // Verify user exists
+      const user = await db.userBio.findUnique({
+        where: {
+          id: req.user?.id
+        },
+        include: {
+          _count: {
+            select: {
+              cards: true
+            }
+          },
+          groups: true,
+          cards: {
+            select: {
+              cardId: true,
+              cardName: true,
+              fullName: true,
+              headerPhoto: true,
+              coverPhoto: true,
+              brandedCoverPhoto: true
+            }
+          }
+        }
+      })
+      if (!user) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.USER_NOT_FOUND
+        })
+      }
+
+      const linkedCards = []
+      const savedContacts = []
+      if (user.cards) {
+        for (const card of user.cards) {
+          const links = await db.link.findMany({
+            where: {
+              status: 'accepted',
+              OR: [
+                {
+                  cardOne: card.cardId
+                },
+                {
+                  cardTwo: card.cardId
+                }
+              ]
+            },
+            select: {
+              CardOneRef: {
+                select: {
+                  cardId: true,
+                  coverPhoto: true,
+                  cardName: true,
+                  fullName: true,
+                  headerPhoto: true,
+                  brandedCoverPhoto: true,
+                  Contacts: {
+                    select: {
+                      contactImage: true,
+                      status: true,
+                      fullName: true,
+                      company: true,
+                      jobTitle: true
+                    }
+                  }
+                }
+              },
+              CardTwoRef: {
+                select: {
+                  cardId: true,
+                  coverPhoto: true,
+                  cardName: true,
+                  fullName: true,
+                  headerPhoto: true,
+                  brandedCoverPhoto: true,
+                  Contacts: {
+                    select: {
+                      contactImage: true,
+                      status: true,
+                      fullName: true,
+                      company: true,
+                      jobTitle: true
+                    }
+                  }
+                }
+              }
+            }
+          })
+
+          if (links) {
+            // collect linked cards with my card
+            for (const link of links) {
+              if (link.CardOneRef.cardId === card.cardId) {
+                linkedCards.push(link.CardTwoRef)
+                if (link.CardOneRef.Contacts) {
+                  savedContacts.push(...link.CardOneRef.Contacts)
+                }
+              } else {
+                linkedCards.push(link.CardOneRef)
+                savedContacts.push(...link.CardTwoRef.Contacts)
+              }
+            }
+          }
+        }
+      }
+
+      const data = { links: linkedCards, cards: user.cards, savedContacts }
+      // Return
+      return res.status(200).json({
+        user: data,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 }

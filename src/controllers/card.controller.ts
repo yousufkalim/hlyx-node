@@ -84,6 +84,7 @@ class CardController extends BaseController {
           },
           coverPhoto: true,
           companyIcon: true,
+          brandedCoverPhoto: true,
           company: true,
           fullName: true,
           profTitle: true,
@@ -1637,6 +1638,35 @@ class CardController extends BaseController {
         )
 
         cardAboutData.companyIcon = companyIconPath
+      }
+
+      /*  ====  Validation for Branded Cover Photo  ===== */
+      const brandedCover = req.files?.brandedCoverPhoto as UploadedFile
+      if (brandedCover) {
+        // Verify Acceptable MIME Type
+        if (!ACCEPTABLE_MIME_TYPES.includes(brandedCover.mimetype)) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.INVALID_MIME_TYPE
+          })
+        }
+        // Verify Image Size
+        if (brandedCover.size > MAX_BYTES) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.FILE_SIZE_OVER_10
+          })
+        }
+
+        const brandCoverPath = await awsUploadFile(
+          brandedCover.data,
+          req.body.id,
+          'company-icon',
+          brandedCover.name,
+          brandedCover.mimetype
+        )
+
+        cardAboutData.brandedCoverPhoto = brandCoverPath
       }
 
       const data = { ...cardContactData, ...cardAboutData }

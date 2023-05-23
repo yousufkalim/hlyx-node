@@ -112,7 +112,7 @@ class Groups extends BaseController {
         })
       }
 
-      const group = await db.group.findFirst({
+      const group = await db.group.findUnique({
         where: {
           groupName: params.groupName
         }

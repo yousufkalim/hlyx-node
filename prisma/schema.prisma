@@ -161,6 +161,7 @@ model Card {
   userAvatar        String
   coverPhoto        String?
   coverPhotos       CardCoverPhotos[]
+  brandedCoverPhoto String?
   companyIcon       String?
   companyIcons      CardCompanyIcons[]
   fullName          String
@@ -432,7 +433,8 @@ model Contact {
   jobTitle     String?
   phone        String
   email        String
-  location     String?
+  city         String?
+  state        String?
   message      String?
   notes        String?
   createdAt    DateTime      @default(now())

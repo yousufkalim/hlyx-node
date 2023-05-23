@@ -27,7 +27,7 @@ class ContactRequestController extends BaseController {
   // Create new contact request
   create = async (req: Request, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, sharedContactControllerParams)
-    const { fullName, company, jobTitle, phone, email, location, message } = params
+    const { fullName, company, jobTitle, phone, email, state, city, message } = params
     try {
       // Validate input
       const validationError = validateSharedContactCreate(params)
@@ -55,7 +55,8 @@ class ContactRequestController extends BaseController {
             jobTitle,
             phone,
             email,
-            location,
+            city,
+            state,
             message
           }
         }
@@ -126,7 +127,6 @@ class ContactRequestController extends BaseController {
         idDirectedTo: contactId
       }
 
-      console.log('Request ', reqNotification.notification)
       const notification = await notificationController.createNotification(req)
       if (!notification.success) {
         throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
@@ -212,10 +212,20 @@ class ContactRequestController extends BaseController {
             Contacts: {
               where: {
                 status: 'saved',
-                location: {
-                  contains: search,
-                  mode: 'insensitive'
-                }
+                OR: [
+                  {
+                    city: {
+                      contains: search,
+                      mode: 'insensitive'
+                    }
+                  },
+                  {
+                    state: {
+                      contains: search,
+                      mode: 'insensitive'
+                    }
+                  }
+                ]
               }
             }
           }
