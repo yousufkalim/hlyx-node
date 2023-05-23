@@ -17,6 +17,9 @@ class NotificationController extends BaseController {
   // Create Notification (called by other internal functions)
   createNotification = async (req: RequestNotification): Promise<ICreateNotification> => {
     try {
+      console.log('first', req.notification?.cardId)
+      console.log('second', req.notification?.directsTo)
+      console.log('third', req.notification?.idDirectedTo)
       // Confirm req.notifcation is set
       if (
         !req.notification?.cardId ||
@@ -69,7 +72,7 @@ class NotificationController extends BaseController {
       })
 
       const sockets = getSocket()
-
+      console.log('Scoket ', sockets)
       if (sockets) {
         sockets.emit(`notifications_${notificaiton.userId}`, { notifications: notificaiton })
       }
@@ -79,7 +82,7 @@ class NotificationController extends BaseController {
         success: true
       }
     } catch (error: any) {
-      console.error(error)
+      console.error(error.message)
       return {
         success: false
       }
@@ -139,8 +142,9 @@ class NotificationController extends BaseController {
           })
 
           const sockets = getSocket()
-
-          sockets.emit(`notifications_${notificaiton.userId}`, { notifications: notificaiton })
+          if (sockets) {
+            sockets.emit(`notifications_${notificaiton.userId}`, { notifications: notificaiton })
+          }
 
           response.success = true
           // return {

@@ -3,7 +3,7 @@ import {
   IValidateContactRequest,
   IValidateContactNote
 } from '../../config/interfaces/contactRequest.validation.interface'
-import { stateAbbreviations } from '../../config/stateAbbreviations'
+// import { stateAbbreviations } from '../../config/stateAbbreviations'
 import { stringLengths } from '../../config/stringLengths'
 
 /**
@@ -24,11 +24,12 @@ export const validateSharedContactCreate = (
     jobTitle: Joi.string().max(stringLengths.PROFESSIONAL_TITLE_MAX),
     phone: Joi.string().min(stringLengths.PHONE_MIN).max(stringLengths.PHONE_MAX).required(),
     city: Joi.string().max(stringLengths.LOCATION_MAX),
-    state: Joi.string().valid(...Object.values(stateAbbreviations)),
+    state: Joi.string().max(stringLengths.LOCATION_MAX),
     email: Joi.string()
       .email({ tlds: { allow: false } })
       .required(),
-    message: Joi.string().max(stringLengths.MESSAGE_MAX)
+    message: Joi.string().max(stringLengths.MESSAGE_MAX),
+    notes: Joi.string().max(stringLengths.MESSAGE_MAX)
   })
 
   return sharedContactSchema.validate(sharedContactPayload)?.error?.message
