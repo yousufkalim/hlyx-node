@@ -839,37 +839,37 @@ class LinkController extends BaseController {
       const query = this.#getSearchQuery(req.query)
       const { search, searchBy: searchType } = query
       // Loop through all cards, find links and return
-      const favorites: IArrayLink[] = []
+      // const favorites: IArrayLink[] = []
       const general: IArrayLink[] = []
 
       for (const card of cards) {
         // Favorites
-        const favoriteLinks = await db.link.findMany({
-          where: {
-            OR: [
-              {
-                cardOne: card.cardId,
-                status: 'accepted',
-                cardOneFavorite: true
-              },
-              {
-                cardTwo: card.cardId,
-                status: 'accepted',
-                cardTwoFavorite: true
-              }
-            ]
-          },
-          select: {
-            id: true,
-            cardOne: true,
-            cardTwo: true,
-            updatedAt: true
-          }
-        })
-        favorites.push({
-          cardId: card.cardId,
-          Links: favoriteLinks
-        })
+        // const favoriteLinks = await db.link.findMany({
+        //   where: {
+        //     OR: [
+        //       {
+        //         cardOne: card.cardId,
+        //         status: 'accepted',
+        //         cardOneFavorite: true
+        //       },
+        //       {
+        //         cardTwo: card.cardId,
+        //         status: 'accepted',
+        //         cardTwoFavorite: true
+        //       }
+        //     ]
+        //   },
+        //   select: {
+        //     id: true,
+        //     cardOne: true,
+        //     cardTwo: true,
+        //     updatedAt: true
+        //   }
+        // })
+        // favorites.push({
+        //   cardId: card.cardId,
+        //   Links: favoriteLinks
+        // })
 
         // General
         let generalLinks: IGeneralLinks[] = []
@@ -908,12 +908,74 @@ class LinkController extends BaseController {
       }
 
       // Grab base info and return
-      const favoriteLinks = await this.#getBaseInfoAllCards(favorites)
+      // const favoriteLinks = await this.#getBaseInfoAllCards(favorites)
       const generalLinks = await this.#getBaseInfoAllCards(general)
 
       return res.status(200).json({
-        favoriteLinks,
+        // favoriteLinks,
         generalLinks,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Find all links associated with user
+  userFavouriteLinks = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      // Find all cards associated with user
+      const cards = await db.card.findMany({
+        where: {
+          userId: req.params.userId
+        },
+        select: {
+          cardId: true
+        }
+      })
+
+      // Loop through all cards, find links and return
+      const favorites: IArrayLink[] = []
+
+      for (const card of cards) {
+        // Favorites
+        const favoriteLinks = await db.link.findMany({
+          where: {
+            OR: [
+              {
+                cardOne: card.cardId,
+                status: 'accepted',
+                cardOneFavorite: true
+              },
+              {
+                cardTwo: card.cardId,
+                status: 'accepted',
+                cardTwoFavorite: true
+              }
+            ]
+          },
+          select: {
+            id: true,
+            cardOne: true,
+            cardTwo: true,
+            updatedAt: true
+          }
+        })
+        favorites.push({
+          cardId: card.cardId,
+          Links: favoriteLinks
+        })
+      }
+
+      // Grab base info and return
+      const favoriteLinks = await this.#getBaseInfoAllCards(favorites)
+
+      return res.status(200).json({
+        favoriteLinks,
         code: codes.OK,
         message: messages.SUCCESS
       })
@@ -1635,7 +1697,7 @@ class LinkController extends BaseController {
         if (link.cardOne === userCard.cardId) {
           otherUserId = link.cardTwo
         }
-        const otherCard = await db.card.findUnique({
+        const otherCard: ILinkWithBaseInfo | null = await db.card.findUnique({
           where: {
             cardId: otherUserId
           },
@@ -1654,6 +1716,7 @@ class LinkController extends BaseController {
         if (!otherCard) {
           throw Error(messages.LINK_CARD_ID_NOT_FOUND)
         }
+        otherCard.linkId = link.id
         linkInfo.push(otherCard)
       }
       return linkInfo

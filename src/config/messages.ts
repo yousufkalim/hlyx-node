@@ -30,6 +30,7 @@ export const messages = {
   USER_LOGGED_IN: 'logged in successfully',
   SENDER_EMAIL: 'dev@hlyx.io',
   CODE_SENT_SUCCESS: 'Code sent to your email address, Please verify',
+  OTP_SENT_SUCCESS: 'OTP sent to your email address, Please verify',
   CODE_SENT_PHONE_SUCCESS: 'Code texted to your phone, Please verify',
   VERIFIED_SUCCESS: 'Verified successfully',
   PASSWORD_FAILURE:

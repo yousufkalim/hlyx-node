@@ -1,5 +1,11 @@
 import Joi from 'joi'
-import { IValidateLoginRegister, IValidateSendVerificationCode, IValidateVerifyCode, IValidateAddPhone, IValidateVerifyPhone } from '../../config/interfaces/auth.validations.interface'
+import {
+  IValidateLoginRegister,
+  IValidateSendVerificationCode,
+  IValidateVerifyCode,
+  IValidateAddPhone,
+  IValidateVerifyPhone
+} from '../../config/interfaces/auth.validations.interface'
 import { messages } from '../../config/messages'
 import { stringLengths } from '../../config/stringLengths'
 
@@ -10,11 +16,16 @@ import { stringLengths } from '../../config/stringLengths'
  */
 export const validateLogin = (loginPayload: IValidateLoginRegister): string | undefined => {
   const loginSchema = Joi.object({
-    email: Joi.string().email({ tlds: { allow: false } }).required(),
-    password: Joi.string().pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d$&+,:;=?@#|'<>.^*()%!-]{8,}$/).required().error(new Error(`${messages.PASSWORD_FAILURE}`))
+    email: Joi.string()
+      .email({ tlds: { allow: false } })
+      .required(),
+    password: Joi.string()
+      .pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d$&+,:;=?@#|'<>.^*()%!-]{8,}$/)
+      .required()
+      .error(new Error(`${messages.PASSWORD_FAILURE}`))
   })
 
-  return (loginSchema.validate(loginPayload)?.error?.message)
+  return loginSchema.validate(loginPayload)?.error?.message
 }
 
 /**
@@ -24,11 +35,16 @@ export const validateLogin = (loginPayload: IValidateLoginRegister): string | un
  */
 export const validateRegister = (registerPayload: IValidateLoginRegister): string | undefined => {
   const registerSchema = Joi.object({
-    email: Joi.string().email({ tlds: { allow: false } }).required(),
-    password: Joi.string().pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d$&+,:;=?@#|'<>.^*()%!-]{8,}$/).required().error(new Error(`${messages.PASSWORD_FAILURE}`))
+    email: Joi.string()
+      .email({ tlds: { allow: false } })
+      .required(),
+    password: Joi.string()
+      .pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d$&+,:;=?@#|'<>.^*()%!-]{8,}$/)
+      .required()
+      .error(new Error(`${messages.PASSWORD_FAILURE}`))
   })
   console.log(registerPayload)
-  return (registerSchema.validate(registerPayload)?.error?.message)
+  return registerSchema.validate(registerPayload)?.error?.message
 }
 
 /**
@@ -36,12 +52,16 @@ export const validateRegister = (registerPayload: IValidateLoginRegister): strin
  * @param sendVerificationCodePayload
  * @returns Error message
  */
-export const validateSendVerificationCode = (sendVerificationCodePayload: IValidateSendVerificationCode): string | undefined => {
+export const validateSendVerificationCode = (
+  sendVerificationCodePayload: IValidateSendVerificationCode
+): string | undefined => {
   const sendVerificationCodeSchema = Joi.object({
-    email: Joi.string().email({ tlds: { allow: false } }).required()
+    email: Joi.string()
+      .email({ tlds: { allow: false } })
+      .required()
   })
 
-  return (sendVerificationCodeSchema.validate(sendVerificationCodePayload)?.error?.message)
+  return sendVerificationCodeSchema.validate(sendVerificationCodePayload)?.error?.message
 }
 
 /**
@@ -51,11 +71,30 @@ export const validateSendVerificationCode = (sendVerificationCodePayload: IValid
  */
 export const validateVerifyCode = (verifyCodePayload: IValidateVerifyCode): string | undefined => {
   const verifyCodeSchema = Joi.object({
-    email: Joi.string().email({ tlds: { allow: false } }).required(),
+    email: Joi.string()
+      .email({ tlds: { allow: false } })
+      .required(),
     code: Joi.string().required()
   })
 
-  return (verifyCodeSchema.validate(verifyCodePayload)?.error?.message)
+  return verifyCodeSchema.validate(verifyCodePayload)?.error?.message
+}
+
+export const validateChangePassword = (
+  verifyCodePayload: IValidateVerifyCode
+): string | undefined => {
+  const verifyCodeSchema = Joi.object({
+    email: Joi.string()
+      .email({ tlds: { allow: false } })
+      .required(),
+    code: Joi.string().required(),
+    password: Joi.string()
+      .pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d$&+,:;=?@#|'<>.^*()%!-]{8,}$/)
+      .required()
+      .error(new Error(`${messages.PASSWORD_FAILURE}`))
+  })
+
+  return verifyCodeSchema.validate(verifyCodePayload)?.error?.message
 }
 
 /**
@@ -65,10 +104,14 @@ export const validateVerifyCode = (verifyCodePayload: IValidateVerifyCode): stri
  */
 export const validatePhone = (addPhonePayload: IValidateAddPhone): string | undefined => {
   const phoneSchema = Joi.object({
-    phone: Joi.string().min(stringLengths.PHONE_MIN).max(stringLengths.PHONE_MAX).pattern(/^[0-9]+$/).required()
+    phone: Joi.string()
+      .min(stringLengths.PHONE_MIN)
+      .max(stringLengths.PHONE_MAX)
+      .pattern(/^[0-9]+$/)
+      .required()
   })
 
-  return (phoneSchema.validate(addPhonePayload)?.error?.message)
+  return phoneSchema.validate(addPhonePayload)?.error?.message
 }
 
 /**
@@ -78,9 +121,13 @@ export const validatePhone = (addPhonePayload: IValidateAddPhone): string | unde
  */
 export const validateVerifyPhone = (addPhonePayload: IValidateVerifyPhone): string | undefined => {
   const verifySchema = Joi.object({
-    phone: Joi.string().min(stringLengths.PHONE_MIN).max(stringLengths.PHONE_MAX).pattern(/^[0-9]+$/).required(),
+    phone: Joi.string()
+      .min(stringLengths.PHONE_MIN)
+      .max(stringLengths.PHONE_MAX)
+      .pattern(/^[0-9]+$/)
+      .required(),
     code: Joi.string().required()
   })
 
-  return (verifySchema.validate(addPhonePayload)?.error?.message)
+  return verifySchema.validate(addPhonePayload)?.error?.message
 }

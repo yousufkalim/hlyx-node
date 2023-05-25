@@ -266,6 +266,12 @@ router.get(
   LinkController.userAllConnections
 )
 router.get(
+  '/link/find/cards/favourites/:userId',
+  authenticate,
+  userAuthorization,
+  LinkController.userFavouriteLinks
+)
+router.get(
   '/link/find/user/accepted/:userId',
   authenticate,
   userAuthorization,
