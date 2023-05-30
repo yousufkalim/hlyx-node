@@ -6,6 +6,7 @@ import CardController from '../controllers/card.controller'
 import LinkController from '../controllers/link.controller'
 import ContactRequstController from '../controllers/contactRequest.controller'
 import NotificationController from '../controllers/notification.controller'
+import EmailsController from '../controllers/emails.controller'
 
 import { authenticate } from '../middleware/authentication'
 import {
@@ -24,6 +25,13 @@ import { config } from '../config/env.config.validations'
 import GroupController from '../controllers/group.controller'
 
 const router = Router()
+
+// Email Test Routes
+router.post('/email/verify-email', EmailsController.verifyEmail)
+router.post('/email/password-reset', EmailsController.passwordReset)
+router.post('/email/link-request', EmailsController.linkRequest)
+router.post('/email/contact-request', EmailsController.contactRequestEmail)
+router.post('/email/accept-contact', EmailsController.acceptContactEmail)
 
 // Authentication Routes
 router.post('/auth/register', AuthController.register)

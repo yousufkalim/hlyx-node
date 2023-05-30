@@ -74,6 +74,12 @@ const config = convict({
     default: process.env.EMAIL_VERIFICATION_SID,
     env: 'EMAIL_VERIFICATION_SID'
   },
+  email_password_reset_sid: {
+    doc: 'Email password reset service sid',
+    format: 'String',
+    default: process.env.EMAIL_PASSWORD_RESET_SID,
+    env: 'EMAIL_PASSWORD_RESET_SID'
+  },
   aws_region: {
     doc: 'Aws region',
     format: 'String',
