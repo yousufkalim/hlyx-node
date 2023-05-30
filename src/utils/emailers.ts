@@ -1,4 +1,38 @@
+import { VerificationInstance } from 'twilio/lib/rest/verify/v2/service/verification'
+import { config } from '../config/env.config.validations'
+import { twilioClient } from './twilio'
 import { sgMail } from './sendgrid'
+
+export const verifyCodeEmailer = async (email: string, firstName: string, lastName: string): Promise<VerificationInstance> => {
+  return await twilioClient.verify.v2
+    .services(config.get('email_verification_sid') as string)
+    .verifications.create({
+      channelConfiguration: {
+        substitutions: {
+          firstName,
+          lastName,
+          email
+        }
+      },
+      to: email,
+      channel: 'email'
+    })
+}
+
+export const passwordResetEmailer = async (email: string, firstName: string): Promise<VerificationInstance> => {
+  return await twilioClient.verify.v2
+    .services(config.get('email_password_reset_sid') as string)
+    .verifications.create({
+      channelConfiguration: {
+        substitutions: {
+          firstName,
+          email
+        }
+      },
+      to: email,
+      channel: 'email'
+    })
+}
 
 export const linkRequestEmail = async (email: string, emailerName: string, linkRequesterName: string): Promise<void> => {
   const templateId = 'd-5c1f2de002b4462b8acf7ca9b7e6b12f'

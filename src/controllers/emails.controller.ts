@@ -7,9 +7,9 @@ import BaseController from './base.controller'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 
-import { verifyCodeEmailer } from '../utils/emailers/verifyEmail'
-import { passwordResetEmailer } from '../utils/emailers/passwordReset'
 import {
+  verifyCodeEmailer,
+  passwordResetEmailer,
   linkRequestEmail,
   contactRequestEmailer,
   acceptContactEmailer
@@ -32,7 +32,7 @@ class EmailController extends BaseController {
 
   passwordReset = async (req: Request, res: Response): Promise<Response | undefined> => {
     try {
-      await passwordResetEmailer('jordanroessle@gmail.com', 'Jordan', 'Roessle')
+      await passwordResetEmailer('jordanroessle@gmail.com', 'Jordan')
       return res.status(200).json({
         codes: codes.OK
       })
