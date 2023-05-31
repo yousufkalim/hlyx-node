@@ -2,15 +2,14 @@ import { VerificationInstance } from 'twilio/lib/rest/verify/v2/service/verifica
 import { config } from '../config/env.config.validations'
 import { twilioClient } from './twilio'
 import { sgMail } from './sendgrid'
+import { messages } from '../config/messages'
 
-export const verifyCodeEmailer = async (email: string, firstName: string, lastName: string): Promise<VerificationInstance> => {
+export const verifyEmailEmailer = async (email: string): Promise<VerificationInstance> => {
   return await twilioClient.verify.v2
     .services(config.get('email_verification_sid') as string)
     .verifications.create({
       channelConfiguration: {
         substitutions: {
-          firstName,
-          lastName,
           email
         }
       },
@@ -19,13 +18,12 @@ export const verifyCodeEmailer = async (email: string, firstName: string, lastNa
     })
 }
 
-export const passwordResetEmailer = async (email: string, firstName: string): Promise<VerificationInstance> => {
+export const passwordResetEmailer = async (email: string): Promise<VerificationInstance> => {
   return await twilioClient.verify.v2
     .services(config.get('email_password_reset_sid') as string)
     .verifications.create({
       channelConfiguration: {
         substitutions: {
-          firstName,
           email
         }
       },
@@ -40,7 +38,6 @@ export const linkRequestEmail = async (email: string, emailerName: string, linkR
   const msg = {
     to: email,
     from: 'hello@hlyx.io',
-    subject: 'HLYX Link Request',
     templateId,
     dynamicTemplateData: {
       email,
@@ -51,32 +48,34 @@ export const linkRequestEmail = async (email: string, emailerName: string, linkR
 
   try {
     const response = await sgMail.send(msg)
-    console.log(response)
+    if (response[0].statusCode !== 202) {
+      throw Error(messages.EMAILER_ERROR)
+    }
   } catch (error: any) {
     console.error(error)
   }
 }
 
-export const contactRequestEmailer = async (email: string, emailerName: string, contactRequesterFullName: string, contactRequesterFirstName: string, cardName: string): Promise<void> => {
+export const contactRequestEmailer = async (email: string, emailerName: string, contactRequesterFullName: string, cardName: string): Promise<void> => {
   const templateId = 'd-1ab30a0250e84226967a4873fae0733c'
 
   const msg = {
     to: email,
     from: 'hello@hlyx.io',
-    subject: 'HLYX Contact Request',
     templateId,
     dynamicTemplateData: {
       email,
       emailerName,
       contactRequesterFullName,
-      contactRequesterFirstName,
       cardName
     }
   }
 
   try {
     const response = await sgMail.send(msg)
-    console.log(response)
+    if (response[0].statusCode !== 202) {
+      throw Error(messages.EMAILER_ERROR)
+    }
   } catch (error: any) {
     console.error(error)
   }
@@ -88,7 +87,6 @@ export const acceptContactEmailer = async (email: string, contactName: string, u
   const msg = {
     to: email,
     from: 'hello@hlyx.io',
-    subject: 'HLYX Contact Request',
     templateId,
     dynamicTemplateData: {
       email,
@@ -101,7 +99,9 @@ export const acceptContactEmailer = async (email: string, contactName: string, u
 
   try {
     const response = await sgMail.send(msg)
-    console.log(response)
+    if (response[0].statusCode !== 202) {
+      throw Error(messages.EMAILER_ERROR)
+    }
   } catch (error: any) {
     console.error(error)
   }

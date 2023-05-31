@@ -9,7 +9,7 @@ import { expirationTimes } from '../config/expirationTime'
 import BaseController from './base.controller'
 import { authControllerParams } from '../config/params'
 import { config } from '../config/env.config.validations'
-import { sendCodeToEmail, sendCodeToPhone } from '../utils/helper'
+import { sendCodeToPhone } from '../utils/phoneVerification'
 import { twilioClient } from '../utils/twilio'
 import {
   validateLogin,
@@ -19,6 +19,10 @@ import {
   validatePhone,
   validateVerifyPhone
 } from '../utils/validations/auth.controller.validation'
+import {
+  verifyEmailEmailer,
+  passwordResetEmailer
+} from '../utils/emailers'
 import { db } from '../utils/db'
 
 class AuthController extends BaseController {
@@ -180,7 +184,8 @@ class AuthController extends BaseController {
               message: messages.TOKEN_FAILURE
             })
           }
-          await sendCodeToEmail(email)
+          // Emailer
+          await verifyEmailEmailer(email)
           return res.status(201).json({
             token,
             id: createUser.id,
@@ -225,7 +230,12 @@ class AuthController extends BaseController {
           id: req.user?.id
         },
         select: {
-          isOnBoardingComplete: true
+          isOnBoardingComplete: true,
+          User: {
+            select: {
+              isEmailVerified: true
+            }
+          }
         }
       })
       if (!user) {
@@ -249,8 +259,8 @@ class AuthController extends BaseController {
     }
   }
 
-  // Send verification code to specified email
-  sendCodeEmail = async (req: Request, res: Response): Promise<Response> => {
+  // Resend Verification Email
+  resendVerificationEmail = async (req: Request, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, authControllerParams)
     const { email } = params
     try {
@@ -273,7 +283,7 @@ class AuthController extends BaseController {
       }
 
       // Send email and return
-      await sendCodeToEmail(email)
+      await verifyEmailEmailer(email)
       return res.status(200).json({
         code: codes.OK,
         message: messages.CODE_SENT_SUCCESS
@@ -289,6 +299,47 @@ class AuthController extends BaseController {
     }
   }
 
+  // Send Password Reset Email
+  passwordResetEmail = async (req: Request, res: Response): Promise<Response> => {
+    const params = this.filterParams(req.body, authControllerParams)
+    const { email } = params
+    try {
+      // Validate input
+      const validationError = validateSendVerificationCode(params)
+      if (validationError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+
+      // Verify User exists
+      const user = await db.userAuth.findUnique({ where: { email } })
+      if (!user) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: `User with "${email}" does not exist`
+        })
+      }
+
+      // Send email and return
+      await passwordResetEmailer(email)
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.CODE_SENT_SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      if (error.status) {
+        return res.status(error.status).json({ code: error.status, message: error.message })
+      }
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  /* REMINDER MODIFY THIS FOR LINK CLICK */
   // Verify code from email
   verifyCodeEmail = async (req: Request, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, authControllerParams)

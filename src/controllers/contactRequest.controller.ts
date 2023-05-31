@@ -22,6 +22,10 @@ import BaseController from './base.controller'
 import notificationController from './notification.controller'
 import { db } from '../utils/db'
 import { validateLinkSearchType } from '../utils/validations/link.controller.validation'
+import {
+  contactRequestEmailer,
+  acceptContactEmailer
+} from '../utils/emailers'
 
 class ContactRequestController extends BaseController {
   // Create new contact request
@@ -130,6 +134,24 @@ class ContactRequestController extends BaseController {
       const notification = await notificationController.createNotification(req)
       if (!notification.success) {
         throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
+      }
+
+      // Send email if user allows
+      const user = await db.userAuth.findUnique({
+        where: {
+          id: card.userId
+        },
+        select: {
+          email: true,
+          userNotification: {
+            select: {
+              newContactRequest: true
+            }
+          }
+        }
+      })
+      if (user?.userNotification?.newContactRequest) {
+        await contactRequestEmailer(user.email, card.fullName, params.fullName, card.cardName)
       }
 
       return res.status(200).json({
@@ -320,6 +342,20 @@ class ContactRequestController extends BaseController {
           status
         }
       })
+
+      // If status is saved, send email to contact requester
+      if (status === 'saved') {
+        const card = await db.card.findUnique({
+          where: {
+            cardId: contact.cardId
+          },
+          select: {
+            fullName: true,
+            qrCodeImage: true
+          }
+        })
+        await acceptContactEmailer(contact.email, contact.fullName, card?.fullName ?? '', 'https://hlyx.me' + contact.cardId, card?.qrCodeImage ?? '')
+      }
 
       return res.status(200).json({
         contact,

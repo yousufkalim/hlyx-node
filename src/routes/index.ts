@@ -27,6 +27,7 @@ import GroupController from '../controllers/group.controller'
 const router = Router()
 
 // Email Test Routes
+router.get('/test', EmailsController.test)
 router.post('/email/verify-email', EmailsController.verifyEmail)
 router.post('/email/password-reset', EmailsController.passwordReset)
 router.post('/email/link-request', EmailsController.linkRequest)
@@ -37,7 +38,7 @@ router.post('/email/accept-contact', EmailsController.acceptContactEmail)
 router.post('/auth/register', AuthController.register)
 router.post('/auth/login', AuthController.login)
 router.get('/auth/navigation', authenticate, AuthController.navigationHelper)
-router.post('/auth/send-code-email', AuthController.sendCodeEmail)
+router.post('/auth/send-code-email', AuthController.resendVerificationEmail)
 router.post('/auth/verify-code-email', authenticate, AuthController.verifyCodeEmail)
 router.post('/auth/verify-code-password-reset', AuthController.verifyCodePassword)
 router.put('/auth/forgot-password', AuthController.forgotPassword)

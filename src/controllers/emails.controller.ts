@@ -8,7 +8,7 @@ import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 
 import {
-  verifyCodeEmailer,
+  verifyEmailEmailer,
   passwordResetEmailer,
   linkRequestEmail,
   contactRequestEmailer,
@@ -16,9 +16,22 @@ import {
 } from '../utils/emailers'
 
 class EmailController extends BaseController {
+  test = async (req: Request, res: Response): Promise<Response | undefined> => {
+    try {
+      return res.status(200).json({
+        codes: codes.OK
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
   verifyEmail = async (req: Request, res: Response): Promise<Response | undefined> => {
     try {
-      await verifyCodeEmailer('jordanroessle@gmail.com', 'Jordan', 'Roessle')
+      await verifyEmailEmailer('jordanroessle@gmail.com')
       return res.status(200).json({
         codes: codes.OK
       })
@@ -32,7 +45,7 @@ class EmailController extends BaseController {
 
   passwordReset = async (req: Request, res: Response): Promise<Response | undefined> => {
     try {
-      await passwordResetEmailer('jordanroessle@gmail.com', 'Jordan')
+      await passwordResetEmailer('jordanroessle@gmail.com')
       return res.status(200).json({
         codes: codes.OK
       })
@@ -60,7 +73,7 @@ class EmailController extends BaseController {
 
   contactRequestEmail = async (req: Request, res: Response): Promise<Response | undefined> => {
     try {
-      await contactRequestEmailer('jordanroessle@gmail.com', 'Jordan', 'James Beckley', 'James', 'Jordans Card')
+      await contactRequestEmailer('jordanroessle@gmail.com', 'Jordan', 'James Beckley', 'Jordans Card')
       return res.status(200).json({
         codes: codes.OK
       })

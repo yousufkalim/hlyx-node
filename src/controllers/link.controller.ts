@@ -28,6 +28,7 @@ import BaseController from './base.controller'
 import notificationController from './notification.controller'
 import { db } from '../utils/db'
 import { stringLengths } from '../config/stringLengths'
+import { linkRequestEmail } from '../utils/emailers'
 
 class LinkController extends BaseController {
   // Create a link
@@ -169,6 +170,31 @@ class LinkController extends BaseController {
           throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
         }
         returnData.notificationId = notification.notificationId
+
+        // Send email if user allows
+        let userId: string
+        let emailerName: string
+        let linkRequesterName: string
+        if (foundCardOne.cardId === req.card.recipient) {
+          userId = foundCardOne.userId
+          emailerName = foundCardTwo.fullName
+          linkRequesterName = foundCardOne.fullName
+        } else {
+          userId = foundCardTwo.userId
+          emailerName = foundCardOne.fullName
+          linkRequesterName = foundCardTwo.fullName
+        }
+        const emailPerference = await db.userNotification.findUnique({
+          where: {
+            userId
+          },
+          select: {
+            newLinkRequest: true
+          }
+        })
+        if (emailPerference?.newLinkRequest) {
+          await linkRequestEmail(userId, emailerName, linkRequesterName)
+        }
       }
 
       // Return
