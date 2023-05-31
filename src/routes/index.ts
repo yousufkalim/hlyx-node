@@ -41,6 +41,7 @@ router.get('/auth/navigation', authenticate, AuthController.navigationHelper)
 router.post('/auth/send-verify-email', AuthController.resendVerificationEmail)
 router.post('/auth/send-password-reset', AuthController.passwordResetEmail)
 router.post('/auth/verify-code-email', authenticate, AuthController.verifyCodeEmail)
+router.get('/auth/verify-email-url', AuthController.verifyCodeURL)
 router.post('/auth/verify-code-password-reset', AuthController.verifyCodePassword)
 router.put('/auth/forgot-password', AuthController.forgotPassword)
 router.put(

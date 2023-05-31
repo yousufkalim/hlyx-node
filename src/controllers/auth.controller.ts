@@ -411,6 +411,82 @@ class AuthController extends BaseController {
     }
   }
 
+  // Verify Code via URL
+  verifyCodeURL = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const email = req.query.email as string
+      const code = req.query.code as string
+      const params = {
+        email,
+        code
+      }
+
+      // Validate input
+      const validationError = validateVerifyCode(params)
+      if (validationError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+
+      // Verify User exists
+      const user = await db.userAuth.findUnique({ where: { email } })
+      if (!user) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: `User with "${email}" does not exist`
+        })
+      }
+
+      // Twilio verify
+      let twilioFound = true
+      const verification = await twilioClient.verify.v2
+        .services(config.get('email_verification_sid') as string)
+        .verificationChecks.create({ to: email, code })
+        .catch((error) => {
+          console.error(error)
+          twilioFound = false
+        })
+
+      if (!twilioFound) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.TWILIO_NOT_FOUND
+        })
+      }
+
+      if (verification?.status !== 'approved') {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.INVALID_CODE
+        })
+      }
+
+      // Update User and return
+      await db.userAuth.update({
+        where: { email },
+        data: {
+          isEmailVerified: true
+        }
+      })
+
+      return res.status(200).json({
+        isPhoneVerified: user.isPhoneVerified,
+        code: codes.OK,
+        message: messages.VERIFIED_SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      if (error.status) {
+        return res.status(error.status).json({ code: error.status, message: error.message })
+      }
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
   // Verify code prepare for password reset
   verifyCodePassword = async (req: Request, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, authControllerParams)

@@ -18,6 +18,7 @@ import {
 class EmailController extends BaseController {
   test = async (req: Request, res: Response): Promise<Response | undefined> => {
     try {
+      console.log(req.query.code)
       return res.status(200).json({
         codes: codes.OK
       })

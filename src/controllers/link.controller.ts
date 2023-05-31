@@ -189,11 +189,16 @@ class LinkController extends BaseController {
             userId
           },
           select: {
-            newLinkRequest: true
+            newLinkRequest: true,
+            User: {
+              select: {
+                email: true
+              }
+            }
           }
         })
         if (emailPerference?.newLinkRequest) {
-          await linkRequestEmail(userId, emailerName, linkRequesterName)
+          await linkRequestEmail(emailPerference.User.email, emailerName, linkRequesterName)
         }
       }
 
