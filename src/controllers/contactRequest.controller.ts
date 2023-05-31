@@ -354,7 +354,7 @@ class ContactRequestController extends BaseController {
             qrCodeImage: true
           }
         })
-        await acceptContactEmailer(contact.email, contact.fullName, card?.fullName ?? '', 'https://hlyx.me' + contact.cardId, card?.qrCodeImage ?? '')
+        await acceptContactEmailer(contact.email, contact.fullName, card?.fullName ?? '', 'https://hlyx.me/' + contact.cardId, card?.qrCodeImage ?? '')
       }
 
       return res.status(200).json({

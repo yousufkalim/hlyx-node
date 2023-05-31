@@ -437,7 +437,7 @@ class AuthController extends BaseController {
       // Twilio verify
       let twilioFound = true
       const verification = await twilioClient.verify.v2
-        .services(config.get('email_verification_sid') as string)
+        .services(config.get('email_password_reset_sid') as string)
         .verificationChecks.create({ to: email, code })
         .catch((error) => {
           console.error(error)
