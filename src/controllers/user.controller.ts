@@ -23,6 +23,7 @@ import {
 import { arrayLimits } from '../config/arrayLimits'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
 import { awsDeleteFile, awsUploadFile } from '../utils/aws-image'
+import QRCode from 'qrcode'
 
 import BaseController from './base.controller'
 import { db } from '../utils/db'
@@ -535,6 +536,31 @@ class UserController extends BaseController {
           cardId = id.cardId
         }
       }
+
+      // Create QR Code and Add
+      const urlRoute = 'https://hlyx.me/' + cardId
+      const bufferImage = await QRCode.toBuffer(urlRoute, {
+        type: 'png',
+        width: 200,
+        errorCorrectionLevel: 'H'
+      })
+      const qrCodeImage = await awsUploadFile(
+        bufferImage,
+        cardId,
+        'qrcode',
+        '',
+        '.png'
+      )
+
+      await db.card.update({
+        where: {
+          cardId
+        },
+        data: {
+          qrCodeImage
+        }
+      })
+
       return res.status(200).json({
         cardId,
         code: codes.OK,

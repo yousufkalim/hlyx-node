@@ -131,6 +131,7 @@ model UserNotification {
   User                UserAuth @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId              String   @unique
   newLinkRequest      Boolean  @default(false)
+  newContactRequest   Boolean  @default(false)
   newMessage          Boolean  @default(false)
   groupMessages       Boolean  @default(false)
   profileShare        Boolean  @default(false)
@@ -158,7 +159,8 @@ model Card {
   // Auth
   cardName          String
   slug              String?                         @unique
-  publicCard        Boolean                         @default(false)
+  qrCodeImage       String?                         @unique
+  publicCard        Boolean                         @default(true)
   activeCard        Boolean                         @default(true)
   templateId        TemplateIdentification          @default(DEFAULT)
   profileLayout     ProfileLayout
