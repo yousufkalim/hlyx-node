@@ -56,6 +56,12 @@ const config = convict({
     default: process.env.SMS_VERIFICATION_SID,
     env: 'SMS_VERIFICATION_SID'
   },
+  sms_messaging_sid: {
+    doc: 'SMS messaging service sid',
+    format: 'String',
+    default: process.env.SMS_MESSAGING_SERVICE_SID,
+    env: 'SMS_MESSAGING_SERVICE_SID'
+  },
   sendgrid_api_key: {
     doc: 'SendGrid API key for sending emails',
     format: 'String',
@@ -73,6 +79,12 @@ const config = convict({
     format: 'String',
     default: process.env.EMAIL_VERIFICATION_SID,
     env: 'EMAIL_VERIFICATION_SID'
+  },
+  email_password_reset_sid: {
+    doc: 'Email password reset service sid',
+    format: 'String',
+    default: process.env.EMAIL_PASSWORD_RESET_SID,
+    env: 'EMAIL_PASSWORD_RESET_SID'
   },
   aws_region: {
     doc: 'Aws region',

@@ -89,5 +89,6 @@ export const messages = {
   SEARCH_TYPE_SELECT: 'You should select search type by which you want to search',
   GROUP_MEMBER_NOT_USER: 'You can only add the registered users in group',
   SHARED_CARD_USER_EMPTY: 'Please select links with you want to share profile card',
-  SHARED_CARD_NOT_USER: 'Selected link not found'
+  SHARED_CARD_NOT_USER: 'Selected link not found',
+  EMAILER_ERROR: 'There was an error with one of the Sendgrid email routes'
 }
