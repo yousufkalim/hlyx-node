@@ -29,3 +29,17 @@ export const sendCodeToPhone = async (phone: string): Promise<VerificationInstan
     .services(config.get('sms_verification_sid') as string)
     .verifications.create({ to: `+1${phone}`, channel: 'sms' })
 }
+
+export const sendCodeToEmailTemplate = async (email: string): Promise<VerificationInstance> => {
+  return await twilioClient.verify.v2
+    .services(config.get('email_verification_sid') as string)
+    .verifications.create({
+      channelConfiguration: {
+        templateId: 'd-cab4252f1e01489b9e3fb576f10ee0e9',
+        from: 'muhammadazeem@falconit.com.pk',
+        fromName: 'Hlyx Link Request'
+      },
+      to: email,
+      channel: 'email'
+    })
+}

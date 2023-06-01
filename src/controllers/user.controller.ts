@@ -43,7 +43,8 @@ class UserController extends BaseController {
             }
           },
           groups: true,
-          cards: true
+          cards: true,
+          blockedUsers: true
         }
       })
       if (!user) {
@@ -67,11 +68,12 @@ class UserController extends BaseController {
               connectionViaPerson: true,
               connectionViaContacts: true
             }
-          }
+          },
+          userNotification: true
         }
       })
 
-      const data = { ...user, userPreferences: userPreferences?.userPreference }
+      const data = { ...user, userPreferences }
       // Return
       return res.status(200).json({
         user: data,
@@ -709,7 +711,12 @@ class UserController extends BaseController {
 
   updateSettings = async (req: RequestUserPreference, res: Response): Promise<Response> => {
     try {
-      const user = await db.userAuth.findUnique({ where: { id: req.params?.userId } })
+      const user = await db.userAuth.findUnique({
+        where: { id: req.params?.userId },
+        select: {
+          userPreference: true
+        }
+      })
 
       if (!user) {
         return res.status(404).json({
@@ -741,6 +748,13 @@ class UserController extends BaseController {
       }
       const value = params[options[0]]
       const key = options[0]
+
+      if (key === 'personFilter' && !user.userPreference?.connectionViaPerson) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.USER_SETTING_PERSON_FILTER
+        })
+      }
 
       const data =
         key === 'twoFactorAuth'

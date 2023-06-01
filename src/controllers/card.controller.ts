@@ -34,9 +34,11 @@ class CardController extends BaseController {
           cardName: true,
           coverPhoto: true,
           slug: true,
+          profileLayout: true,
           publicCard: true,
           activeCard: true,
           templateId: true,
+          companyIcon: true,
           userAvatar: true,
           fullName: true,
           profTitle: true,
@@ -59,7 +61,7 @@ class CardController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
-      console.error(error)
+      console.error(error.message)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
@@ -67,6 +69,7 @@ class CardController extends BaseController {
   }
 
   getContact = async (req: Request, res: Response): Promise<Response> => {
+    console.log('Card id param', req.params.cardId)
     try {
       const card = await db.card.findUnique({
         where: {
@@ -150,6 +153,8 @@ class CardController extends BaseController {
 
       // Check if null and return
       if (!card) {
+        console.log('Card ', card)
+        console.log('Card id', req.params.cardId)
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: messages.CARD_NOT_FOUND

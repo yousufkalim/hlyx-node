@@ -28,6 +28,7 @@ const router = Router()
 // Authentication Routes
 router.post('/auth/register', AuthController.register)
 router.post('/auth/login', AuthController.login)
+router.post('/auth/2fa/login', AuthController.loginWith2FA)
 router.get('/auth/navigation', authenticate, AuthController.navigationHelper)
 router.post('/auth/send-code-email', AuthController.sendCodeEmail)
 router.post('/auth/verify-code-email', authenticate, AuthController.verifyCodeEmail)
@@ -244,9 +245,15 @@ router.put(
 router.post('/link/create', authenticate, LinkController.create)
 router.put('/link/update/:linkId', authenticate, linkAuthorization, LinkController.update)
 router.put(
-  '/link/update/unblock/:linkId',
+  '/link/permanent-block/:linkId',
   authenticate,
   linkAuthorization,
+  LinkController.permanentBlock
+)
+router.put(
+  '/link/update/unblock/:userId',
+  authenticate,
+  userAuthorization,
   LinkController.unblockLink
 )
 router.put(

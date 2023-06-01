@@ -63,6 +63,11 @@ model UserBio {
   groups               GroupsOnUsers[]
   GroupMessages        GroupMessages[]
 
+  // Blocked users
+  blockedUserId String?
+  blockedUser   UserBio?  @relation("BlockedUsers", fields: [blockedUserId], references: [id])
+  blockedUsers  UserBio[] @relation("BlockedUsers")
+
   // Required to link with User
   @@unique([id, email, phone])
   // Required to link with Card
@@ -109,15 +114,16 @@ model GroupMessages {
 }
 
 model UserPreferences {
-  id                       String            @id @default(uuid())
-  twoFactorAuth            TwoFactorAuthType @default(none)
-  allCardsPrivate          Boolean           @default(false)
-  connectionViaProfileLink Boolean           @default(false)
-  connectionViaQRCode      Boolean           @default(false)
-  connectionViaPerson      Boolean           @default(false)
-  connectionViaContacts    Boolean           @default(false)
-  User                     UserAuth          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId                   String            @unique
+  id                       String                      @id @default(uuid())
+  twoFactorAuth            TwoFactorAuthType           @default(none)
+  allCardsPrivate          Boolean                     @default(false)
+  connectionViaProfileLink Boolean                     @default(false)
+  connectionViaQRCode      Boolean                     @default(false)
+  connectionViaContacts    Boolean                     @default(false)
+  connectionViaPerson      Boolean                     @default(false)
+  personFilter             ConnectionViaPersonFilters?
+  User                     UserAuth                    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId                   String                      @unique
 }
 
 model UserNotification {
@@ -152,7 +158,7 @@ model Card {
   // Auth
   cardName          String
   slug              String?                         @unique
-  publicCard        Boolean                         @default(true)
+  publicCard        Boolean                         @default(false)
   activeCard        Boolean                         @default(true)
   templateId        TemplateIdentification          @default(DEFAULT)
   profileLayout     ProfileLayout
@@ -438,6 +444,7 @@ model Contact {
   message      String?
   notes        String?
   createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model Notification {
@@ -538,6 +545,7 @@ enum LinkType {
   declined
   blocked
   muted
+  archived
 }
 
 enum NotificationStatus {
@@ -568,4 +576,9 @@ enum GroupStatus {
   active
   muted
   archived
+}
+
+enum ConnectionViaPersonFilters {
+  auto
+  manual
 }

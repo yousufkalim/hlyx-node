@@ -2,6 +2,8 @@ export const emailTypes = ['work', 'personal']
 
 export const twoFactorAuthTypes = ['none', 'phone', 'email']
 
+export const connectViaPersonFilters = ['auto', 'manual']
+
 export const phoneTypes = ['home', 'work', 'mobile', 'main', 'fax', 'direct', 'office']
 
 export const academicLevels = [

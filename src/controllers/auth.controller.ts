@@ -37,19 +37,36 @@ class AuthController extends BaseController {
       }
 
       // Verify User exists
-      const user = await db.userAuth.findUnique({ where: { email } })
+      const user = await db.userAuth.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          email: true,
+          isPaused: true,
+          isDeleted: true,
+          createdAt: true,
+          updatedAt: true,
+          password: true,
+          isEmailVerified: true,
+          isPhoneVerified: true,
+          userPreference: {
+            select: {
+              twoFactorAuth: true
+            }
+          }
+        }
+      })
       if (!user) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: messages.INVALID_CREDENTIALS
         })
       }
-
       // Handle Pause / Deleted Flags if set
       if (user.isPaused) {
         if (user.isDeleted) {
           const currentTime = new Date()
-          let diff = currentTime.getTime() - user.createdAt.getTime()
+          let diff = currentTime.getTime() - user.updatedAt.getTime()
           // Milisecond to day conversion
           diff = diff / 86400000
           if (diff > expirationTimes.DAYS_FOR_PERMA_DELETE) {
@@ -90,7 +107,116 @@ class AuthController extends BaseController {
         })
       }
 
+      // Check if Two FA enabled on email
+      // if (user.userPreference?.twoFactorAuth === 'email') {
+      //   // Send email and return
+      //   await sendCodeToEmail(user.email)
+      //   return res.status(200).json({
+      //     code: codes.OK,
+      //     message: messages.CODE_SENT_SUCCESS
+      //   })
+      // }
+
       // Return jsonwebtoken
+      const payload = {
+        user: {
+          id: user.id,
+          email: user.email
+        }
+      }
+      jwt.sign(
+        payload,
+        config.get('jwt_secret_key') as string,
+        { expiresIn: config.get('jwt_secret_key_expiry') as string },
+        (err, token) => {
+          if (err) {
+            return res.status(400).json({
+              code: codes.BAD_REQUEST,
+              message: messages.TOKEN_FAILURE
+            })
+          }
+          return res.status(200).json({
+            token,
+            id: user.id,
+            isEmailVerified: user.isEmailVerified,
+            isPhoneVerified: user.isPhoneVerified,
+            code: codes.OK,
+            message: messages.USER_LOGGED_IN
+          })
+        }
+      )
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Login in user
+  loginWith2FA = async (req: Request, res: Response): Promise<Response | undefined> => {
+    const params = this.filterParams(req.body, authControllerParams)
+    const { email, code } = params
+    try {
+      // Validate input
+      const validationError = validateVerifyCode(params)
+      if (validationError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+
+      // Verify User exists
+      const user = await db.userAuth.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          email: true,
+          isPaused: true,
+          isDeleted: true,
+          createdAt: true,
+          password: true,
+          isEmailVerified: true,
+          isPhoneVerified: true,
+          userPreference: {
+            select: {
+              twoFactorAuth: true
+            }
+          }
+        }
+      })
+      if (!user) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.INVALID_CREDENTIALS
+        })
+      }
+
+      // Twilio verify
+      let twilioFound = true
+      const verification = await twilioClient.verify.v2
+        .services(config.get('email_verification_sid') as string)
+        .verificationChecks.create({ to: email, code })
+        .catch((error) => {
+          console.error(error)
+          twilioFound = false
+        })
+
+      if (!twilioFound) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.TWILIO_NOT_FOUND
+        })
+      }
+
+      if (verification?.status !== 'approved') {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.INVALID_CODE
+        })
+      }
+
       const payload = {
         user: {
           id: user.id,

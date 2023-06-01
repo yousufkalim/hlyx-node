@@ -226,6 +226,23 @@ class ContactRequestController extends BaseController {
                     }
                   }
                 ]
+              },
+              select: {
+                contactId: true,
+                cardId: true,
+                contactImage: true,
+                status: true,
+                fullName: true,
+                company: true,
+                jobTitle: true,
+                phone: true,
+                email: true,
+                city: true,
+                state: true,
+                message: true,
+                notes: true,
+                createdAt: true,
+                Card: true
               }
             }
           }
@@ -250,6 +267,23 @@ class ContactRequestController extends BaseController {
             Contacts: {
               where: {
                 status: 'saved'
+              },
+              select: {
+                contactId: true,
+                cardId: true,
+                contactImage: true,
+                status: true,
+                fullName: true,
+                company: true,
+                jobTitle: true,
+                phone: true,
+                email: true,
+                city: true,
+                state: true,
+                message: true,
+                notes: true,
+                createdAt: true,
+                Card: true
               }
             }
           }
@@ -263,7 +297,7 @@ class ContactRequestController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
-      console.error(error)
+      console.error(error.message)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })

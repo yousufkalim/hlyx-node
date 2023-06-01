@@ -12,14 +12,12 @@ import { messages } from '../config/messages'
 import BaseController from './base.controller'
 import { db } from '../utils/db'
 import { getSocket } from '../utils/socket'
+// import logo from '../assets/dark/logo.png'
 
 class NotificationController extends BaseController {
   // Create Notification (called by other internal functions)
   createNotification = async (req: RequestNotification): Promise<ICreateNotification> => {
     try {
-      console.log('first', req.notification?.cardId)
-      console.log('second', req.notification?.directsTo)
-      console.log('third', req.notification?.idDirectedTo)
       // Confirm req.notifcation is set
       if (
         !req.notification?.cardId ||
@@ -39,7 +37,7 @@ class NotificationController extends BaseController {
       }
 
       // Create
-      const notificaiton = await db.card.update({
+      const notifications = await db.card.update({
         where: {
           cardId: req.notification.cardId
         },
@@ -71,14 +69,29 @@ class NotificationController extends BaseController {
         }
       })
 
+      const notification: any = notifications.Notifications[0]
+
+      const data = await this.#getIdDirectedToDetails(notification)
+
+      // Check user enabled notification setting and Send notification to user
+      const { notificationType } = req.notification
+      const recipientUser = await db.userAuth.findUnique({
+        where: { id: notifications.userId },
+        select: {
+          userNotification: true
+        }
+      })
       const sockets = getSocket()
-      console.log('Scoket ', sockets)
-      if (sockets) {
-        sockets.emit(`notifications_${notificaiton.userId}`, { notifications: notificaiton })
+      // Check if user enabled link request notification in settings
+      const isNotificationEnabled = !!(
+        notificationType === 'newLinkRequest' && recipientUser?.userNotification?.newLinkRequest
+      )
+      if (sockets && isNotificationEnabled) {
+        sockets.emit(`notifications_${notifications.userId}`, { notifications: data })
       }
 
       return {
-        notificationId: notificaiton.Notifications[0].notificationId,
+        notificationId: notification?.notificationId,
         success: true
       }
     } catch (error: any) {
@@ -109,7 +122,7 @@ class NotificationController extends BaseController {
           }
 
           // Create
-          const notificaiton = await db.card.update({
+          const notifications = await db.card.update({
             where: {
               cardId: link.idDirectedTo
             },
@@ -141,9 +154,35 @@ class NotificationController extends BaseController {
             }
           })
 
+          const notification: any = notifications.Notifications[0]
+
+          const data = await this.#getIdDirectedToDetails(notification)
+
+          // const msg = {
+          //   to: 'azeem.falconit@gmail.com',
+          //   from: 'muhammadazeem@falconit.com.pk',
+          //   // subject: 'Sending veirifcation code',
+          //   templateId: '40adf1a3-99ce-463f-9dad-687db4ea4a58',
+          //   text: 'and easy to do anywhere, even with Node.js',
+          //   html: '<strong>and easy to do anywhere, even with Node.js</strong>',
+          //   dynamicTemplateData: {
+          //     subject: 'Testing Templates',
+          //     logo: `${__dirname}/assets/logo.png`,
+          //     test: 'hello Azeem',
+          //     city: 'Denver'
+          //   }
+          // }
+
+          // const sendEmail = await sgMail.send(msg)
+          // console.log('Email send ', sendEmail)
+
+          // const emailSent = await sendCodeToEmailTemplate('azeem.falconit@gmail.com')
+
+          // console.log('Sent email ', emailSent)
+
           const sockets = getSocket()
           if (sockets) {
-            sockets.emit(`notifications_${notificaiton.userId}`, { notifications: notificaiton })
+            sockets.emit(`notifications_${notifications.userId}`, { notifications: data })
           }
 
           response.success = true
@@ -192,8 +231,103 @@ class NotificationController extends BaseController {
         }
       })
 
+      // const data = []
+      const data = await Promise.all(
+        cards.map(async (card) => {
+          const Notifications = await Promise.all(
+            card.Notifications.map(async (notification: any) => {
+              if (notification.directsTo === 'linkRequest') {
+                const res = await db.link.findUnique({
+                  where: { id: notification.idDirectedTo },
+                  select: {
+                    CardOneRef: {
+                      select: {
+                        fullName: true,
+                        cardName: true,
+                        cardId: true,
+                        userAvatar: true,
+                        coverPhoto: true
+                      }
+                    },
+                    CardTwoRef: {
+                      select: {
+                        fullName: true,
+                        cardName: true,
+                        cardId: true,
+                        userAvatar: true,
+                        coverPhoto: true
+                      }
+                    }
+                  }
+                })
+
+                if (res?.CardOneRef.cardId === notification.cardId) {
+                  notification.cardDirectedTo = res?.CardTwoRef
+                } else {
+                  notification.cardDirectedTo = res?.CardOneRef
+                }
+
+                return {
+                  ...notification,
+                  cardDirectedTo: res?.CardOneRef
+                }
+              } else {
+                const res = await db.card.findUnique({
+                  where: { cardId: notification.idDirectedTo },
+                  select: {
+                    fullName: true,
+                    cardName: true,
+                    cardId: true,
+                    userAvatar: true,
+                    coverPhoto: true
+                  }
+                })
+
+                return {
+                  ...notification,
+                  cardDirectedTo: res
+                }
+              }
+            })
+          )
+
+          return {
+            ...card,
+            Notifications
+          }
+        })
+      )
+
+      // const final = await data.map((item) => ({
+      //   ...item,
+      //   Notifications: item.Notifications.map(async (item1) => await item1)
+      // }))
+      // console.log('notifications data ', data)
+      // console.log('Final data ', final)
+      // let allCards = []
+      // for (const card of cards) {
+      //   allCards.push(card)
+      //   if (card.Notifications) {
+      //     for (const notification of card.Notifications) {
+      //       const not: any = notification
+      //       if (notification.idDirectedTo) {
+      //         const cardDetails = await db.link.findUnique({
+      //           where: { id: notification.idDirectedTo },
+      //           select: {
+      //             cardOne: true,
+      //             cardTwo: true
+      //           }
+      //         })
+      //         if (cardDetails) {
+      //           not.directsTo = cardDetails
+      //         }
+      //       }
+      //     }
+      //   }
+      // }
+
       return res.status(200).json({
-        cards,
+        cards: data,
         code: codes.OK,
         message: messages.SUCCESS
       })
@@ -290,6 +424,64 @@ class NotificationController extends BaseController {
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  #getIdDirectedToDetails = async (notification: any): Promise<any> => {
+    try {
+      // Get details of card
+      if (notification?.directsTo === 'linkRequest' && notification?.idDirectedTo) {
+        const res = await db.link.findUnique({
+          where: { id: notification.idDirectedTo },
+          select: {
+            CardOneRef: {
+              select: {
+                fullName: true,
+                cardName: true,
+                cardId: true,
+                userAvatar: true,
+                coverPhoto: true
+              }
+            },
+            CardTwoRef: {
+              select: {
+                fullName: true,
+                cardName: true,
+                cardId: true,
+                userAvatar: true,
+                coverPhoto: true
+              }
+            }
+          }
+        })
+
+        if (res?.CardOneRef.cardId === notification.cardId) {
+          notification.cardDirectedTo = res?.CardTwoRef
+        } else {
+          notification.cardDirectedTo = res?.CardOneRef
+        }
+
+        notification.cardDirectedTo = res?.CardOneRef
+
+        return notification
+      } else {
+        const res = await db.card.findUnique({
+          where: { cardId: notification.idDirectedTo },
+          select: {
+            fullName: true,
+            cardName: true,
+            cardId: true,
+            userAvatar: true,
+            coverPhoto: true
+          }
+        })
+
+        notification.cardDirectedTo = res
+
+        return notification
+      }
+    } catch (err) {
+      return null
     }
   }
 }

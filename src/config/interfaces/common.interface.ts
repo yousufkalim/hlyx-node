@@ -36,7 +36,14 @@ export interface RequestNotification extends Request {
     message?: string
     directsTo: string
     idDirectedTo: string
+    notificationType?: string
   }
+}
+
+export interface IidDirectedTo {
+  userAvatar: string
+  cardName: string
+  fullName: string
 }
 
 export interface IEmail {
