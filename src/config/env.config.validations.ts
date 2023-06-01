@@ -56,6 +56,12 @@ const config = convict({
     default: process.env.SMS_VERIFICATION_SID,
     env: 'SMS_VERIFICATION_SID'
   },
+  sms_messaging_sid: {
+    doc: 'SMS messaging service sid',
+    format: 'String',
+    default: process.env.SMS_MESSAGING_SERVICE_SID,
+    env: 'SMS_MESSAGING_SERVICE_SID'
+  },
   sendgrid_api_key: {
     doc: 'SendGrid API key for sending emails',
     format: 'String',
