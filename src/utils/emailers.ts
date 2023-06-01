@@ -57,6 +57,30 @@ export const linkRequestEmail = async (email: string, emailerName: string, linkR
   }
 }
 
+export const profileShareEmail = async (email: string, senderName: string, receiverName: string): Promise<void> => {
+  const templateId = 'd-f3fa3ed995114fc09344db01f029762e'
+
+  const msg = {
+    to: email,
+    from: 'hello@hlyx.io',
+    templateId,
+    dynamicTemplateData: {
+      email,
+      receiverName,
+      senderName
+    }
+  }
+
+  try {
+    const response = await sgMail.send(msg)
+    if (response[0].statusCode !== 202) {
+      throw Error(messages.EMAILER_ERROR)
+    }
+  } catch (error: any) {
+    console.error(error)
+  }
+}
+
 export const contactRequestEmailer = async (email: string, emailerName: string, contactRequesterFullName: string, cardName: string): Promise<void> => {
   const templateId = 'd-1ab30a0250e84226967a4873fae0733c'
 
