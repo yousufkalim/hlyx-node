@@ -67,6 +67,13 @@ class AuthController extends BaseController {
           message: messages.INVALID_CREDENTIALS
         })
       }
+
+      if (!user.isEmailVerified) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.EMAIL_NOT_VERIFIED
+        })
+      }
       // Handle Pause / Deleted Flags if set
       if (user.isPaused) {
         if (user.isDeleted) {
@@ -294,33 +301,40 @@ class AuthController extends BaseController {
       const createUser = await db.userAuth.create({ data })
 
       // Return jsonwebtoken
-      const payload = {
-        user: {
-          id: createUser.id,
-          email: createUser.email
-        }
-      }
-      jwt.sign(
-        payload,
-        config.get('jwt_secret_key') as string,
-        { expiresIn: config.get('jwt_secret_key_expiry') as string },
-        async (err, token) => {
-          if (err) {
-            return res.status(400).json({
-              code: codes.BAD_REQUEST,
-              message: messages.TOKEN_FAILURE
-            })
-          }
-          // Emailer
-          await verifyEmailEmailer(email)
-          return res.status(201).json({
-            token,
-            id: createUser.id,
-            code: codes.CREATED,
-            message: messages.CODE_SENT_SUCCESS
-          })
-        }
-      )
+      // const payload = {
+      //   user: {
+      //     id: createUser.id,
+      //     email: createUser.email
+      //   }
+      // }
+      // Emailer
+      await verifyEmailEmailer(email)
+      return res.status(201).json({
+        id: createUser.id,
+        code: codes.CREATED,
+        message: messages.LINK_SENT_SUCCESS
+      })
+      // jwt.sign(
+      //   payload,
+      //   config.get('jwt_secret_key') as string,
+      //   { expiresIn: config.get('jwt_secret_key_expiry') as string },
+      //   async (err, token) => {
+      //     if (err) {
+      //       return res.status(400).json({
+      //         code: codes.BAD_REQUEST,
+      //         message: messages.TOKEN_FAILURE
+      //       })
+      //     }
+      //     // Emailer
+      //     await verifyEmailEmailer(email)
+      //     return res.status(201).json({
+      //       token,
+      //       id: createUser.id,
+      //       code: codes.CREATED,
+      //       message: messages.CODE_SENT_SUCCESS
+      //     })
+      //   }
+      // )
     } catch (error: any) {
       console.error(error)
       if (error.status) {
