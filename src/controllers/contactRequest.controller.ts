@@ -22,16 +22,13 @@ import BaseController from './base.controller'
 import notificationController from './notification.controller'
 import { db } from '../utils/db'
 import { validateLinkSearchType } from '../utils/validations/link.controller.validation'
-import {
-  contactRequestEmailer,
-  acceptContactEmailer
-} from '../utils/emailers'
+import { contactRequestEmailer, acceptContactEmailer } from '../utils/emailers'
 
 class ContactRequestController extends BaseController {
   // Create new contact request
   create = async (req: Request, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, sharedContactControllerParams)
-    const { fullName, company, jobTitle, phone, email, state, city, message } = params
+    const { fullName, company, jobTitle, phone, email, state, city, message, notes } = params
     try {
       // Validate input
       const validationError = validateSharedContactCreate(params)
@@ -61,7 +58,8 @@ class ContactRequestController extends BaseController {
             email,
             city,
             state,
-            message
+            message,
+            notes
           }
         }
       }
@@ -128,7 +126,8 @@ class ContactRequestController extends BaseController {
         cardId: params.cardId,
         directsTo: 'contactRequest',
         message,
-        idDirectedTo: contactId
+        idDirectedTo: contactId,
+        notificationType: 'contactRequest'
       }
 
       const notification = await notificationController.createNotification(req)
@@ -398,7 +397,13 @@ class ContactRequestController extends BaseController {
             qrCodeImage: true
           }
         })
-        await acceptContactEmailer(contact.email, contact.fullName, card?.fullName ?? '', 'https://hlyx.me/' + contact.cardId, card?.qrCodeImage ?? '')
+        await acceptContactEmailer(
+          contact.email,
+          contact.fullName,
+          card?.fullName ?? '',
+          'https://hlyx.me/' + contact.cardId,
+          card?.qrCodeImage ?? ''
+        )
       }
 
       return res.status(200).json({

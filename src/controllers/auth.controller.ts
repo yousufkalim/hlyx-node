@@ -23,10 +23,7 @@ import {
   validatePhone,
   validateVerifyPhone
 } from '../utils/validations/auth.controller.validation'
-import {
-  verifyEmailEmailer,
-  passwordResetEmailer
-} from '../utils/emailers'
+import { verifyEmailEmailer, passwordResetEmailer } from '../utils/emailers'
 import { db } from '../utils/db'
 
 class AuthController extends BaseController {

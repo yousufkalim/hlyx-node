@@ -69,7 +69,6 @@ class CardController extends BaseController {
   }
 
   getContact = async (req: Request, res: Response): Promise<Response> => {
-    console.log('Card id param', req.params.cardId)
     try {
       const card = await db.card.findUnique({
         where: {
@@ -153,8 +152,6 @@ class CardController extends BaseController {
 
       // Check if null and return
       if (!card) {
-        console.log('Card ', card)
-        console.log('Card id', req.params.cardId)
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: messages.CARD_NOT_FOUND
@@ -202,8 +199,8 @@ class CardController extends BaseController {
             select: {
               academicLevel: true,
               schoolName: true,
-              startYear: true,
-              graduationYear: true,
+              startDate: true,
+              endDate: true,
               academicFocus: true,
               degreeType: true
             }
@@ -211,7 +208,8 @@ class CardController extends BaseController {
           accolades: {
             select: {
               title: true,
-              fromWho: true,
+              designationType: true,
+              organization: true,
               startDate: true,
               endDate: true
             }
@@ -220,8 +218,8 @@ class CardController extends BaseController {
             select: {
               title: true,
               description: true,
-              startYear: true,
-              issuedYear: true
+              startDate: true,
+              endDate: true
             }
           },
           businessGoals: {
@@ -952,6 +950,14 @@ class CardController extends BaseController {
       // Check one-to-many relations
       // Education
       if (params.education) {
+        for (const edu of params.education) {
+          if (edu.startDate) {
+            edu.startDate = new Date(edu.startDate)
+          }
+          if (edu.endDate) {
+            edu.endDate = new Date(edu.endDate)
+          }
+        }
         params.education = {
           create: params.education
         }
@@ -974,6 +980,14 @@ class CardController extends BaseController {
       }
       // Achievements
       if (params.achievements) {
+        for (const achievement of params.achievements) {
+          if (achievement.startDate) {
+            achievement.startDate = new Date(achievement.startDate)
+          }
+          if (achievement.endDate) {
+            achievement.endDate = new Date(achievement.endDate)
+          }
+        }
         params.achievements = {
           create: params.achievements
         }
@@ -1465,7 +1479,6 @@ class CardController extends BaseController {
         cardName,
         country,
         profTitle,
-        profileLayout,
         city,
         company,
         industry,
@@ -1516,7 +1529,6 @@ class CardController extends BaseController {
         fullName,
         cardName,
         city,
-        profileLayout,
         country,
         state,
         zipcode,
@@ -1528,6 +1540,7 @@ class CardController extends BaseController {
         additionalLinks,
         calendars
       }
+
       const cardContactValidationError = validateCardContactPage(cardContactData)
       if (cardContactValidationError) {
         return res.status(400).json({

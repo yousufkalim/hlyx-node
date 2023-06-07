@@ -18,6 +18,7 @@ class NotificationController extends BaseController {
   // Create Notification (called by other internal functions)
   createNotification = async (req: RequestNotification): Promise<ICreateNotification> => {
     try {
+      const NOTIFICATION_TYPES = ['newLinkRequest', 'contactRequest', 'message']
       // Confirm req.notifcation is set
       if (
         !req.notification?.cardId ||
@@ -84,7 +85,9 @@ class NotificationController extends BaseController {
       const sockets = getSocket()
       // Check if user enabled link request notification in settings
       const isNotificationEnabled = !!(
-        notificationType === 'newLinkRequest' && recipientUser?.userNotification?.newLinkRequest
+        notificationType &&
+        NOTIFICATION_TYPES.includes(notificationType) &&
+        recipientUser?.userNotification?.newLinkRequest
       )
       if (sockets && isNotificationEnabled) {
         sockets.emit(`notifications_${notifications.userId}`, { notifications: data })
@@ -180,8 +183,18 @@ class NotificationController extends BaseController {
 
           // console.log('Sent email ', emailSent)
 
+          const recipientUser = await db.userAuth.findUnique({
+            where: { id: notifications.userId },
+            select: {
+              userNotification: true
+            }
+          })
+
+          // Check if user enabled link request notification in settings
+          const isNotificationEnabled = recipientUser?.userNotification?.profileShare
+
           const sockets = getSocket()
-          if (sockets) {
+          if (sockets && isNotificationEnabled) {
             sockets.emit(`notifications_${notifications.userId}`, { notifications: data })
           }
 
@@ -462,6 +475,26 @@ class NotificationController extends BaseController {
         }
 
         notification.cardDirectedTo = res?.CardOneRef
+
+        return notification
+      } else if (notification?.directsTo === 'contactRequest' && notification?.idDirectedTo) {
+        const res = await db.contact.findUnique({
+          where: { contactId: notification.idDirectedTo },
+          select: {
+            contactImage: true,
+            contactId: true,
+            status: true,
+            fullName: true,
+            company: true,
+            jobTitle: true,
+            message: true,
+            notes: true,
+            city: true,
+            state: true
+          }
+        })
+
+        notification.cardDirectedTo = res
 
         return notification
       } else {

@@ -23,6 +23,7 @@ export interface INewContactRequest {
       email: string
       city?: string
       state?: string
+      notes?: string
       message?: string
       contactImage?: string
     }

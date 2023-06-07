@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/indent */
 import {
   validateCardAboutPage,
-  validateCardContactPage
+  validateCardContactPage,
+  validateCardType
 } from './../utils/validations/card.controller.validation'
 import { Response } from 'express'
 import { UploadedFile } from 'express-fileupload'
@@ -344,7 +345,6 @@ class UserController extends BaseController {
         fullName,
         cardName,
         city,
-        profileLayout,
         country: user?.country ?? undefined,
         state: state ?? undefined,
         zipcode: zipcode ?? undefined,
@@ -356,6 +356,14 @@ class UserController extends BaseController {
         additionalLinks,
         calendars
       }
+
+      const cardTypeError = validateCardType({ profileLayout })
+      if (cardTypeError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: cardTypeError
+        })
+      }
       const cardContactValidationError = validateCardContactPage(cardContactData)
       if (cardContactValidationError) {
         return res.status(400).json({
@@ -364,12 +372,14 @@ class UserController extends BaseController {
         })
       }
 
-      const cardAboutValidationError = validateCardAboutPage(cardAboutData)
-      if (cardAboutValidationError) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: cardAboutValidationError
-        })
+      if (profileLayout === 'minimal') {
+        const cardAboutValidationError = validateCardAboutPage(cardAboutData)
+        if (cardAboutValidationError) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: cardAboutValidationError
+          })
+        }
       }
 
       // Add optional fields if set
@@ -509,7 +519,7 @@ class UserController extends BaseController {
         cardAboutData.brandedCoverPhoto = brandCoverPath
       }
 
-      const data = { ...cardContactData, ...cardAboutData }
+      const data = { ...cardContactData, ...cardAboutData, profileLayout }
 
       // Update UserBio, create Card, and return
       const createdCard = await db.userBio.update({
@@ -544,13 +554,7 @@ class UserController extends BaseController {
         width: 200,
         errorCorrectionLevel: 'H'
       })
-      const qrCodeImage = await awsUploadFile(
-        bufferImage,
-        cardId,
-        'qrcode',
-        '',
-        '.png'
-      )
+      const qrCodeImage = await awsUploadFile(bufferImage, cardId, 'qrcode', '', '.png')
 
       await db.card.update({
         where: {
@@ -567,7 +571,6 @@ class UserController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
-      console.log('Error ', error.message)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
@@ -740,7 +743,8 @@ class UserController extends BaseController {
       const user = await db.userAuth.findUnique({
         where: { id: req.params?.userId },
         select: {
-          userPreference: true
+          userPreference: true,
+          id: true
         }
       })
 
@@ -780,6 +784,25 @@ class UserController extends BaseController {
           code: codes.BAD_REQUEST,
           message: messages.USER_SETTING_PERSON_FILTER
         })
+      }
+
+      // Change all cards privacy of user
+      if (key === 'allCardsPrivate' && user) {
+        if (JSON.parse(value)) {
+          await db.card.updateMany({
+            where: { userId: user.id },
+            data: {
+              publicCard: false
+            }
+          })
+        } else {
+          await db.card.updateMany({
+            where: { userId: user.id },
+            data: {
+              publicCard: true
+            }
+          })
+        }
       }
 
       const data =

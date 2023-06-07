@@ -33,7 +33,11 @@ export const passwordResetEmailer = async (email: string): Promise<VerificationI
     })
 }
 
-export const linkRequestEmail = async (email: string, emailerName: string, linkRequesterName: string): Promise<void> => {
+export const linkRequestEmail = async (
+  email: string,
+  emailerName: string,
+  linkRequesterName: string
+): Promise<void> => {
   const templateId = 'd-5c1f2de002b4462b8acf7ca9b7e6b12f'
 
   const msg = {
@@ -57,7 +61,11 @@ export const linkRequestEmail = async (email: string, emailerName: string, linkR
   }
 }
 
-export const profileShareEmail = async (email: string, senderName: string, receiverName: string): Promise<void> => {
+export const profileShareEmail = async (
+  email: string,
+  senderName: string,
+  receiverName: string
+): Promise<void> => {
   const templateId = 'd-f3fa3ed995114fc09344db01f029762e'
 
   const msg = {
@@ -81,7 +89,12 @@ export const profileShareEmail = async (email: string, senderName: string, recei
   }
 }
 
-export const contactRequestEmailer = async (email: string, emailerName: string, contactRequesterFullName: string, cardName: string): Promise<void> => {
+export const contactRequestEmailer = async (
+  email: string,
+  emailerName: string,
+  contactRequesterFullName: string,
+  cardName: string
+): Promise<void> => {
   const templateId = 'd-1ab30a0250e84226967a4873fae0733c'
 
   const msg = {
@@ -106,7 +119,13 @@ export const contactRequestEmailer = async (email: string, emailerName: string, 
   }
 }
 
-export const acceptContactEmailer = async (email: string, contactName: string, userName: string, cardUrl: string, qrCodeUrl: string): Promise<void> => {
+export const acceptContactEmailer = async (
+  email: string,
+  contactName: string,
+  userName: string,
+  cardUrl: string,
+  qrCodeUrl: string
+): Promise<void> => {
   const templateId = 'd-c36e1f885cd74f82a3ad43d9e642a262'
 
   const msg = {
