@@ -1,7 +1,9 @@
 import Joi from 'joi'
+import { searchTypeContactEnum } from '../../config/enumTypes'
 import {
   IValidateContactRequest,
-  IValidateContactNote
+  IValidateContactNote,
+  IValidateContactSearchType
 } from '../../config/interfaces/contactRequest.validation.interface'
 // import { stateAbbreviations } from '../../config/stateAbbreviations'
 import { stringLengths } from '../../config/stringLengths'
@@ -48,4 +50,13 @@ export const validateSharedContactNote = (
   })
 
   return sharedContactNoteSchema.validate(noteUpdatePayload)?.error?.message
+}
+
+export const validateContactSearchType = (
+  linkSearchPayload: IValidateContactSearchType
+): string | undefined => {
+  const searchSchema = Joi.object({
+    searchBy: Joi.string().valid(...Object.values(searchTypeContactEnum))
+  })
+  return searchSchema.validate(linkSearchPayload)?.error?.message
 }

@@ -29,3 +29,24 @@ export interface INewContactRequest {
     }
   }
 }
+
+export interface IContact {
+  cardId: string
+  contactId: string
+  contactImage: string
+  status: string
+  fullName: string
+  company: string
+  jobTitle: string
+  phone: string
+  email: string
+  state: string
+  city: string
+  message: string
+  notes: string
+  createdAt?: string
+}
+
+export interface IValidateContactSearchType {
+  searchBy: string
+}

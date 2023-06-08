@@ -10,6 +10,7 @@ import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { sharedContactControllerParams } from '../config/params'
 import {
+  validateContactSearchType,
   validateSharedContactCreate,
   validateSharedContactNote
 } from '../utils/validations/contactRequest.controller.validation'
@@ -21,7 +22,6 @@ import { awsUploadFile } from '../utils/aws-image'
 import BaseController from './base.controller'
 import notificationController from './notification.controller'
 import { db } from '../utils/db'
-import { validateLinkSearchType } from '../utils/validations/link.controller.validation'
 import { contactRequestEmailer, acceptContactEmailer } from '../utils/emailers'
 
 class ContactRequestController extends BaseController {
@@ -215,60 +215,125 @@ class ContactRequestController extends BaseController {
       // Find all cards associated with user
       let cardsContacts = []
       if (search && searchType) {
-        const cards = await db.card.findMany({
-          where: {
-            userId: req.params.userId
-          },
-          select: {
-            _count: {
-              select: {
-                Contacts: {
-                  where: {
-                    status: 'saved'
+        if (searchType === 'location') {
+          const cards = await db.card.findMany({
+            where: {
+              userId: req.params.userId
+            },
+            select: {
+              _count: {
+                select: {
+                  Contacts: {
+                    where: {
+                      status: 'saved',
+                      OR: [
+                        {
+                          city: {
+                            contains: search,
+                            mode: 'insensitive'
+                          }
+                        },
+                        {
+                          state: {
+                            contains: search,
+                            mode: 'insensitive'
+                          }
+                        }
+                      ]
+                    }
                   }
                 }
-              }
-            },
-            cardId: true,
-            Contacts: {
-              where: {
-                status: 'saved',
-                OR: [
-                  {
-                    city: {
-                      contains: search,
-                      mode: 'insensitive'
-                    }
-                  },
-                  {
-                    state: {
-                      contains: search,
-                      mode: 'insensitive'
-                    }
-                  }
-                ]
               },
-              select: {
-                contactId: true,
-                cardId: true,
-                contactImage: true,
-                status: true,
-                fullName: true,
-                company: true,
-                jobTitle: true,
-                phone: true,
-                email: true,
-                city: true,
-                state: true,
-                message: true,
-                notes: true,
-                createdAt: true,
-                Card: true
+              cardId: true,
+              Contacts: {
+                where: {
+                  status: 'saved',
+                  OR: [
+                    {
+                      city: {
+                        contains: search,
+                        mode: 'insensitive'
+                      }
+                    },
+                    {
+                      state: {
+                        contains: search,
+                        mode: 'insensitive'
+                      }
+                    }
+                  ]
+                },
+                select: {
+                  contactId: true,
+                  cardId: true,
+                  contactImage: true,
+                  status: true,
+                  fullName: true,
+                  company: true,
+                  jobTitle: true,
+                  phone: true,
+                  email: true,
+                  city: true,
+                  state: true,
+                  message: true,
+                  notes: true,
+                  createdAt: true,
+                  Card: true
+                }
               }
             }
-          }
-        })
-        cardsContacts = cards
+          })
+          cardsContacts = cards
+        } else {
+          const cards = await db.card.findMany({
+            where: {
+              userId: req.params.userId
+            },
+            select: {
+              _count: {
+                select: {
+                  Contacts: {
+                    where: {
+                      status: 'saved',
+                      [searchType]: {
+                        contains: search,
+                        mode: 'insensitive'
+                      }
+                    }
+                  }
+                }
+              },
+              cardId: true,
+              Contacts: {
+                where: {
+                  status: 'saved',
+                  [searchType]: {
+                    contains: search,
+                    mode: 'insensitive'
+                  }
+                },
+                select: {
+                  contactId: true,
+                  cardId: true,
+                  contactImage: true,
+                  status: true,
+                  fullName: true,
+                  company: true,
+                  jobTitle: true,
+                  phone: true,
+                  email: true,
+                  city: true,
+                  state: true,
+                  message: true,
+                  notes: true,
+                  createdAt: true,
+                  Card: true
+                }
+              }
+            }
+          })
+          cardsContacts = cards
+        }
       } else {
         const cards = await db.card.findMany({
           where: {
@@ -475,7 +540,7 @@ class ContactRequestController extends BaseController {
     const { search, searchBy } = query
     let searchType = searchBy
     if (search && searchBy) {
-      const searchTypeValidationError = validateLinkSearchType({ searchBy })
+      const searchTypeValidationError = validateContactSearchType({ searchBy })
       if (searchTypeValidationError) {
         searchType = ''
       }
