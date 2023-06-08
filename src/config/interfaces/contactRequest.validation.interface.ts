@@ -21,7 +21,9 @@ export interface INewContactRequest {
       jobTitle?: string
       phone: string
       email: string
-      location?: string
+      city?: string
+      state?: string
+      notes?: string
       message?: string
       contactImage?: string
     }

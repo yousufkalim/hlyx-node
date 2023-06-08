@@ -3,6 +3,7 @@ export const messages = {
   HEALTH_CHECK: 'Server is up and running',
   USER_NOT_FOUND: 'User not found',
   USER_ALREADY_EXIST: 'User already exists',
+  USER_SETTING_PERSON_FILTER: 'User must enable Connection Via Person to enable this option',
   INVALID_INPUT: 'Invalid input',
   INVALID_CREDENTIALS: 'Invalid credentials',
   INVALID_PASSWORD: 'Invalid password',
@@ -30,6 +31,8 @@ export const messages = {
   USER_LOGGED_IN: 'logged in successfully',
   SENDER_EMAIL: 'dev@hlyx.io',
   CODE_SENT_SUCCESS: 'Code sent to your email address, Please verify',
+  LINK_SENT_SUCCESS: 'Link sent to your email address, Please verify',
+  OTP_SENT_SUCCESS: 'OTP sent to your email address, Please verify',
   CODE_SENT_PHONE_SUCCESS: 'Code texted to your phone, Please verify',
   VERIFIED_SUCCESS: 'Verified successfully',
   PASSWORD_FAILURE:
@@ -90,5 +93,8 @@ export const messages = {
   GROUP_MEMBER_NOT_USER: 'You can only add the registered users in group',
   SHARED_CARD_USER_EMPTY: 'Please select links with you want to share profile card',
   SHARED_CARD_NOT_USER: 'Selected link not found',
+  PERMANENT_BLOCKED_YOU: 'The card you have requested has been permanently blocked by you',
+  PERMANENT_BLOCKED_OTHER: 'You are permanently blocked by the card you have requested',
+  LINKS_EMPTY: 'Please select the links you want to unblock',
   EMAILER_ERROR: 'There was an error with one of the Sendgrid email routes'
 }

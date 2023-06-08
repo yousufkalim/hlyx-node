@@ -28,6 +28,7 @@ const router = Router()
 // Authentication Routes
 router.post('/auth/register', AuthController.register)
 router.post('/auth/login', AuthController.login)
+router.post('/auth/2fa/login', AuthController.loginWith2FA)
 router.get('/auth/navigation', authenticate, AuthController.navigationHelper)
 router.post('/auth/send-verify-email', AuthController.resendVerificationEmail)
 router.post('/auth/send-password-reset', AuthController.passwordResetEmail)
@@ -58,6 +59,7 @@ router.delete(
 
 // User Routes
 router.get('/user/find/me', authenticate, UserController.me)
+router.get('/user/stats/:userId', authenticate, UserController.userStats)
 router.get('/user/find-profile/:userName', authenticate, UserController.getUserByUserName)
 router.put('/user/update/bio/:userId', authenticate, userAuthorization, UserController.updateBio)
 router.post('/user/add/card/:userId', authenticate, userAuthorization, UserController.addCard)
@@ -245,9 +247,15 @@ router.put(
 router.post('/link/create', authenticate, LinkController.create)
 router.put('/link/update/:linkId', authenticate, linkAuthorization, LinkController.update)
 router.put(
-  '/link/update/unblock/:linkId',
+  '/link/permanent-block/:linkId',
   authenticate,
   linkAuthorization,
+  LinkController.permanentBlock
+)
+router.put(
+  '/link/update/unblock/:userId',
+  authenticate,
+  userAuthorization,
   LinkController.unblockLink
 )
 router.put(
@@ -265,6 +273,12 @@ router.get(
   authenticate,
   userAuthorization,
   LinkController.userAllConnections
+)
+router.get(
+  '/link/find/cards/favourites/:userId',
+  authenticate,
+  userAuthorization,
+  LinkController.userFavouriteLinks
 )
 router.get(
   '/link/find/user/accepted/:userId',

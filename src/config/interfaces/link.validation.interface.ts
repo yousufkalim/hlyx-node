@@ -11,6 +11,7 @@ export interface IArrayLinkWithBaseInfo {
 
 export interface ILinkWithBaseInfo {
   cardId: string
+  linkId?: string
   slug?: string | null
   publicCard?: boolean
   userAvatar?: string

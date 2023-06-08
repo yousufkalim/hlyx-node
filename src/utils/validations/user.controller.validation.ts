@@ -5,7 +5,7 @@ import {
 } from '../../config/interfaces/user.validation.interface'
 import { stringLengths } from '../../config/stringLengths'
 import { stateAbbreviations } from '../../config/stateAbbreviations'
-import { twoFactorAuthTypes } from '../../config/enumTypes'
+import { connectViaPersonFilters, twoFactorAuthTypes } from '../../config/enumTypes'
 
 /**
  *
@@ -42,7 +42,8 @@ export const validateUserPreferences = (
     connectionViaProfileLink: Joi.boolean(),
     connectionViaQRCode: Joi.boolean(),
     connectionViaPerson: Joi.boolean(),
-    connectionViaContacts: Joi.boolean()
+    connectionViaContacts: Joi.boolean(),
+    personFilter: Joi.string().valid(...Object.values(connectViaPersonFilters))
   })
   return userPreferenceSchema.validate(userPreferencePayload)?.error?.message
 }

@@ -34,9 +34,11 @@ class CardController extends BaseController {
           cardName: true,
           coverPhoto: true,
           slug: true,
+          profileLayout: true,
           publicCard: true,
           activeCard: true,
           templateId: true,
+          companyIcon: true,
           userAvatar: true,
           fullName: true,
           profTitle: true,
@@ -59,7 +61,7 @@ class CardController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
-      console.error(error)
+      console.error(error.message)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
@@ -84,6 +86,8 @@ class CardController extends BaseController {
           },
           coverPhoto: true,
           companyIcon: true,
+          profileLayout: true,
+          brandedCoverPhoto: true,
           company: true,
           fullName: true,
           profTitle: true,
@@ -195,8 +199,8 @@ class CardController extends BaseController {
             select: {
               academicLevel: true,
               schoolName: true,
-              startYear: true,
-              graduationYear: true,
+              startDate: true,
+              endDate: true,
               academicFocus: true,
               degreeType: true
             }
@@ -204,7 +208,8 @@ class CardController extends BaseController {
           accolades: {
             select: {
               title: true,
-              fromWho: true,
+              designationType: true,
+              organization: true,
               startDate: true,
               endDate: true
             }
@@ -213,8 +218,8 @@ class CardController extends BaseController {
             select: {
               title: true,
               description: true,
-              startYear: true,
-              issuedYear: true
+              startDate: true,
+              endDate: true
             }
           },
           businessGoals: {
@@ -945,6 +950,14 @@ class CardController extends BaseController {
       // Check one-to-many relations
       // Education
       if (params.education) {
+        for (const edu of params.education) {
+          if (edu.startDate) {
+            edu.startDate = new Date(edu.startDate)
+          }
+          if (edu.endDate) {
+            edu.endDate = new Date(edu.endDate)
+          }
+        }
         params.education = {
           create: params.education
         }
@@ -967,6 +980,14 @@ class CardController extends BaseController {
       }
       // Achievements
       if (params.achievements) {
+        for (const achievement of params.achievements) {
+          if (achievement.startDate) {
+            achievement.startDate = new Date(achievement.startDate)
+          }
+          if (achievement.endDate) {
+            achievement.endDate = new Date(achievement.endDate)
+          }
+        }
         params.achievements = {
           create: params.achievements
         }
@@ -1458,7 +1479,6 @@ class CardController extends BaseController {
         cardName,
         country,
         profTitle,
-        profileLayout,
         city,
         company,
         industry,
@@ -1509,7 +1529,6 @@ class CardController extends BaseController {
         fullName,
         cardName,
         city,
-        profileLayout,
         country,
         state,
         zipcode,
@@ -1521,6 +1540,7 @@ class CardController extends BaseController {
         additionalLinks,
         calendars
       }
+
       const cardContactValidationError = validateCardContactPage(cardContactData)
       if (cardContactValidationError) {
         return res.status(400).json({
@@ -1637,6 +1657,35 @@ class CardController extends BaseController {
         )
 
         cardAboutData.companyIcon = companyIconPath
+      }
+
+      /*  ====  Validation for Branded Cover Photo  ===== */
+      const brandedCover = req.files?.brandedCoverPhoto as UploadedFile
+      if (brandedCover) {
+        // Verify Acceptable MIME Type
+        if (!ACCEPTABLE_MIME_TYPES.includes(brandedCover.mimetype)) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.INVALID_MIME_TYPE
+          })
+        }
+        // Verify Image Size
+        if (brandedCover.size > MAX_BYTES) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.FILE_SIZE_OVER_10
+          })
+        }
+
+        const brandCoverPath = await awsUploadFile(
+          brandedCover.data,
+          req.body.id,
+          'company-icon',
+          brandedCover.name,
+          brandedCover.mimetype
+        )
+
+        cardAboutData.brandedCoverPhoto = brandCoverPath
       }
 
       const data = { ...cardContactData, ...cardAboutData }

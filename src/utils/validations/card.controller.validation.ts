@@ -6,7 +6,8 @@ import {
   IValidateCardAboutPage,
   IValidateCardServices,
   IValidateCardPortfolio,
-  IValidateCardSlug
+  IValidateCardSlug,
+  IValidateCardType
 } from '../../config/interfaces/card.validation.interface'
 import { stringLengths } from '../../config/stringLengths'
 import {
@@ -14,6 +15,7 @@ import {
   academicLevels,
   additionalLinksType,
   degreeTypes,
+  designationType,
   businessGoalsStatus,
   businessNeedsStatus,
   servicesTypes,
@@ -63,9 +65,6 @@ export const validateCardContactPage = (
   const contactPageSchema = Joi.object({
     fullName: Joi.string().max(stringLengths.NAME_MAX).required(),
     cardName: Joi.string().max(stringLengths.NAME_MAX).required(),
-    profileLayout: Joi.string()
-      .valid(...Object.values(profileLayoutTypes))
-      .required(),
     headerPhoto: Joi.string(),
     emails: Joi.array()
       .max(arrayLimits.MAX_EMAILS)
@@ -158,6 +157,15 @@ export const validateCardContactPage = (
   return contactPageSchema.validate(cardContactPagePayload)?.error?.message
 }
 
+export const validateCardType = (cardContactPagePayload: IValidateCardType): string | undefined => {
+  const contactPageSchema = Joi.object({
+    profileLayout: Joi.string()
+      .valid(...Object.values(profileLayoutTypes))
+      .required()
+  })
+  return contactPageSchema.validate(cardContactPagePayload)?.error?.message
+}
+
 /**
  *
  * @param cardAboutPagePayload
@@ -178,16 +186,12 @@ export const validateCardAboutPage = (
         Joi.object({
           academicLevel: Joi.string().valid(...Object.values(academicLevels)),
           schoolName: Joi.string().max(stringLengths.SCHOOL_NAME_MAX).required(),
-          startYear: Joi.string()
-            .min(4)
-            .max(4)
-            .pattern(/^[0-9]+$/),
-          graduationYear: Joi.string()
-            .min(4)
-            .max(4)
-            .pattern(/^[0-9]+$/)
-            .allow('Present'),
+          startDate: Joi.date().required(),
+          endDate: Joi.date().allow('Present'),
           academicFocus: Joi.string().max(stringLengths.SCHOOL_ACADEMIC_CONC_MAX),
+          licenseNumber: Joi.number()
+            .when('academicLevel', { is: 'Other', then: Joi.required() })
+            .max(stringLengths.LICENSE_NUMBER_MAX),
           degreeType: Joi.string().valid(...Object.values(degreeTypes))
         })
       ),
@@ -196,8 +200,9 @@ export const validateCardAboutPage = (
       .items(
         Joi.object({
           title: Joi.string().max(stringLengths.AWARDS_TITLES_MAX).required(),
-          fromWho: Joi.string().max(stringLengths.AWARDS_ISSUED_BY_MAX),
-          startDate: Joi.date(),
+          designationType: Joi.string().valid(...Object.values(designationType)),
+          organization: Joi.string(),
+          startDate: Joi.date().required(),
           endDate: Joi.date().allow('Present')
         })
       ),
@@ -206,16 +211,9 @@ export const validateCardAboutPage = (
       .items(
         Joi.object({
           title: Joi.string().max(stringLengths.AWARDS_TITLES_MAX).required(),
-          startYear: Joi.string()
-            .min(4)
-            .max(4)
-            .pattern(/^[0-9]+$/),
-          issuedYear: Joi.string()
-            .min(4)
-            .max(4)
-            .pattern(/^[0-9]+$/)
-            .allow('Present'),
-          description: Joi.string().max(stringLengths.AWARDS_DESCRIPTION_MAX)
+          startDate: Joi.date().required(),
+          endDate: Joi.date().allow('Present'),
+          description: Joi.string().max(stringLengths.AWARDS_DESCRIPTION_MAX).required()
         })
       ),
     businessGoals: Joi.array()
@@ -227,9 +225,9 @@ export const validateCardAboutPage = (
             .required(),
           title: Joi.string().max(stringLengths.BUSINESS_GOAL_NEEDS_TITLE).required(),
           percentComplete: Joi.number().integer().min(0).max(100).required(),
-          startDate: Joi.date(),
+          startDate: Joi.date().required(),
           endDate: Joi.date(),
-          description: Joi.string().max(stringLengths.BUSINESS_GOAL_NEEDS_DESC)
+          description: Joi.string().max(stringLengths.BUSINESS_GOAL_NEEDS_DESC).required()
         })
       ),
     businessNeeds: Joi.array()
@@ -275,9 +273,10 @@ export const validateCardServices = (
             .valid(...Object.values(servicesTypes))
             .required(),
           title: Joi.string().max(stringLengths.SERVICES_TITLE).required(),
-          subtitle: Joi.string().max(stringLengths.SERVICES_SUBTITLE),
+          subtitle: Joi.string().max(stringLengths.SERVICES_SUBTITLE).required(),
           details: Joi.string().max(stringLengths.SERVICES_DETAILS),
-          positioning: Joi.number().integer().min(0).max(arrayLimits.MAX_SERVICES).required()
+          url: Joi.string().max(stringLengths.WEBSITES_MAX).hostname(),
+          positioning: Joi.number().integer().min(0).max(arrayLimits.MAX_PORTFOLIO).required()
         })
       )
       .required()

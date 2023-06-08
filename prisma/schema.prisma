@@ -63,6 +63,11 @@ model UserBio {
   groups               GroupsOnUsers[]
   GroupMessages        GroupMessages[]
 
+  // Blocked users
+  blockedUserId String?
+  blockedUser   UserBio?  @relation("BlockedUsers", fields: [blockedUserId], references: [id])
+  blockedUsers  UserBio[] @relation("BlockedUsers")
+
   // Required to link with User
   @@unique([id, email, phone])
   // Required to link with Card
@@ -109,15 +114,16 @@ model GroupMessages {
 }
 
 model UserPreferences {
-  id                       String            @id @default(uuid())
-  twoFactorAuth            TwoFactorAuthType @default(none)
-  allCardsPrivate          Boolean           @default(false)
-  connectionViaProfileLink Boolean           @default(false)
-  connectionViaQRCode      Boolean           @default(false)
-  connectionViaPerson      Boolean           @default(false)
-  connectionViaContacts    Boolean           @default(false)
-  User                     UserAuth          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId                   String            @unique
+  id                       String                      @id @default(uuid())
+  twoFactorAuth            TwoFactorAuthType           @default(none)
+  allCardsPrivate          Boolean                     @default(false)
+  connectionViaProfileLink Boolean                     @default(false)
+  connectionViaQRCode      Boolean                     @default(false)
+  connectionViaContacts    Boolean                     @default(false)
+  connectionViaPerson      Boolean                     @default(false)
+  personFilter             ConnectionViaPersonFilters?
+  User                     UserAuth                    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId                   String                      @unique
 }
 
 model UserNotification {
@@ -163,6 +169,7 @@ model Card {
   userAvatar        String
   coverPhoto        String?
   coverPhotos       CardCoverPhotos[]
+  brandedCoverPhoto String?
   companyIcon       String?
   companyIcons      CardCompanyIcons[]
   fullName          String
@@ -182,10 +189,10 @@ model Card {
   additionalLinks   CardAdditionalLinks[]
   // About Page
   about             String?
-  company           String
-  profTitle         String
-  occupation        String
-  industry          String
+  company           String?
+  profTitle         String?
+  occupation        String?
+  industry          String?
   education         CardEducations[]
   accolades         CardAccolades[]
   achievements      CardAchievements[]
@@ -267,34 +274,36 @@ model CardAdditionalLinks {
 }
 
 model CardEducations {
-  id             String      @id @default(uuid())
-  academicLevel  String?
-  schoolName     String
-  startYear      String?
-  graduationYear String?
-  academicFocus  String?
-  degreeType     DegreeType?
-  Card           Card        @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
-  cardId         String
+  id            String      @id @default(uuid())
+  academicLevel String
+  schoolName    String
+  startDate     DateTime
+  endDate       DateTime?
+  academicFocus String
+  degreeType    DegreeType?
+  licenseNumber Int?
+  Card          Card        @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
+  cardId        String
 }
 
 model CardAccolades {
-  id        String    @id @default(uuid())
-  title     String
-  fromWho   String?
-  startDate DateTime?
-  endDate   DateTime?
-  Card      Card      @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
-  cardId    String
+  id              String          @id @default(uuid())
+  title           String
+  designationType DesignationType
+  organization    String?
+  startDate       DateTime
+  endDate         DateTime?
+  Card            Card            @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
+  cardId          String
 }
 
 model CardAchievements {
-  id          String  @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
-  startYear   String?
-  issuedYear  String?
-  description String?
-  Card        Card    @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
+  startDate   DateTime
+  endDate     DateTime?
+  description String
+  Card        Card      @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
   cardId      String
 }
 
@@ -305,7 +314,7 @@ model CardBusinessGoals {
   percentComplete Int                 @default(0)
   startDate       DateTime            @default(now())
   endDate         DateTime?
-  description     String?
+  description     String
   Card            Card                @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
   cardId          String
 }
@@ -324,20 +333,21 @@ model CardServices {
   id          String       @id @default(uuid())
   type        ServiceTypes
   title       String
-  subtitle    String?
+  subtitle    String
   details     String?
+  url         String?
   positioning Int
   Card        Card         @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
   cardId      String
 }
 
 model CardPortfolio {
-  id          String  @id @default(uuid())
+  id          String @id @default(uuid())
   image       String
-  title       String?
-  details     String?
+  title       String
+  details     String
   positioning Int
-  Card        Card    @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
+  Card        Card   @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
   cardId      String
 }
 
@@ -434,10 +444,12 @@ model Contact {
   jobTitle     String?
   phone        String
   email        String
-  location     String?
+  city         String?
+  state        String?
   message      String?
   notes        String?
   createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model Notification {
@@ -497,6 +509,10 @@ enum DegreeType {
   Bachelors
   Masters
   Doctorate
+  License
+  Certificate
+  Permit
+  Registration
 }
 
 enum AdditionalLinksType {
@@ -538,6 +554,7 @@ enum LinkType {
   declined
   blocked
   muted
+  archived
 }
 
 enum NotificationStatus {
@@ -568,4 +585,14 @@ enum GroupStatus {
   active
   muted
   archived
+}
+
+enum ConnectionViaPersonFilters {
+  auto
+  manual
+}
+
+enum DesignationType {
+  receivedAt
+  receivedFrom
 }

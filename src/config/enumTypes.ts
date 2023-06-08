@@ -2,6 +2,8 @@ export const emailTypes = ['work', 'personal']
 
 export const twoFactorAuthTypes = ['none', 'phone', 'email']
 
+export const connectViaPersonFilters = ['auto', 'manual']
+
 export const phoneTypes = ['home', 'work', 'mobile', 'main', 'fax', 'direct', 'office']
 
 export const academicLevels = [
@@ -12,7 +14,18 @@ export const academicLevels = [
   'Other'
 ]
 
-export const degreeTypes = ['Associates', 'Bachelors', 'Masters', 'Doctorate']
+export const degreeTypes = [
+  'Associates',
+  'Bachelors',
+  'Masters',
+  'Doctorate',
+  'License',
+  'Certificate',
+  'Permit',
+  'Registration'
+]
+
+export const designationType = ['receivedAt', 'receivedFrom']
 
 export const profileLayoutTypes = ['minimal', 'premium']
 

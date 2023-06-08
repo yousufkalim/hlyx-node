@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "Card" ALTER COLUMN "company" DROP NOT NULL,
+ALTER COLUMN "profTitle" DROP NOT NULL,
+ALTER COLUMN "occupation" DROP NOT NULL,
+ALTER COLUMN "industry" DROP NOT NULL;

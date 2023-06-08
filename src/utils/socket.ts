@@ -26,9 +26,9 @@ io.on('connection', (socketInstance) => {
   })
 })
 
-export const getSocket = (): Socket => {
+export const getSocket = (): Socket | null => {
   if (!socket) {
-    throw new Error('Socket has not been initialized yet')
+    return null
   }
 
   return socket

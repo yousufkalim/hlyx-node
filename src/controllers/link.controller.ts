@@ -11,6 +11,7 @@ import {
 import {
   IArrayLink,
   IArrayLinkWithBaseInfo,
+  ILinks,
   ILinkWithBaseInfo
 } from '../config/interfaces/link.validation.interface'
 import { codes } from '../config/codes'
@@ -83,6 +84,47 @@ class LinkController extends BaseController {
         }
       }
 
+      // Checking whether users are permanently blocked
+      const foundUserOne = await db.userBio.findUnique({
+        where: { id: foundCardOne.userId },
+        select: {
+          id: true,
+          blockedUsers: true
+        }
+      })
+      const foundUserTwo = await db.userBio.findUnique({
+        where: { id: foundCardTwo.userId },
+        select: {
+          id: true,
+          blockedUsers: true
+        }
+      })
+
+      const requesterUser = foundUserOne?.id === req.user?.id ? foundUserOne : foundUserTwo
+      const recipientUser = foundUserOne?.id === req.user?.id ? foundUserTwo : foundUserOne
+
+      // Find blocked users list of both users
+      const isBlockedByYou = requesterUser?.blockedUsers.find(
+        (user) => user.id === recipientUser?.id
+      )
+      const isBlockedByRecipient = recipientUser?.blockedUsers.find(
+        (user) => user.id === requesterUser?.id
+      )
+      // You blocked ther other user
+      if (isBlockedByYou) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.PERMANENT_BLOCKED_YOU
+        })
+      }
+      // You are blocked by other user
+      if (isBlockedByRecipient) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.PERMANENT_BLOCKED_OTHER
+        })
+      }
+
       // Verify status
       if (status !== 'requested' && status !== 'blocked') {
         return res.status(400).json({
@@ -127,7 +169,7 @@ class LinkController extends BaseController {
             create: {
               cardTwo: req.card.recipient,
               status,
-              recentChangeBy: cardOne
+              recentChangeBy: req.card.requester
             }
           }
         },
@@ -162,7 +204,8 @@ class LinkController extends BaseController {
           cardId: req.card.recipient,
           directsTo: 'linkRequest',
           message,
-          idDirectedTo: linkId
+          idDirectedTo: linkId,
+          notificationType: 'newLinkRequest'
         }
 
         const notification = await notificationController.createNotification(reqNotification)
@@ -228,7 +271,11 @@ class LinkController extends BaseController {
       switch (status) {
         case 'requested': {
           // Verify status is currently 'declined'
-          if (updateMe.status === 'blocked' || updateMe.status === 'accepted') {
+          if (
+            updateMe.status === 'blocked' ||
+            updateMe.status === 'accepted' ||
+            updateMe.status === 'archived'
+          ) {
             return res.status(400).json({
               code: codes.BAD_REQUEST,
               message: messages.INVALID_LINK_STATUS
@@ -271,6 +318,16 @@ class LinkController extends BaseController {
           }
           break
         }
+        case 'archived': {
+          // Verify status is currently 'requested'
+          if (updateMe.status === 'requested' || updateMe.status === 'archived') {
+            return res.status(400).json({
+              code: codes.BAD_REQUEST,
+              message: messages.INVALID_LINK_STATUS
+            })
+          }
+          break
+        }
         case 'blocked': {
           // Check if already blocked to trigger bothBlock boolean
           if (updateMe.status === 'blocked' && req.card.requester !== updateMe.recentChangeBy) {
@@ -301,6 +358,13 @@ class LinkController extends BaseController {
             return res.status(400).json({
               code: codes.BAD_REQUEST,
               message: messages.MUTE_INVALID
+            })
+          }
+          // Verify status is currently not 'Archived'
+          if (updateMe.status === 'archived') {
+            return res.status(400).json({
+              code: codes.BAD_REQUEST,
+              message: messages.INVALID_LINK_STATUS
             })
           }
           if (req.link.status === 'muted' && req.card.requester !== updateMe.recentChangeBy) {
@@ -364,45 +428,247 @@ class LinkController extends BaseController {
   }
 
   // Unblock
-  unblockLink = async (req: RequestLink, res: Response): Promise<Response> => {
+  permanentBlock = async (req: RequestLink, res: Response): Promise<Response> => {
     try {
       // Confirm req.card & req.link are set
       if (!req.card?.requester || !req.card?.recipient || !req.link) {
         throw Error(messages.LINK_MIDDLEWARE)
       }
 
-      // Verify Status
-      if (req.link.status !== 'blocked') {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: messages.LINK_NOT_BLOCKED
+      const recipientCard = await db.card.findUnique({
+        where: {
+          cardId: req.card.recipient
+        },
+        select: {
+          userId: true
+        }
+      })
+
+      const requesterCard = await db.card.findUnique({
+        where: {
+          cardId: req.card.requester
+        },
+        select: {
+          userId: true
+        }
+      })
+
+      if (!recipientCard || !requesterCard) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.CARD_NOT_FOUND
         })
       }
 
-      // If both users have blocked then undo flag
-      if (req.link.bothUserBlock) {
-        await db.link.update({
-          where: {
-            id: req.link.id
-          },
-          data: {
-            bothUserBlock: false,
-            recentChangeBy: req.card.recipient // Sets it to as if the other user just blocked
+      // switch (req.link.status) {
+      //   case 'accepted':
+      //     break
+      //   case 'requested':
+      //     // Try Declining Instead
+      //     if (req.card.recipient === req.link.recentChangeBy) {
+      //       req.body.status = 'declined'
+      //       return await this.update(req, res)
+      //     }
+      //     break
+      //   case 'declined':
+      //     // Don't let user who was declined to delete the link (otherwise can resend link request)
+      //     if (req.card.requester !== req.link.recentChangeBy) {
+      //       return res.status(400).json({
+      //         code: codes.BAD_REQUEST,
+      //         message: messages.INVALID_LINK_STATUS
+      //       })
+      //     }
+      //     break
+      //   case 'blocked':
+      //     return await this.unblockLink(req, res)
+      // }
+
+      // User that will block the other user
+      const requesterUser = await db.userBio.findUnique({
+        where: {
+          id: requesterCard.userId
+        },
+        select: {
+          id: true,
+          blockedUsers: true,
+          cards: {
+            select: {
+              cardId: true
+            }
           }
-        })
-      } else if (req.card.requester === req.link.recentChangeBy) {
-        // If only one user has blocked, delete link
-        await db.link.delete({ where: { id: req.link.id } })
-      } else {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: messages.LINK_NOT_BLOCKED
+        }
+      })
+
+      // User that will be blocked
+      const recipientUser = await db.userBio.findUnique({
+        where: {
+          id: recipientCard.userId
+        },
+        select: {
+          id: true,
+          cards: {
+            select: {
+              cardId: true
+            }
+          }
+        }
+      })
+
+      if (!requesterUser || !recipientUser) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.USER_NOT_FOUND
         })
       }
+
+      const myCardIds = requesterUser.cards.map((item) => item.cardId)
+      const otherCardIds = recipientUser.cards.map((item) => item.cardId)
+
+      // All links of both user's cards (for deletion purpose)
+      const allLinks = []
+      if (requesterUser.cards.length > 0) {
+        for (const card of otherCardIds) {
+          const links = await db.link.findMany({
+            where: {
+              OR: [
+                {
+                  cardOne: card,
+                  cardTwo: {
+                    in: myCardIds
+                  }
+                },
+                {
+                  cardOne: {
+                    in: myCardIds
+                  },
+                  cardTwo: card
+                }
+              ]
+            },
+            select: {
+              id: true,
+              status: true
+            }
+          })
+          if (links) {
+            allLinks.push(...links)
+          }
+        }
+      }
+
+      // delete recipientUser['userName']
+      const { id } = recipientUser
+
+      // Delete Link and add user to blocked list
+      await db.userBio.update({
+        where: {
+          id: requesterCard.userId
+        },
+        data: {
+          blockedUsers: {
+            connect: { id }
+          }
+        }
+      })
+      if (allLinks) {
+        for (const link of allLinks) {
+          await db.link.delete({
+            where: {
+              id: link.id
+            }
+          })
+        }
+      }
+      // await db.link.delete({ where: { id: req.link.id } })
+
       return res.status(200).json({
         code: codes.OK,
         message: messages.SUCCESS
       })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Unblock
+  unblockLink = async (req: RequestLink, res: Response): Promise<Response> => {
+    try {
+      const { links } = req.body
+      if (links?.length > 0) {
+        const user = await db.userBio.findUnique({
+          where: { id: req.user?.id },
+          select: {
+            cards: {
+              select: {
+                cardId: true
+              }
+            }
+          }
+        })
+
+        const allLinks: ILinks[] = []
+        // Get all links
+        for (const link of links) {
+          const foundLink = await db.link.findUnique({ where: { id: link } })
+          if (!foundLink) {
+            return res.status(404).json({
+              code: codes.NOT_FOUND,
+              message: messages.LINK_NOT_FOUND
+            })
+          }
+          if (foundLink.status !== 'blocked') {
+            return res.status(404).json({
+              code: codes.NOT_FOUND,
+              message: messages.LINK_NOT_BLOCKED
+            })
+          }
+          allLinks.push(foundLink)
+        }
+        for (const link of allLinks) {
+          const userCards = user?.cards.map((item) => item.cardId)
+          // Confirm req.card & req.link are set
+          // if (!req.card?.requester || !req.card?.recipient || !req.link) {
+          //   throw Error(messages.LINK_MIDDLEWARE)
+          // }
+
+          const requester = userCards?.includes(link.cardOne) ? link.cardOne : link.cardTwo
+          // If both users have blocked then undo flag
+          if (link.bothUserBlock) {
+            const recipient = userCards?.includes(link.cardOne) ? link.cardTwo : link.cardOne
+
+            await db.link.update({
+              where: {
+                id: link.id
+              },
+              data: {
+                bothUserBlock: false,
+                recentChangeBy: recipient // Sets it to as if the other user just blocked
+              }
+            })
+          } else if (requester === link.recentChangeBy) {
+            // If only one user has blocked, delete link
+            await db.link.delete({ where: { id: link.id } })
+          } else {
+            return res.status(400).json({
+              code: codes.BAD_REQUEST,
+              message: messages.LINK_NOT_BLOCKED
+            })
+          }
+        }
+
+        return res.status(200).json({
+          code: codes.OK,
+          message: messages.SUCCESS
+        })
+      } else {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.LINKS_EMPTY
+        })
+      }
     } catch (error: any) {
       console.error(error)
       return res
@@ -870,37 +1136,37 @@ class LinkController extends BaseController {
       const query = this.#getSearchQuery(req.query)
       const { search, searchBy: searchType } = query
       // Loop through all cards, find links and return
-      const favorites: IArrayLink[] = []
+      // const favorites: IArrayLink[] = []
       const general: IArrayLink[] = []
 
       for (const card of cards) {
         // Favorites
-        const favoriteLinks = await db.link.findMany({
-          where: {
-            OR: [
-              {
-                cardOne: card.cardId,
-                status: 'accepted',
-                cardOneFavorite: true
-              },
-              {
-                cardTwo: card.cardId,
-                status: 'accepted',
-                cardTwoFavorite: true
-              }
-            ]
-          },
-          select: {
-            id: true,
-            cardOne: true,
-            cardTwo: true,
-            updatedAt: true
-          }
-        })
-        favorites.push({
-          cardId: card.cardId,
-          Links: favoriteLinks
-        })
+        // const favoriteLinks = await db.link.findMany({
+        //   where: {
+        //     OR: [
+        //       {
+        //         cardOne: card.cardId,
+        //         status: 'accepted',
+        //         cardOneFavorite: true
+        //       },
+        //       {
+        //         cardTwo: card.cardId,
+        //         status: 'accepted',
+        //         cardTwoFavorite: true
+        //       }
+        //     ]
+        //   },
+        //   select: {
+        //     id: true,
+        //     cardOne: true,
+        //     cardTwo: true,
+        //     updatedAt: true
+        //   }
+        // })
+        // favorites.push({
+        //   cardId: card.cardId,
+        //   Links: favoriteLinks
+        // })
 
         // General
         let generalLinks: IGeneralLinks[] = []
@@ -939,12 +1205,74 @@ class LinkController extends BaseController {
       }
 
       // Grab base info and return
-      const favoriteLinks = await this.#getBaseInfoAllCards(favorites)
+      // const favoriteLinks = await this.#getBaseInfoAllCards(favorites)
       const generalLinks = await this.#getBaseInfoAllCards(general)
 
       return res.status(200).json({
-        favoriteLinks,
+        // favoriteLinks,
         generalLinks,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Find all links associated with user
+  userFavouriteLinks = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      // Find all cards associated with user
+      const cards = await db.card.findMany({
+        where: {
+          userId: req.params.userId
+        },
+        select: {
+          cardId: true
+        }
+      })
+
+      // Loop through all cards, find links and return
+      const favorites: IArrayLink[] = []
+
+      for (const card of cards) {
+        // Favorites
+        const favoriteLinks = await db.link.findMany({
+          where: {
+            OR: [
+              {
+                cardOne: card.cardId,
+                status: 'accepted',
+                cardOneFavorite: true
+              },
+              {
+                cardTwo: card.cardId,
+                status: 'accepted',
+                cardTwoFavorite: true
+              }
+            ]
+          },
+          select: {
+            id: true,
+            cardOne: true,
+            cardTwo: true,
+            updatedAt: true
+          }
+        })
+        favorites.push({
+          cardId: card.cardId,
+          Links: favoriteLinks
+        })
+      }
+
+      // Grab base info and return
+      const favoriteLinks = await this.#getBaseInfoAllCards(favorites)
+
+      return res.status(200).json({
+        favoriteLinks,
         code: codes.OK,
         message: messages.SUCCESS
       })
@@ -1666,7 +1994,7 @@ class LinkController extends BaseController {
         if (link.cardOne === userCard.cardId) {
           otherUserId = link.cardTwo
         }
-        const otherCard = await db.card.findUnique({
+        const otherCard: ILinkWithBaseInfo | null = await db.card.findUnique({
           where: {
             cardId: otherUserId
           },
@@ -1685,6 +2013,7 @@ class LinkController extends BaseController {
         if (!otherCard) {
           throw Error(messages.LINK_CARD_ID_NOT_FOUND)
         }
+        otherCard.linkId = link.id
         linkInfo.push(otherCard)
       }
       return linkInfo

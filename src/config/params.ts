@@ -21,7 +21,8 @@ export const userPreferenceParams = [
   'connectionViaProfileLink',
   'connectionViaQRCode',
   'connectionViaPerson',
-  'connectionViaContacts'
+  'connectionViaContacts',
+  'personFilter'
 ]
 
 export const userNotificationParams = [
@@ -117,7 +118,8 @@ export const sharedContactControllerParams = [
   'phone',
   'email',
   'message',
-  'location',
+  'city',
+  'state',
   'notes'
 ]
 

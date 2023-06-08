@@ -112,7 +112,7 @@ class Groups extends BaseController {
         })
       }
 
-      const group = await db.group.findFirst({
+      const group = await db.group.findUnique({
         where: {
           groupName: params.groupName
         }
@@ -435,7 +435,9 @@ class Groups extends BaseController {
       const sockets = getSocket()
       console.log('Socket ', sockets)
 
-      sockets.emit('update-group', { data: { message: 'testing' } })
+      if (sockets) {
+        sockets.emit('update-group', { data: { message: 'testing' } })
+      }
 
       return res.status(200).json({
         code: codes.OK,

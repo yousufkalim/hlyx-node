@@ -57,7 +57,7 @@ export interface IValidateCardContactPage {
   fullName: string
   cardName: string
   publicCard?: boolean
-  profileLayout: IProfileLayoutEnum
+  profileLayout?: IProfileLayoutEnum
   isPrivate?: boolean
   emails?: ICardEmails[]
   phones?: ICardPhones[]
@@ -70,6 +70,10 @@ export interface IValidateCardContactPage {
   zipcode?: string
   socialMedias?: ICardSocialMedias[]
   additionalLinks?: ICardAdditionalLinks[]
+}
+
+export interface IValidateCardType {
+  profileLayout: IProfileLayoutEnum
 }
 
 export interface IValidateCardAboutPage {
@@ -176,18 +180,20 @@ interface ICardEducation {
   id: string
   academicLevel?: string
   schoolName: string
-  startYear?: string
-  graduationYear?: string
+  startDate: Date
+  endDate?: Date
   academicFocus?: string
   degreeType?: string
+  licenseNumber?: string
   cardId: string
 }
 
 interface ICardAccolades {
   id: string
   title: string
-  fromWho?: string
-  startDate?: Date
+  designationType: string
+  organization?: string
+  startDate: Date
   endDate?: Date
   cardId: string
 }
@@ -195,10 +201,9 @@ interface ICardAccolades {
 interface ICardAchievements {
   id: string
   title: string
-  issuedBy?: string
-  startYear?: string
-  issuedYear?: string
-  description?: string
+  startDate: string
+  endDate?: string
+  description: string
   cardId: string
 }
 
@@ -207,7 +212,7 @@ interface ICardBusinessGoals {
   status: string
   title: string
   percentComplete: number
-  startDate?: Date
+  startDate: Date
   endDate?: Date
   description?: string
   cardId: string
@@ -234,9 +239,9 @@ interface ICardServices {
 
 interface ICardPortfolio {
   id: string
-  image: string
-  title?: string
-  details?: string
+  images: string
+  title: string
+  details: string
   positioning: number
   cardId: string
 }
