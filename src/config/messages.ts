@@ -21,6 +21,7 @@ export const messages = {
   EMAIL_REQUIRED: 'Email is required',
   EMAIL_NOT_FOUND: 'Email was not found',
   EMAIL_NOT_VERIFIED: 'Email has not been verified',
+  EMAIL_VERIFIED: 'Email verified successfully',
   PHONE_NOT_VERIFIED: 'Phone has not been verified',
   PHONE_UPDATED: 'Phone number updated',
   INVALID_EMAIL: 'Email is not valid',
