@@ -121,5 +121,6 @@ jobs:
           script: |
             cd ${{ env.RELEASE_PATH }}/current
             yarn install
+            npx prisma generate
             pm2 delete -s ${{ env.APP_NAME }}-${{ env.NODE_ENV }} || :
             pm2 start dist/src/server.js --name "${{ env.APP_NAME }}-${{ env.NODE_ENV }}" --update-env --env ${{ env.NODE_ENV }}
