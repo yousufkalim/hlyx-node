@@ -107,7 +107,15 @@ export const cardAboutPageParams = [
   'motto'
 ]
 
-export const linkControllerParams = ['cardOne', 'cardTwo', 'status', 'message', 'note']
+export const linkControllerParams = [
+  'cardOne',
+  'cardTwo',
+  'status',
+  'message',
+  'metAt',
+  'event',
+  'note'
+]
 
 export const sharedContactControllerParams = [
   'cardId',
@@ -118,7 +126,9 @@ export const sharedContactControllerParams = [
   'email',
   'message',
   'location',
-  'notes'
+  'notes',
+  'metAt',
+  'event'
 ]
 
 export const groupControllerParams = [

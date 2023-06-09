@@ -24,6 +24,8 @@ export interface INewContactRequest {
       location?: string
       message?: string
       contactImage?: string
+      metAt?: string
+      event?: string
     }
   }
 }

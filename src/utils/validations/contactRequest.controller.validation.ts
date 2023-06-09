@@ -13,7 +13,7 @@ export const validateSharedContactCreate = (sharedContactPayload: IValidateConta
     fullName: Joi.string().min(stringLengths.FULL_NAME_MIN).max(stringLengths.FULL_NAME_MAX).required(),
     company: Joi.string().max(stringLengths.COMPANY_MAX),
     jobTitle: Joi.string().max(stringLengths.PROFESSIONAL_TITLE_MAX),
-    phone: Joi.string().min(stringLengths.PHONE_MIN).max(stringLengths.PHONE_MAX).required(),
+    phone: Joi.string().min(stringLengths.PHONE_MIN).max(stringLengths.PHONE_MAX).pattern(/^[0-9]+$/).required(),
     location: Joi.string().max(stringLengths.LOCATION_MAX),
     email: Joi.string().email({ tlds: { allow: false } }).required(),
     message: Joi.string().max(stringLengths.MESSAGE_MAX)

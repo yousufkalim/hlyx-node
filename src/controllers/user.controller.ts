@@ -519,7 +519,7 @@ class UserController extends BaseController {
         cardId,
         'qrcode',
         '',
-        '.png'
+        'image/png'
       )
 
       await db.card.update({

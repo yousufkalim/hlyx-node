@@ -90,5 +90,6 @@ export const messages = {
   GROUP_MEMBER_NOT_USER: 'You can only add the registered users in group',
   SHARED_CARD_USER_EMPTY: 'Please select links with you want to share profile card',
   SHARED_CARD_NOT_USER: 'Selected link not found',
-  EMAILER_ERROR: 'There was an error with one of the Sendgrid email routes'
+  EMAILER_ERROR: 'There was an error with one of the Sendgrid email routes',
+  SMS_ERROR: 'There was an error with one of the SMS routes'
 }

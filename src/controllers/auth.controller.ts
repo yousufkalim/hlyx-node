@@ -9,11 +9,7 @@ import { expirationTimes } from '../config/expirationTime'
 import BaseController from './base.controller'
 import { authControllerParams } from '../config/params'
 import { config } from '../config/env.config.validations'
-import {
-  sendCodeToPhone
-  // contactRequesterPhone,
-  // contactRecieverPhone
-} from '../utils/smsMessanger'
+import { sendCodeToPhone } from '../utils/smsMessanger'
 import { twilioClient } from '../utils/twilio'
 import {
   validateLogin,

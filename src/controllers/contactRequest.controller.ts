@@ -27,11 +27,16 @@ import {
   acceptContactEmailer
 } from '../utils/emailers'
 
+import {
+  contactRequesterPhone,
+  contactRecieverPhone
+} from '../utils/smsMessanger'
+
 class ContactRequestController extends BaseController {
   // Create new contact request
   create = async (req: Request, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, sharedContactControllerParams)
-    const { fullName, company, jobTitle, phone, email, location, message } = params
+    const { fullName, company, jobTitle, phone, email, location, message, metAt, event } = params
     try {
       // Validate input
       const validationError = validateSharedContactCreate(params)
@@ -51,6 +56,16 @@ class ContactRequestController extends BaseController {
         })
       }
 
+      /*
+        *
+        *
+        *
+        Validation for metAt and event required
+        *
+        *
+        *
+      */
+
       const data: INewContactRequest = {
         Contacts: {
           create: {
@@ -60,7 +75,9 @@ class ContactRequestController extends BaseController {
             phone,
             email,
             location,
-            message
+            message,
+            metAt,
+            event
           }
         }
       }
@@ -136,16 +153,18 @@ class ContactRequestController extends BaseController {
         throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
       }
 
-      // Send email if user allows
+      // Send email / text if user allows
       const user = await db.userAuth.findUnique({
         where: {
           id: card.userId
         },
         select: {
           email: true,
+          phone: true,
           userNotification: {
             select: {
-              newContactRequest: true
+              newContactRequest: true,
+              newContactRequestPhone: true
             }
           }
         }
@@ -153,6 +172,13 @@ class ContactRequestController extends BaseController {
       if (user?.userNotification?.newContactRequest) {
         await contactRequestEmailer(user.email, card.fullName, params.fullName, card.cardName)
       }
+      if (user?.userNotification?.newContactRequestPhone) {
+        await contactRecieverPhone(user.phone, card.fullName, params.fullName, card.cardName, data.Contacts.create.contactImage)
+      }
+      // Always send text to requester
+      const cardUrl = `https://hlyx.me/${card.cardId}`
+      console.log(card.qrCodeImage)
+      await contactRequesterPhone(params.phone, card.fullName, params.fullName, cardUrl, card.qrCodeImage)
 
       return res.status(200).json({
         contactId,
@@ -390,6 +416,44 @@ class ContactRequestController extends BaseController {
         },
         data: {
           notes
+        }
+      })
+
+      return res.status(200).json({
+        contact,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  updateDetails = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    const params = this.filterParams(req.body, sharedContactControllerParams)
+    const { metAt, event } = params
+    try {
+      /*
+        *
+        *
+        *
+        Validation for metAt and event required
+        *
+        *
+        *
+      */
+
+      // Update and return
+      const contact = await db.contact.update({
+        where: {
+          contactId: req.params.contactId
+        },
+        data: {
+          metAt,
+          event
         }
       })
 

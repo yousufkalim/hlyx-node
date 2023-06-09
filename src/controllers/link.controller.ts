@@ -34,7 +34,7 @@ class LinkController extends BaseController {
   // Create a link
   create = async (req: RequestLink, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, linkControllerParams)
-    const { cardOne, cardTwo, status, message } = params
+    const { cardOne, cardTwo, status, message, metAt, event } = params
     try {
       // Validate Input
       if (message) {
@@ -117,6 +117,16 @@ class LinkController extends BaseController {
         return await this.update(req, res)
       }
 
+      /*
+        *
+        *
+        *
+        Validation for metAt and event required
+        *
+        *
+        *
+      */
+
       // Create Link
       const card = await db.card.update({
         where: {
@@ -127,7 +137,9 @@ class LinkController extends BaseController {
             create: {
               cardTwo: req.card.recipient,
               status,
-              recentChangeBy: cardOne
+              recentChangeBy: cardOne,
+              metAt,
+              event
             }
           }
         },
@@ -352,6 +364,49 @@ class LinkController extends BaseController {
 
       return res.status(200).json({
         link,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Update metAt / event
+  updateDetails = async (req: RequestLink, res: Response): Promise<Response> => {
+    const params = this.filterParams(req.body, linkControllerParams)
+    const { metAt, event } = params
+    try {
+      // Confirm req.card & req.link are set
+      if (!req.card?.requester || !req.card?.recipient || !req.link) {
+        throw Error(messages.LINK_MIDDLEWARE)
+      }
+
+      /*
+        *
+        *
+        *
+        Validation for metAt and event required
+        *
+        *
+        *
+      */
+
+      // Update and return
+      await db.link.update({
+        where: {
+          id: req.link.id
+        },
+        data: {
+          metAt,
+          event
+        }
+      })
+
+      return res.status(200).json({
         code: codes.OK,
         message: messages.SUCCESS
       })
