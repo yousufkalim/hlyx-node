@@ -5,13 +5,14 @@ import { sgMail } from './sendgrid'
 import { messages } from '../config/messages'
 
 export const verifyEmailEmailer = async (email: string): Promise<VerificationInstance> => {
+  const baseUrl = config.get('baseUrl')
   return await twilioClient.verify.v2
     .services(config.get('email_verification_sid') as string)
     .verifications.create({
       channelConfiguration: {
         substitutions: {
           email,
-          callback_url: 'http://localhost:4000/api/v1/auth/verify-email-url'
+          callback_url: `${baseUrl}/api/v1/auth/verify-email-url`
         }
       },
       to: email,
