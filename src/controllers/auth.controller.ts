@@ -561,19 +561,18 @@ class AuthController extends BaseController {
       // Validate input
       const validationError = validateVerifyCode(params)
       if (validationError) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: validationError
-        })
+        return res.status(400).send(`<h1>${validationError}</h1>`)
       }
 
       // Verify User exists
       const user = await db.userAuth.findUnique({ where: { email } })
       if (!user) {
-        return res.status(404).json({
-          code: codes.NOT_FOUND,
-          message: `User with "${email}" does not exist`
-        })
+        // return res.status(404).json({
+        //   code: codes.NOT_FOUND,
+        //   message: `User with "${email}" does not exist`
+        // })
+
+        return res.status(404).send(`<h3>User with "${email}" does not exist</h3>`)
       }
 
       // Twilio verify
@@ -587,17 +586,11 @@ class AuthController extends BaseController {
         })
 
       if (!twilioFound) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: messages.TWILIO_NOT_FOUND
-        })
+        return res.send(`<h3>${messages.TWILIO_NOT_FOUND}</h3>`)
       }
 
       if (verification?.status !== 'approved') {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: messages.INVALID_CODE
-        })
+        return res.send(`<h3>${messages.INVALID_CODE}</h3>`)
       }
 
       // Update User and return
@@ -608,15 +601,11 @@ class AuthController extends BaseController {
         }
       })
 
-      return res.status(200).json({
-        isPhoneVerified: user.isPhoneVerified,
-        code: codes.OK,
-        message: messages.VERIFIED_SUCCESS
-      })
+      return res.status(200).send(`<h3>${messages.EMAIL_VERIFIED}</h3>`)
     } catch (error: any) {
       console.error(error)
       if (error.status) {
-        return res.status(error.status).json({ code: error.status, message: error.message })
+        return res.status(error.status).send(`<h3>${error.message}</h3>`)
       }
       return res
         .status(500)

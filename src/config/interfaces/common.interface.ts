@@ -1,3 +1,4 @@
+import { IContact } from './contactRequest.validation.interface'
 import { Request } from 'express'
 import { ILinks } from './link.validation.interface'
 
@@ -75,4 +76,9 @@ export interface IGeneralLinks {
   cardTwo: string
   cardOne: string
   id: string
+}
+
+export interface ICardContacts {
+  myCardId: string
+  contacts: IContact[] | []
 }

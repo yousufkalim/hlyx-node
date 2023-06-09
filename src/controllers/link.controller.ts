@@ -6,7 +6,8 @@ import {
   RequestUserAuth,
   RequestNotification,
   ISearch,
-  IGeneralLinks
+  IGeneralLinks,
+  ICardContacts
 } from '../config/interfaces/common.interface'
 import {
   IArrayLink,
@@ -30,6 +31,7 @@ import notificationController from './notification.controller'
 import { db } from '../utils/db'
 import { stringLengths } from '../config/stringLengths'
 import { linkRequestEmail } from '../utils/emailers'
+import { IContact } from '../config/interfaces/contactRequest.validation.interface'
 
 class LinkController extends BaseController {
   // Create a link
@@ -794,7 +796,6 @@ class LinkController extends BaseController {
       const { search, searchBy: searchType } = query
 
       let card
-
       // Get links when search apply
       if (search && searchType) {
         // Search by location links
@@ -1029,13 +1030,25 @@ class LinkController extends BaseController {
         })
       }
 
+      // Get card contacts
+      const cardContacts = await this.#getContactsOfCard(card.cardId, searchType, search)
       // Combine Links and grab info
       card.Links.push(...card.LinksDuplicate)
       const cardLinks = await this.#getInfoPerCard(card)
 
-      return res.status(200).json({
+      const links = {
         _count: cardLinks?.length,
-        cardLinks,
+        cardLinks
+      }
+
+      const contacts = {
+        _count: cardContacts?.length,
+        cardContacts
+      }
+
+      return res.status(200).json({
+        links,
+        contacts,
         code: codes.OK,
         message: messages.SUCCESS
       })
@@ -1066,6 +1079,7 @@ class LinkController extends BaseController {
       // Loop through all cards, find links and return
       const general: IArrayLink[] = []
       const connectedLinks: IArrayLink[] = []
+      const contacts: ICardContacts[] = []
 
       for (const card of cards) {
         // General
@@ -1124,6 +1138,13 @@ class LinkController extends BaseController {
           allLinks = response
         }
 
+        // Get card contacts of each card
+        const cardContacts = await this.#getContactsOfCard(card.cardId, searchType, search)
+        contacts.push({
+          myCardId: card.cardId,
+          contacts: cardContacts
+        })
+
         general.push({
           cardId: card.cardId,
           Links: generalLinks
@@ -1163,6 +1184,7 @@ class LinkController extends BaseController {
       return res.status(200).json({
         mutualLinks: mutualCards,
         generalLinks,
+        cardContacts: contacts,
         code: codes.OK,
         message: messages.SUCCESS
       })
@@ -2368,6 +2390,159 @@ class LinkController extends BaseController {
         }
       }
       return cards
+    } catch (error: any) {
+      console.error(error)
+    }
+  }
+
+  #getContactsOfCard = async (
+    cardId: string,
+    searchType: string | undefined,
+    search: string | undefined
+  ): Promise<IContact[] | any | undefined> => {
+    try {
+      if (searchType && search) {
+        if (searchType === 'location') {
+          const findCard = await db.card.findUnique({
+            where: {
+              cardId
+            },
+            select: {
+              _count: {
+                select: {
+                  Contacts: {
+                    where: {
+                      status: 'saved'
+                    }
+                  }
+                }
+              },
+              cardId: true,
+              Contacts: {
+                where: {
+                  status: 'saved',
+                  OR: [
+                    {
+                      city: {
+                        contains: search,
+                        mode: 'insensitive'
+                      }
+                    },
+                    {
+                      state: {
+                        contains: search,
+                        mode: 'insensitive'
+                      }
+                    }
+                  ]
+                },
+                select: {
+                  contactId: true,
+                  cardId: true,
+                  contactImage: true,
+                  status: true,
+                  fullName: true,
+                  company: true,
+                  jobTitle: true,
+                  phone: true,
+                  email: true,
+                  city: true,
+                  state: true,
+                  message: true,
+                  notes: true,
+                  createdAt: true
+                }
+              }
+            }
+          })
+          return findCard ? findCard.Contacts : []
+        } else if (searchType !== 'profTitle' && searchType !== 'tags') {
+          const findCard = await db.card.findUnique({
+            where: {
+              cardId
+            },
+            select: {
+              _count: {
+                select: {
+                  Contacts: {
+                    where: {
+                      status: 'saved'
+                    }
+                  }
+                }
+              },
+              cardId: true,
+              Contacts: {
+                where: {
+                  status: 'saved',
+                  [searchType]: {
+                    contains: search,
+                    mode: 'insensitive'
+                  }
+                },
+                select: {
+                  contactId: true,
+                  cardId: true,
+                  contactImage: true,
+                  status: true,
+                  fullName: true,
+                  company: true,
+                  jobTitle: true,
+                  phone: true,
+                  email: true,
+                  city: true,
+                  state: true,
+                  message: true,
+                  notes: true,
+                  createdAt: true
+                }
+              }
+            }
+          })
+          return findCard ? findCard.Contacts : []
+        }
+      } else {
+        const findCard = await db.card.findUnique({
+          where: {
+            cardId
+          },
+          select: {
+            _count: {
+              select: {
+                Contacts: {
+                  where: {
+                    status: 'saved'
+                  }
+                }
+              }
+            },
+            cardId: true,
+            Contacts: {
+              where: {
+                status: 'saved'
+              },
+              select: {
+                contactId: true,
+                cardId: true,
+                contactImage: true,
+                status: true,
+                fullName: true,
+                company: true,
+                jobTitle: true,
+                phone: true,
+                email: true,
+                city: true,
+                state: true,
+                message: true,
+                notes: true,
+                createdAt: true
+              }
+            }
+          }
+        })
+        return findCard ? findCard.Contacts : []
+      }
+      // return response
     } catch (error: any) {
       console.error(error)
     }
