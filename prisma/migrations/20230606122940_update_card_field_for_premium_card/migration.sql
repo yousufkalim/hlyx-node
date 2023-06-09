@@ -24,19 +24,6 @@
 -- CreateEnum
 CREATE TYPE "DesignationType" AS ENUM ('receivedAt', 'receivedFrom');
 
--- AlterEnum
--- This migration adds more than one value to an enum.
--- With PostgreSQL versions 11 and earlier, this is not possible
--- in a single migration. This can be worked around by creating
--- multiple migrations, each migration adding only one value to
--- the enum.
-
-
-ALTER TYPE "DegreeType" ADD VALUE 'License';
-ALTER TYPE "DegreeType" ADD VALUE 'Certificate';
-ALTER TYPE "DegreeType" ADD VALUE 'Permit';
-ALTER TYPE "DegreeType" ADD VALUE 'Registration';
-
 -- AlterTable
 ALTER TABLE "CardAccolades" DROP COLUMN "fromWho",
 ADD COLUMN     "designationType" "DesignationType" NOT NULL,
