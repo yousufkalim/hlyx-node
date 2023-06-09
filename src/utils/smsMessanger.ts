@@ -2,6 +2,7 @@ import { VerificationInstance } from 'twilio/lib/rest/verify/v2/service/verifica
 import { MessageInstance } from 'twilio/lib/rest/api/v2010/account/message'
 import { config } from '../config/env.config.validations'
 import { twilioClient } from './twilio'
+import { messages } from '../config/messages'
 
 // +1 for USA, will need to modify if we go global
 export const sendCodeToPhone = async (phone: string): Promise<VerificationInstance> => {
@@ -10,14 +11,13 @@ export const sendCodeToPhone = async (phone: string): Promise<VerificationInstan
     .verifications.create({ to: `+1${phone}`, channel: 'sms' })
 }
 
-export const contactRequesterPhone = async (phone: string, receiverName: string, requesterName: string, cardUrl: string, mediaUrl: string): Promise<MessageInstance> => {
+export const contactRequesterPhone = async (phone: string, receiverName: string, requesterName: string, cardUrl: string, mediaUrl: string | null): Promise<MessageInstance> => {
+  if (!mediaUrl) {
+    throw Error(messages.SMS_ERROR)
+  }
   return await twilioClient.messages.create({
-    body: `Hello ${requesterName},\n
-          We've successfully shared your contact information with ${receiverName}\n\n
-          Here is Terrance's contact info:\n\n
-          Profile Card\n
-          ${cardUrl}\n\n
-          Unlock all the benefits of HLYX, create your own profile today!`,
+    body:
+    `Hello ${requesterName},\nWe've successfully shared your contact information with ${receiverName}\n\nHere is ${receiverName} contact info:\n\nProfile Card\n${cardUrl}\n\nUnlock all the benefits of HLYX, create your own profile today!`,
     messagingServiceSid: config.get('sms_messaging_sid') as string,
     mediaUrl,
     from: '+18668756944',
@@ -25,13 +25,12 @@ export const contactRequesterPhone = async (phone: string, receiverName: string,
   })
 }
 
-export const contactRecieverPhone = async (phone: string, receiverName: string, requesterName: string, cardName: string, mediaUrl: string): Promise<MessageInstance> => {
+export const contactRecieverPhone = async (phone: string | null, receiverName: string, requesterName: string, cardName: string, mediaUrl?: string): Promise<MessageInstance> => {
+  if (!phone) {
+    throw Error(messages.SMS_ERROR)
+  }
   return await twilioClient.messages.create({
-    body: `Hi ${receiverName},\n
-          You have a new contact share!\n
-          ${requesterName} has just shared contact information with you
-          through your HYLX profile card "${cardName}".\n\n
-          Sign in to view the details`,
+    body: `Hi ${receiverName},\nYou have a new contact share!\n\n${requesterName} has just shared contact information with you through your HYLX profile card "${cardName}".\n\nSign in to view the details`,
     messagingServiceSid: config.get('sms_messaging_sid') as string,
     mediaUrl,
     to: `+1${phone}`

@@ -140,6 +140,7 @@ class NotificationController extends BaseController {
             },
             select: {
               userId: true,
+              fullName: true,
               Notifications: {
                 select: {
                   notificationId: true,
@@ -161,37 +162,19 @@ class NotificationController extends BaseController {
 
           const data = await this.#getIdDirectedToDetails(notification)
 
-          // const msg = {
-          //   to: 'azeem.falconit@gmail.com',
-          //   from: 'muhammadazeem@falconit.com.pk',
-          //   // subject: 'Sending veirifcation code',
-          //   templateId: '40adf1a3-99ce-463f-9dad-687db4ea4a58',
-          //   text: 'and easy to do anywhere, even with Node.js',
-          //   html: '<strong>and easy to do anywhere, even with Node.js</strong>',
-          //   dynamicTemplateData: {
-          //     subject: 'Testing Templates',
-          //     logo: `${__dirname}/assets/logo.png`,
-          //     test: 'hello Azeem',
-          //     city: 'Denver'
-          //   }
-          // }
-
-          // const sendEmail = await sgMail.send(msg)
-          // console.log('Email send ', sendEmail)
-
-          // const emailSent = await sendCodeToEmailTemplate('azeem.falconit@gmail.com')
-
-          // console.log('Sent email ', emailSent)
-
           const recipientUser = await db.userAuth.findUnique({
             where: { id: notifications.userId },
             select: {
+              email: true,
               userNotification: true
             }
           })
 
           // Check if user enabled link request notification in settings
           const isNotificationEnabled = recipientUser?.userNotification?.profileShare
+          if (isNotificationEnabled) {
+            // await profileShareEmail(recipientUser.email, ??? ,notifications.fullName)
+          }
 
           const sockets = getSocket()
           if (sockets && isNotificationEnabled) {

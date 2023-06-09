@@ -246,6 +246,7 @@ router.put(
 // Link Routes
 router.post('/link/create', authenticate, LinkController.create)
 router.put('/link/update/:linkId', authenticate, linkAuthorization, LinkController.update)
+router.put('/link/update-details', authenticate, linkAuthorization, LinkController.updateDetails)
 router.put(
   '/link/permanent-block/:linkId',
   authenticate,
@@ -395,6 +396,12 @@ router.get(
   authenticate,
   userAuthorization,
   ContactRequstController.getArchived
+)
+router.put(
+  '/contact/update/details',
+  authenticate,
+  sharedContactAuthorization,
+  LinkController.updateDetails
 )
 router.put(
   '/contact/update/status/:contactId',
