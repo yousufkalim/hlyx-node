@@ -22,7 +22,7 @@ export const validateSharedContactCreate = (
       .required(),
     company: Joi.string().max(stringLengths.COMPANY_MAX).allow(''),
     jobTitle: Joi.string().max(stringLengths.PROFESSIONAL_TITLE_MAX).allow(''),
-    phone: Joi.string().min(stringLengths.PHONE_MIN).max(stringLengths.PHONE_MAX).required(),
+    phone: Joi.string().min(stringLengths.PHONE_MIN).max(stringLengths.PHONE_MAX).pattern(/^[0-9]+$/).required(),
     city: Joi.string().max(stringLengths.LOCATION_MAX).allow(''),
     state: Joi.string().max(stringLengths.LOCATION_MAX).allow(''),
     email: Joi.string()

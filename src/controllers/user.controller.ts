@@ -554,7 +554,13 @@ class UserController extends BaseController {
         width: 200,
         errorCorrectionLevel: 'H'
       })
-      const qrCodeImage = await awsUploadFile(bufferImage, cardId, 'qrcode', '', '.png')
+      const qrCodeImage = await awsUploadFile(
+        bufferImage,
+        cardId,
+        'qrcode',
+        '',
+        'image/png'
+      )
 
       await db.card.update({
         where: {
