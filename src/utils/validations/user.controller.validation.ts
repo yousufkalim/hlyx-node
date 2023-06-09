@@ -53,6 +53,8 @@ export const validateUserNotification = (
 ): string | undefined => {
   const userNotificationSchema = Joi.object({
     newLinkRequest: Joi.boolean(),
+    newContactRequest: Joi.boolean(),
+    newContactRequestPhone: Joi.boolean(),
     newMessage: Joi.boolean(),
     groupMessages: Joi.boolean(),
     profileShare: Joi.boolean(),

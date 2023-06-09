@@ -24,6 +24,8 @@ export interface IValidateUserPreference {
 
 export interface IValidateUserNotification {
   newLinkRequest?: boolean
+  newContactRequest?: boolean
+  newContactRequestPhone?: boolean
   newMessage?: boolean
   groupMessages?: boolean
   profileShare?: boolean
