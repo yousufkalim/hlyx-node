@@ -1715,6 +1715,7 @@ class CardController extends BaseController {
     try {
       // Shared card functionality with notifications
       const linksWithShared: string[] = req.body.sharedWith
+      const { sharedBy } = req.body
 
       const card = await db.card.findUnique({
         where: {
@@ -1724,6 +1725,22 @@ class CardController extends BaseController {
           cardId: true
         }
       })
+
+      // Validate sharedby exists or not
+      const sharedByCard = await db.card.findUnique({
+        where: {
+          cardId: sharedBy
+        },
+        select: {
+          cardId: true
+        }
+      })
+      if (!sharedByCard) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.CARD_NOT_FOUND
+        })
+      }
 
       if (!card) {
         return res.status(404).json({
@@ -1739,7 +1756,7 @@ class CardController extends BaseController {
         })
       }
 
-      const arr: ISharedCard[] = []
+      const cardsSharedWith: string[] = []
       for (const linkCard of linksWithShared) {
         const card = await db.card.findUnique({
           where: {
@@ -1752,15 +1769,21 @@ class CardController extends BaseController {
             message: messages.SHARED_CARD_NOT_USER
           })
         }
-        const obj = {
-          directsTo: 'sharedCard',
-          idDirectedTo: linkCard,
-          message: req.body.message
-        }
-        arr.push(obj)
+        // const obj = {
+        //   directsTo: 'sharedCard',
+        //   idDirectedTo: linkCard,
+        //   message: req.body.message
+        // }
+        cardsSharedWith.push(linkCard)
       }
 
-      await notificationController.createNotificationOfSharedCard(card.cardId, arr)
+      const obj: ISharedCard = {
+        directsTo: 'sharedCard',
+        message: req.body.message,
+        sharedBy
+      }
+
+      await notificationController.createNotificationOfSharedCard(card.cardId, cardsSharedWith, obj)
 
       return res.status(200).json({
         code: codes.OK,

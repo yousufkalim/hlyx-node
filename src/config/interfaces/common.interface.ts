@@ -57,7 +57,7 @@ export interface IEmail {
 
 export interface ISharedCard {
   directsTo: string
-  idDirectedTo: string
+  sharedBy: string
   message?: string
 }
 

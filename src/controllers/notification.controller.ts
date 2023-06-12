@@ -12,6 +12,7 @@ import { messages } from '../config/messages'
 import BaseController from './base.controller'
 import { db } from '../utils/db'
 import { getSocket } from '../utils/socket'
+import { profileShareEmail } from '../utils/emailers'
 // import logo from '../assets/dark/logo.png'
 
 class NotificationController extends BaseController {
@@ -108,33 +109,47 @@ class NotificationController extends BaseController {
   // Create Shared Contact Notification
   createNotificationOfSharedCard = async (
     cardId: string,
-    sharedWithLinks: ISharedCard[]
+    sharedWithLinks: string[],
+    details: ISharedCard
   ): Promise<any> => {
     try {
       const response = { success: false }
+
+      // Validate Input
+      // Confirm req.notifcation is set
+      if (!details?.directsTo || details.directsTo !== 'sharedCard') {
+        throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
+      }
+
+      // getting data of shared card
+      const obj = { idDirectedTo: cardId, ...details }
+      const data = await this.#getIdDirectedToDetails(obj)
+
+      // getting data of shared card
+      data.sharedBy = data.cardDirectedTo
+      console.log('Shared By => ', details.sharedBy)
+      console.log('Card directed To => ', cardId)
+      if (details.sharedBy !== cardId) {
+        const notificationDetails = { idDirectedTo: details.sharedBy, ...details }
+        const res = await this.#getIdDirectedToDetails(notificationDetails)
+        console.log('Data directedTo ', res.cardDirectedTo)
+        data.sharedBy = res.cardDirectedTo
+      }
+
       if (sharedWithLinks) {
         for (const link of sharedWithLinks) {
-          // Confirm req.notifcation is set
-          if (!link?.directsTo || !link?.idDirectedTo) {
-            throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
-          }
-
-          // Validate Input
-          if (link.directsTo !== 'sharedCard') {
-            throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
-          }
-
           // Create
           const notifications = await db.card.update({
             where: {
-              cardId: link.idDirectedTo
+              cardId: link
             },
             data: {
               Notifications: {
                 create: {
-                  directsTo: link.directsTo,
-                  message: link.message,
-                  idDirectedTo: cardId
+                  directsTo: details.directsTo,
+                  message: details.message,
+                  idDirectedTo: cardId,
+                  sharedBy: details.sharedBy
                 }
               }
             },
@@ -148,7 +163,8 @@ class NotificationController extends BaseController {
                   status: true,
                   message: true,
                   directsTo: true,
-                  idDirectedTo: true
+                  idDirectedTo: true,
+                  sharedBy: true
                 },
                 orderBy: {
                   updatedAt: 'desc'
@@ -159,9 +175,7 @@ class NotificationController extends BaseController {
           })
 
           const notification: any = notifications.Notifications[0]
-
-          const data = await this.#getIdDirectedToDetails(notification)
-
+          const socketData = { ...notification, ...data }
           const recipientUser = await db.userAuth.findUnique({
             where: { id: notifications.userId },
             select: {
@@ -173,12 +187,16 @@ class NotificationController extends BaseController {
           // Check if user enabled link request notification in settings
           const isNotificationEnabled = recipientUser?.userNotification?.profileShare
           if (isNotificationEnabled) {
-            // await profileShareEmail(recipientUser.email, ??? ,notifications.fullName)
+            await profileShareEmail(
+              recipientUser.email,
+              data.sharedBy.fullName,
+              notifications.fullName
+            )
           }
 
           const sockets = getSocket()
           if (sockets && isNotificationEnabled) {
-            sockets.emit(`notifications_${notifications.userId}`, { notifications: data })
+            sockets.emit(`notifications_${notifications.userId}`, { notifications: socketData })
           }
 
           response.success = true
@@ -265,7 +283,35 @@ class NotificationController extends BaseController {
 
                 return {
                   ...notification,
-                  cardDirectedTo: res?.CardOneRef
+                  // cardDirectedTo: res?.CardOneRef,
+                  sharedByRole: 'card',
+                  sharedBy: notification.cardDirectedTo
+                }
+              } else if (notification?.directsTo === 'contactRequest') {
+                const res = await db.contact.findUnique({
+                  where: { contactId: notification.idDirectedTo },
+                  select: {
+                    contactImage: true,
+                    contactId: true,
+                    status: true,
+                    fullName: true,
+                    company: true,
+                    jobTitle: true,
+                    message: true,
+                    notes: true,
+                    city: true,
+                    state: true
+                  }
+                })
+                notification.sharedBy = res
+                notification.cardDirectedTo = res
+                notification.sharedByRole = 'card'
+
+                return {
+                  ...notification,
+                  sharedBy: res,
+                  cardDirectedTo: res,
+                  sharedByRole: 'card'
                 }
               } else {
                 const res = await db.card.findUnique({
@@ -279,8 +325,16 @@ class NotificationController extends BaseController {
                   }
                 })
 
+                if (notification.sharedBy !== notification.idDirectedTo) {
+                  const cardDetails = await this.#getCardDetails(notification.sharedBy)
+                  notification.sharedBy = cardDetails
+                } else {
+                  notification.sharedBy = res
+                }
+
                 return {
                   ...notification,
+                  sharedByRole: 'card',
                   cardDirectedTo: res
                 }
               }
@@ -457,6 +511,8 @@ class NotificationController extends BaseController {
           notification.cardDirectedTo = res?.CardOneRef
         }
 
+        notification.sharedByRole = 'card'
+        notification.sharedBy = res
         notification.cardDirectedTo = res?.CardOneRef
 
         return notification
@@ -476,7 +532,8 @@ class NotificationController extends BaseController {
             state: true
           }
         })
-
+        notification.sharedByRole = 'savedContact'
+        notification.sharedBy = res
         notification.cardDirectedTo = res
 
         return notification
@@ -492,10 +549,30 @@ class NotificationController extends BaseController {
           }
         })
 
+        notification.sharedByRole = 'card'
         notification.cardDirectedTo = res
 
         return notification
       }
+    } catch (err) {
+      return null
+    }
+  }
+
+  #getCardDetails = async (cardId: string): Promise<any> => {
+    try {
+      // Get details of card
+      const res = await db.card.findUnique({
+        where: { cardId },
+        select: {
+          fullName: true,
+          cardName: true,
+          cardId: true,
+          userAvatar: true,
+          coverPhoto: true
+        }
+      })
+      return res
     } catch (err) {
       return null
     }
