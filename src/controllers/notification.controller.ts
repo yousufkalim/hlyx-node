@@ -127,12 +127,9 @@ class NotificationController extends BaseController {
 
       // getting data of shared card
       data.sharedBy = data.cardDirectedTo
-      console.log('Shared By => ', details.sharedBy)
-      console.log('Card directed To => ', cardId)
       if (details.sharedBy !== cardId) {
         const notificationDetails = { idDirectedTo: details.sharedBy, ...details }
         const res = await this.#getIdDirectedToDetails(notificationDetails)
-        console.log('Data directedTo ', res.cardDirectedTo)
         data.sharedBy = res.cardDirectedTo
       }
 
@@ -246,107 +243,7 @@ class NotificationController extends BaseController {
       })
 
       // const data = []
-      const data = await Promise.all(
-        cards.map(async (card) => {
-          const Notifications = await Promise.all(
-            card.Notifications.map(async (notification: any) => {
-              if (notification.directsTo === 'linkRequest') {
-                const res = await db.link.findUnique({
-                  where: { id: notification.idDirectedTo },
-                  select: {
-                    CardOneRef: {
-                      select: {
-                        fullName: true,
-                        cardName: true,
-                        cardId: true,
-                        userAvatar: true,
-                        coverPhoto: true
-                      }
-                    },
-                    CardTwoRef: {
-                      select: {
-                        fullName: true,
-                        cardName: true,
-                        cardId: true,
-                        userAvatar: true,
-                        coverPhoto: true
-                      }
-                    }
-                  }
-                })
-
-                if (res?.CardOneRef.cardId === notification.cardId) {
-                  notification.cardDirectedTo = res?.CardTwoRef
-                } else {
-                  notification.cardDirectedTo = res?.CardOneRef
-                }
-
-                return {
-                  ...notification,
-                  // cardDirectedTo: res?.CardOneRef,
-                  sharedByRole: 'card',
-                  sharedBy: notification.cardDirectedTo
-                }
-              } else if (notification?.directsTo === 'contactRequest') {
-                const res = await db.contact.findUnique({
-                  where: { contactId: notification.idDirectedTo },
-                  select: {
-                    contactImage: true,
-                    contactId: true,
-                    status: true,
-                    fullName: true,
-                    company: true,
-                    jobTitle: true,
-                    message: true,
-                    notes: true,
-                    city: true,
-                    state: true
-                  }
-                })
-                notification.sharedBy = res
-                notification.cardDirectedTo = res
-                notification.sharedByRole = 'card'
-
-                return {
-                  ...notification,
-                  sharedBy: res,
-                  cardDirectedTo: res,
-                  sharedByRole: 'card'
-                }
-              } else {
-                const res = await db.card.findUnique({
-                  where: { cardId: notification.idDirectedTo },
-                  select: {
-                    fullName: true,
-                    cardName: true,
-                    cardId: true,
-                    userAvatar: true,
-                    coverPhoto: true
-                  }
-                })
-
-                if (notification.sharedBy !== notification.idDirectedTo) {
-                  const cardDetails = await this.#getCardDetails(notification.sharedBy)
-                  notification.sharedBy = cardDetails
-                } else {
-                  notification.sharedBy = res
-                }
-
-                return {
-                  ...notification,
-                  sharedByRole: 'card',
-                  cardDirectedTo: res
-                }
-              }
-            })
-          )
-
-          return {
-            ...card,
-            Notifications
-          }
-        })
-      )
+      const data = await this.#getDetailsForNotifications(cards)
 
       // const final = await data.map((item) => ({
       //   ...item,
@@ -419,8 +316,10 @@ class NotificationController extends BaseController {
         }
       })
 
+      const data = await this.#getDetailsForNotifications(cards)
+
       return res.status(200).json({
-        cards,
+        cards: data,
         code: codes.OK,
         message: messages.SUCCESS
       })
@@ -556,6 +455,116 @@ class NotificationController extends BaseController {
       }
     } catch (err) {
       return null
+    }
+  }
+
+  #getDetailsForNotifications = async (cards: any): Promise<any> => {
+    try {
+      const data = await Promise.all(
+        cards.map(async (card: any) => {
+          const Notifications = await Promise.all(
+            card.Notifications.map(async (notification: any) => {
+              if (notification.directsTo === 'linkRequest') {
+                const res = await db.link.findUnique({
+                  where: { id: notification.idDirectedTo },
+                  select: {
+                    CardOneRef: {
+                      select: {
+                        fullName: true,
+                        cardName: true,
+                        cardId: true,
+                        userAvatar: true,
+                        coverPhoto: true
+                      }
+                    },
+                    CardTwoRef: {
+                      select: {
+                        fullName: true,
+                        cardName: true,
+                        cardId: true,
+                        userAvatar: true,
+                        coverPhoto: true
+                      }
+                    }
+                  }
+                })
+
+                if (res?.CardOneRef.cardId === notification.cardId) {
+                  notification.cardDirectedTo = res?.CardTwoRef
+                } else {
+                  notification.cardDirectedTo = res?.CardOneRef
+                }
+
+                return {
+                  ...notification,
+                  // cardDirectedTo: res?.CardOneRef,
+                  sharedByRole: 'card',
+                  sharedBy: notification.cardDirectedTo
+                }
+              } else if (notification?.directsTo === 'contactRequest') {
+                const res = await db.contact.findUnique({
+                  where: { contactId: notification.idDirectedTo },
+                  select: {
+                    contactImage: true,
+                    contactId: true,
+                    status: true,
+                    fullName: true,
+                    company: true,
+                    jobTitle: true,
+                    message: true,
+                    notes: true,
+                    city: true,
+                    state: true
+                  }
+                })
+                notification.sharedBy = res
+                notification.cardDirectedTo = res
+                notification.sharedByRole = 'card'
+
+                return {
+                  ...notification,
+                  sharedBy: res,
+                  cardDirectedTo: res,
+                  sharedByRole: 'card'
+                }
+              } else {
+                const res = await db.card.findUnique({
+                  where: { cardId: notification.idDirectedTo },
+                  select: {
+                    fullName: true,
+                    cardName: true,
+                    cardId: true,
+                    userAvatar: true,
+                    coverPhoto: true
+                  }
+                })
+
+                if (notification.sharedBy !== notification.idDirectedTo) {
+                  const cardDetails = await this.#getCardDetails(notification.sharedBy)
+                  notification.sharedBy = cardDetails
+                } else {
+                  notification.sharedBy = res
+                }
+
+                return {
+                  ...notification,
+                  sharedByRole: 'card',
+                  cardDirectedTo: res
+                }
+              }
+            })
+          )
+
+          return {
+            ...card,
+            Notifications
+          }
+        })
+      )
+
+      return data
+    } catch (err) {
+      return []
     }
   }
 

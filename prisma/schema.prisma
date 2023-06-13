@@ -322,9 +322,10 @@ model CardBusinessGoals {
 
 model CardBusinessNeeds {
   id          String              @id @default(uuid())
-  date        DateTime?
   title       String
   description String?
+  startDate   DateTime
+  endDate     DateTime?
   status      BusinessNeedsStatus
   Card        Card                @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
   cardId      String
