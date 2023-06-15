@@ -271,6 +271,7 @@ class UserController extends BaseController {
   // Add a card to user
   addCard = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
+      console.log('Body ', req.body)
       const body: any = {}
       for (const item in req.body) {
         try {
@@ -575,6 +576,7 @@ class UserController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
+      console.log('Error ', error.message)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })

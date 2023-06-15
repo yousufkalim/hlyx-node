@@ -15,7 +15,7 @@ model UserAuth {
   id               String            @id @default(uuid())
   email            String            @unique
   phone            String?           @unique
-  password         String
+  password         String?
   isEmailVerified  Boolean           @default(false)
   isPhoneVerified  Boolean           @default(false)
   isPaused         Boolean           @default(false)
