@@ -82,3 +82,8 @@ export interface ICardContacts {
   myCardId: string
   contacts: IContact[] | []
 }
+
+export interface ISearchQuery {
+  search: string
+  searchBy: string
+}

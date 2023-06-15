@@ -234,7 +234,8 @@ class CardController extends BaseController {
           },
           businessNeeds: {
             select: {
-              date: true,
+              startDate: true,
+              endDate: true,
               title: true,
               description: true,
               status: true

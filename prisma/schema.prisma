@@ -3,7 +3,7 @@
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["filteredRelationCount"]
+  previewFeatures = ["filteredRelationCount", "fullTextSearch", "fullTextIndex"]
 }
 
 datasource db {
@@ -67,6 +67,7 @@ model UserBio {
   blockedUserId String?
   blockedUser   UserBio?  @relation("BlockedUsers", fields: [blockedUserId], references: [id])
   blockedUsers  UserBio[] @relation("BlockedUsers")
+  // @@fulltext([firstName])
 
   // Required to link with User
   @@unique([id, email, phone])

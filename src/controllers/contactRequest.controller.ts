@@ -320,6 +320,7 @@ class ContactRequestController extends BaseController {
           })
           cardsContacts = cards
         } else {
+          const searchBy = searchType === 'name' ? 'fullName' : searchType
           const cards = await db.card.findMany({
             where: {
               userId: req.params.userId
@@ -330,7 +331,7 @@ class ContactRequestController extends BaseController {
                   Contacts: {
                     where: {
                       status: 'saved',
-                      [searchType]: {
+                      [searchBy]: {
                         contains: search,
                         mode: 'insensitive'
                       }
@@ -342,7 +343,7 @@ class ContactRequestController extends BaseController {
               Contacts: {
                 where: {
                   status: 'saved',
-                  [searchType]: {
+                  [searchBy]: {
                     contains: search,
                     mode: 'insensitive'
                   }
