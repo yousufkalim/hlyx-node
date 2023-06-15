@@ -1012,8 +1012,11 @@ class CardController extends BaseController {
       // Business Needs
       if (params.businessNeeds) {
         for (const need of params.businessNeeds) {
-          if (need.date) {
-            need.date = new Date(need.date)
+          if (need.startDate) {
+            need.startDate = new Date(need.startDate)
+          }
+          if (need.endDate) {
+            need.endDate = new Date(need.endDate)
           }
         }
         params.businessNeeds = {
@@ -1479,8 +1482,8 @@ class CardController extends BaseController {
         fullName,
         cardName,
         country,
-        profTitle,
         city,
+        profTitle,
         company,
         industry,
         occupation,
@@ -1501,6 +1504,7 @@ class CardController extends BaseController {
         },
         select: {
           cardId: true,
+          profileLayout: true,
           User: {
             select: {
               id: true,
@@ -1550,12 +1554,14 @@ class CardController extends BaseController {
         })
       }
 
-      const cardAboutValidationError = validateCardAboutPage(cardAboutData)
-      if (cardAboutValidationError) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: cardAboutValidationError
-        })
+      if (card.profileLayout === 'minimal') {
+        const cardAboutValidationError = validateCardAboutPage(cardAboutData)
+        if (cardAboutValidationError) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: cardAboutValidationError
+          })
+        }
       }
 
       // Add optional fields if set
@@ -1628,7 +1634,7 @@ class CardController extends BaseController {
           coverPhoto.name,
           coverPhoto.mimetype
         )
-        cardAboutData.coverPhoto = coverPhotoPath
+        cardContactData.coverPhoto = coverPhotoPath
       }
 
       /*  ====  Validation for Company Icon  ===== */
@@ -1657,7 +1663,7 @@ class CardController extends BaseController {
           companyIcon.mimetype
         )
 
-        cardAboutData.companyIcon = companyIconPath
+        cardContactData.companyIcon = companyIconPath
       }
 
       /*  ====  Validation for Branded Cover Photo  ===== */
@@ -1686,7 +1692,7 @@ class CardController extends BaseController {
           brandedCover.mimetype
         )
 
-        cardAboutData.brandedCoverPhoto = brandCoverPath
+        cardContactData.brandedCoverPhoto = brandCoverPath
       }
 
       const data = { ...cardContactData, ...cardAboutData }

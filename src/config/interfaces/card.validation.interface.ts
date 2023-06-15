@@ -77,7 +77,7 @@ export interface IValidateCardType {
 }
 
 export interface IValidateCardAboutPage {
-  about?: string
+  about: string
   company: string
   profTitle: string
   occupation: string
@@ -220,7 +220,8 @@ interface ICardBusinessGoals {
 
 interface ICardBusinessNeeds {
   id: string
-  date?: Date
+  startDate: Date
+  endDate?: Date
   title: string
   description?: string
   status: string
