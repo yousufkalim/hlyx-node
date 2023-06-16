@@ -274,9 +274,11 @@ export const validateCardServices = (
             .valid(...Object.values(servicesTypes))
             .required(),
           title: Joi.string().max(stringLengths.SERVICES_TITLE).required(),
-          subtitle: Joi.string().max(stringLengths.SERVICES_SUBTITLE).required(),
-          details: Joi.string().max(stringLengths.SERVICES_DETAILS),
-          url: Joi.string().max(stringLengths.WEBSITES_MAX).hostname(),
+          subtitle: Joi.string()
+            .max(stringLengths.SERVICES_SUBTITLE)
+            .when('type', { is: 'featured', then: Joi.required() }),
+          details: Joi.string().max(stringLengths.SERVICES_DETAILS).allow(''),
+          url: Joi.array().items(Joi.string().max(stringLengths.WEBSITES_MAX).hostname()),
           positioning: Joi.number().integer().min(0).max(arrayLimits.MAX_PORTFOLIO).required()
         })
       )

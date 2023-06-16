@@ -452,6 +452,8 @@ class AuthController extends BaseController {
 
       // Verify User exists
       const user = await db.userAuth.findUnique({ where: { email } })
+      console.log('Email ', email)
+      console.log('user ', user)
       if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,

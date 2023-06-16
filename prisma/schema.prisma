@@ -336,9 +336,9 @@ model CardServices {
   id          String       @id @default(uuid())
   type        ServiceTypes
   title       String
-  subtitle    String
+  subtitle    String?
   details     String?
-  url         String?
+  url         String[]
   positioning Int
   Card        Card         @relation(fields: [cardId], references: [cardId], onDelete: Cascade, onUpdate: Cascade)
   cardId      String

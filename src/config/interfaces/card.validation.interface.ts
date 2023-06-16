@@ -234,6 +234,7 @@ interface ICardServices {
   title: string
   subtitle?: string
   details?: string
+  url: string[]
   positioning: number
   cardId: string
 }

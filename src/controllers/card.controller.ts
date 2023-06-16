@@ -285,6 +285,7 @@ class CardController extends BaseController {
               type: true,
               title: true,
               subtitle: true,
+              url: true,
               details: true,
               positioning: true
             },
@@ -1076,6 +1077,7 @@ class CardController extends BaseController {
       featuredPositionings.sort((a: any, b: any) => {
         return a - b
       })
+
       if (
         featuredPositionings.length !== new Set(featuredPositionings).size ||
         featuredPositionings.length - 1 !== featuredPositionings[featuredPositionings.length - 1]
