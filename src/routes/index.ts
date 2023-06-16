@@ -225,7 +225,7 @@ router.delete('/card/delete/:cardId', authenticate, cardAuthorization, CardContr
 router.post(
   '/card/share/profile-card/:cardId',
   authenticate,
-  cardAuthorization,
+  // cardAuthorization,
   CardController.sharedProfileCard
 )
 

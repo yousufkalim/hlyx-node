@@ -271,6 +271,7 @@ class UserController extends BaseController {
   // Add a card to user
   addCard = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
+      console.log('Body ', req.body)
       const body: any = {}
       for (const item in req.body) {
         try {
@@ -434,6 +435,8 @@ class UserController extends BaseController {
       }
 
       /*  ====  Validation for Cover Photo  ===== */
+      console.log('Files ', req.files)
+      console.log('Cover photo => ', req.files?.coverPhoto)
       const coverPhoto = req.files?.coverPhoto as UploadedFile
       if (coverPhoto) {
         // Verify Acceptable MIME Type
@@ -459,10 +462,11 @@ class UserController extends BaseController {
           coverPhoto.name,
           coverPhoto.mimetype
         )
-        cardAboutData.coverPhoto = coverPhotoPath
+        cardContactData.coverPhoto = coverPhotoPath
       }
 
       /*  ====  Validation for Company Icon  ===== */
+      console.log('Company Icon => ', req.files?.companyIcon)
       const companyIcon = req.files?.companyIcon as UploadedFile
       if (companyIcon) {
         // Verify Acceptable MIME Type
@@ -488,7 +492,7 @@ class UserController extends BaseController {
           companyIcon.mimetype
         )
 
-        cardAboutData.companyIcon = companyIconPath
+        cardContactData.companyIcon = companyIconPath
       }
 
       /*  ====  Validation for Branded Cover Photo  ===== */
@@ -516,11 +520,12 @@ class UserController extends BaseController {
           brandedCover.name,
           brandedCover.mimetype
         )
-        cardAboutData.brandedCoverPhoto = brandCoverPath
+        cardContactData.brandedCoverPhoto = brandCoverPath
       }
 
       const data = { ...cardContactData, ...cardAboutData, profileLayout }
 
+      console.log('Data final ', cardContactData)
       // Update UserBio, create Card, and return
       const createdCard = await db.userBio.update({
         where: { id: req.params.userId },
@@ -554,13 +559,7 @@ class UserController extends BaseController {
         width: 200,
         errorCorrectionLevel: 'H'
       })
-      const qrCodeImage = await awsUploadFile(
-        bufferImage,
-        cardId,
-        'qrcode',
-        '',
-        'image/png'
-      )
+      const qrCodeImage = await awsUploadFile(bufferImage, cardId, 'qrcode', '', 'image/png')
 
       await db.card.update({
         where: {
@@ -577,6 +576,7 @@ class UserController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
+      console.log('Error ', error.message)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })

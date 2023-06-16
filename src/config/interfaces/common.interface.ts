@@ -57,7 +57,7 @@ export interface IEmail {
 
 export interface ISharedCard {
   directsTo: string
-  idDirectedTo: string
+  sharedBy: string
   message?: string
 }
 
@@ -81,4 +81,9 @@ export interface IGeneralLinks {
 export interface ICardContacts {
   myCardId: string
   contacts: IContact[] | []
+}
+
+export interface ISearchQuery {
+  search: string
+  searchBy: string
 }

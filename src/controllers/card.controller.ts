@@ -234,7 +234,8 @@ class CardController extends BaseController {
           },
           businessNeeds: {
             select: {
-              date: true,
+              startDate: true,
+              endDate: true,
               title: true,
               description: true,
               status: true
@@ -284,6 +285,7 @@ class CardController extends BaseController {
               type: true,
               title: true,
               subtitle: true,
+              url: true,
               details: true,
               positioning: true
             },
@@ -1011,8 +1013,11 @@ class CardController extends BaseController {
       // Business Needs
       if (params.businessNeeds) {
         for (const need of params.businessNeeds) {
-          if (need.date) {
-            need.date = new Date(need.date)
+          if (need.startDate) {
+            need.startDate = new Date(need.startDate)
+          }
+          if (need.endDate) {
+            need.endDate = new Date(need.endDate)
           }
         }
         params.businessNeeds = {
@@ -1072,6 +1077,7 @@ class CardController extends BaseController {
       featuredPositionings.sort((a: any, b: any) => {
         return a - b
       })
+
       if (
         featuredPositionings.length !== new Set(featuredPositionings).size ||
         featuredPositionings.length - 1 !== featuredPositionings[featuredPositionings.length - 1]
@@ -1478,8 +1484,8 @@ class CardController extends BaseController {
         fullName,
         cardName,
         country,
-        profTitle,
         city,
+        profTitle,
         company,
         industry,
         occupation,
@@ -1500,6 +1506,7 @@ class CardController extends BaseController {
         },
         select: {
           cardId: true,
+          profileLayout: true,
           User: {
             select: {
               id: true,
@@ -1549,12 +1556,14 @@ class CardController extends BaseController {
         })
       }
 
-      const cardAboutValidationError = validateCardAboutPage(cardAboutData)
-      if (cardAboutValidationError) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: cardAboutValidationError
-        })
+      if (card.profileLayout === 'minimal') {
+        const cardAboutValidationError = validateCardAboutPage(cardAboutData)
+        if (cardAboutValidationError) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: cardAboutValidationError
+          })
+        }
       }
 
       // Add optional fields if set
@@ -1627,7 +1636,7 @@ class CardController extends BaseController {
           coverPhoto.name,
           coverPhoto.mimetype
         )
-        cardAboutData.coverPhoto = coverPhotoPath
+        cardContactData.coverPhoto = coverPhotoPath
       }
 
       /*  ====  Validation for Company Icon  ===== */
@@ -1656,7 +1665,7 @@ class CardController extends BaseController {
           companyIcon.mimetype
         )
 
-        cardAboutData.companyIcon = companyIconPath
+        cardContactData.companyIcon = companyIconPath
       }
 
       /*  ====  Validation for Branded Cover Photo  ===== */
@@ -1685,7 +1694,7 @@ class CardController extends BaseController {
           brandedCover.mimetype
         )
 
-        cardAboutData.brandedCoverPhoto = brandCoverPath
+        cardContactData.brandedCoverPhoto = brandCoverPath
       }
 
       const data = { ...cardContactData, ...cardAboutData }
@@ -1715,6 +1724,7 @@ class CardController extends BaseController {
     try {
       // Shared card functionality with notifications
       const linksWithShared: string[] = req.body.sharedWith
+      const { sharedBy } = req.body
 
       const card = await db.card.findUnique({
         where: {
@@ -1724,6 +1734,22 @@ class CardController extends BaseController {
           cardId: true
         }
       })
+
+      // Validate sharedby exists or not
+      const sharedByCard = await db.card.findUnique({
+        where: {
+          cardId: sharedBy
+        },
+        select: {
+          cardId: true
+        }
+      })
+      if (!sharedByCard) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.CARD_NOT_FOUND
+        })
+      }
 
       if (!card) {
         return res.status(404).json({
@@ -1739,7 +1765,7 @@ class CardController extends BaseController {
         })
       }
 
-      const arr: ISharedCard[] = []
+      const cardsSharedWith: string[] = []
       for (const linkCard of linksWithShared) {
         const card = await db.card.findUnique({
           where: {
@@ -1752,15 +1778,21 @@ class CardController extends BaseController {
             message: messages.SHARED_CARD_NOT_USER
           })
         }
-        const obj = {
-          directsTo: 'sharedCard',
-          idDirectedTo: linkCard,
-          message: req.body.message
-        }
-        arr.push(obj)
+        // const obj = {
+        //   directsTo: 'sharedCard',
+        //   idDirectedTo: linkCard,
+        //   message: req.body.message
+        // }
+        cardsSharedWith.push(linkCard)
       }
 
-      await notificationController.createNotificationOfSharedCard(card.cardId, arr)
+      const obj: ISharedCard = {
+        directsTo: 'sharedCard',
+        message: req.body.message,
+        sharedBy
+      }
+
+      await notificationController.createNotificationOfSharedCard(card.cardId, cardsSharedWith, obj)
 
       return res.status(200).json({
         code: codes.OK,

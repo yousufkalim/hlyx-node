@@ -107,7 +107,7 @@ class AuthController extends BaseController {
       }
 
       // Check passwords match
-      const isMatch = await bcrypt.compare(password, user.password)
+      const isMatch = await bcrypt.compare(password, user.password ?? '')
       if (!isMatch) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -452,6 +452,8 @@ class AuthController extends BaseController {
 
       // Verify User exists
       const user = await db.userAuth.findUnique({ where: { email } })
+      console.log('Email ', email)
+      console.log('user ', user)
       if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,

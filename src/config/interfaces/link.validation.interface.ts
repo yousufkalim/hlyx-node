@@ -5,7 +5,7 @@ export interface IArrayLink {
 
 export interface IArrayLinkWithBaseInfo {
   myCardId: string
-  Links: ILinkWithBaseInfo[]
+  Links: ILinkCardUsers[]
   _count: number
 }
 
@@ -18,6 +18,29 @@ export interface ILinkWithBaseInfo {
   fullName?: string
   profTitle?: string | null
   company?: string | null
+  city?: string | null
+  state?: string | null
+}
+export interface ILinkCardUsers {
+  cardId: string
+  profileAvatar?: string
+  id: string
+  linkId?: string
+  firstName: string
+  lastName: string
+  profTitle: string
+  company: string
+  city?: string | null
+  state?: string | null
+}
+
+export interface ILinkCardUser {
+  id: string
+  firstName?: string
+  profileAvatar: string
+  lastName: string
+  profTitle: string
+  company: string
   city?: string | null
   state?: string | null
 }
