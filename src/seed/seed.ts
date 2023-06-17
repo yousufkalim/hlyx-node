@@ -1,29 +1,32 @@
 import bcrypt from 'bcrypt'
 
 import { db } from '../utils/db'
-import { generateData } from './data'
+import { generateData, generateCardData } from './data'
 
 const main = async (): Promise<void> => {
-  const data = await generateData()
-  const {
-    emails,
-    passwords,
-    phones,
-    firstNames,
-    lastNames,
-    companies,
-    professionalTitles,
-    industries,
-    occupations,
-    cities,
-    states,
-    zipcodes
-  } = data
-
-  const numberOfSeeds = 100
-  const salt = await bcrypt.genSalt(10)
-
   try {
+    const numberOfSeeds = 100
+
+    const data = await generateData()
+    const {
+      emails,
+      passwords,
+      phones,
+      firstNames,
+      lastNames,
+      companies,
+      professionalTitles,
+      industries,
+      occupations,
+      cities,
+      states,
+      zipcodes
+    } = data
+
+    const cardData = await generateCardData(data, numberOfSeeds)
+
+    const salt = await bcrypt.genSalt(10)
+
     for (let i = 0; i < numberOfSeeds; i++) {
       await db.userAuth.create({
         data: {
@@ -45,7 +48,41 @@ const main = async (): Promise<void> => {
               country: 'Unites States',
               city: cities[i][0],
               state: states[i][0],
-              zipcode: zipcodes[i][0]
+              zipcode: zipcodes[i][0],
+              cards: {
+                create: {
+                  profileLayout: 'minimal',
+                  cardName: `${firstNames[i][0]}'s Card`,
+                  fullName: `${firstNames[i][0]} ${lastNames[i][0]}`,
+                  profTitle: professionalTitles[i][0],
+                  company: companies[i][0],
+                  occupation: occupations[i % occupations.length][0],
+                  industry: industries[i][0],
+                  city: cities[i][0],
+                  state: states[i][0],
+                  emails: {
+                    create: cardData.cardEmails[i]
+                  },
+                  phones: {
+                    create: cardData.cardPhones[i]
+                  },
+                  calendars: {
+                    create: cardData.cardCalendars[i]
+                  },
+                  websites: {
+                    create: cardData.cardWebsites[i]
+                  },
+                  officeAddresses: {
+                    create: cardData.cardLocations[i]
+                  },
+                  socialMedias: {
+                    create: cardData.cardPlatforms[i]
+                  },
+                  additionalLinks: {
+                    create: cardData.cardLinks[i]
+                  }
+                }
+              }
             }
           },
           userPreference: { create: {} },
