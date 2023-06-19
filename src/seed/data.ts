@@ -1,7 +1,7 @@
 import fs from 'fs/promises'
 import { parse } from 'csv-parse/sync'
 
-import { socialMedia, additionalLinksType, emailTypes, phoneTypes } from '../config/enumTypes'
+import { socialMedia, additionalLinksType, emailTypes, phoneTypes, linksTypes } from '../config/enumTypes'
 
 interface seedData {
   emails: string[]
@@ -367,4 +367,8 @@ const getRandomSocial = (words: typeof socialMedia): typeof socialMedia[number] 
 
 const getRandomLinkType = (words: typeof additionalLinksType): typeof additionalLinksType[number] => {
   return words[Math.floor(Math.random() * words.length)]
+}
+
+export const getRandomLinkStatus = (): typeof linksTypes[number] => {
+  return linksTypes[Math.floor(Math.random() * linksTypes.length)]
 }

@@ -65,7 +65,12 @@ export const servicesTypes = ['featured', 'main']
 
 export const templateIds = ['DEFAULT', 'FULL']
 
-export const linksTypes = ['requested', 'accepted', 'declined', 'blocked']
+export const linksTypes = [
+  'requested',
+  'accepted',
+  'declined',
+  'blocked'
+] as const
 
 export const sharedContactStatus = ['requested', 'saved', 'archived']
 

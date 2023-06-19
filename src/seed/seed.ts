@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt'
 
 import { db } from '../utils/db'
-import { generateData, generateCardData } from './data'
+import { generateData, generateCardData, getRandomLinkStatus } from './data'
 
 const main = async (): Promise<void> => {
   try {
@@ -27,8 +27,9 @@ const main = async (): Promise<void> => {
 
     const salt = await bcrypt.genSalt(10)
 
+    const createdCardIds: string[] = []
     for (let i = 0; i < numberOfSeeds; i++) {
-      await db.userAuth.create({
+      const user = await db.userAuth.create({
         data: {
           email: emails[i][0],
           password: await bcrypt.hash(passwords[i][0], salt),
@@ -87,8 +88,34 @@ const main = async (): Promise<void> => {
           },
           userPreference: { create: {} },
           userNotification: { create: {} }
+        },
+        select: {
+          userBio: {
+            select: {
+              cards: {
+                select: {
+                  cardId: true
+                },
+                take: 1
+              }
+            }
+          }
         }
       })
+      const newestCard = user.userBio?.cards[0].cardId
+      if (newestCard) {
+        for (const card of createdCardIds) {
+          await db.link.create({
+            data: {
+              cardOne: newestCard,
+              cardTwo: card,
+              status: getRandomLinkStatus(),
+              recentChangeBy: newestCard
+            }
+          })
+        }
+        createdCardIds.push(newestCard)
+      }
     }
   } catch (error: any) {
     console.error(error)
