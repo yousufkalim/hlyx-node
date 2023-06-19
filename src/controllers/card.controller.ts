@@ -941,6 +941,7 @@ class CardController extends BaseController {
   updateAboutPage = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, cardAboutPageParams)
     try {
+      console.log('body ', req.body)
       const validationError = validateCardAboutPage(params)
       if (validationError) {
         return res.status(400).json({
@@ -1040,7 +1041,7 @@ class CardController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
-      console.error(error)
+      console.error('ERRORr ', error.message)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })

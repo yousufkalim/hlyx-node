@@ -274,24 +274,42 @@ class AuthController extends BaseController {
         })
       }
 
+      const salt = await bcrypt.genSalt(10)
+      const data: any = {
+        email
+      }
+      data.password = await bcrypt.hash(password, salt)
+
+      // Check if contact request user exists
+      const savedContactUser = await db.contact.findFirst({ where: { email } })
       // Check if email is already registered
       const userWithEmail = await db.userAuth.findUnique({ where: { email } })
-      if (userWithEmail) {
+      if (userWithEmail && savedContactUser) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: `${messages.USER_ALREADY_EXIST} with email "${email}"`
         })
+      } else if (savedContactUser) {
+        const response = await db.userAuth.update({
+          where: {
+            email
+          },
+          data
+        })
+
+        await verifyEmailEmailer(email)
+        return res.status(201).json({
+          id: response.id,
+          code: codes.CREATED,
+          message: messages.LINK_SENT_SUCCESS
+        })
       }
 
       // Encrypt password
-      const salt = await bcrypt.genSalt(10)
-      const data = {
-        email,
-        password: await bcrypt.hash(password, salt),
-        userBio: { create: {} },
-        userPreference: { create: {} },
-        userNotification: { create: {} }
-      }
+
+      data.userBio = { create: {} }
+      data.userPreference = { create: {} }
+      data.userNotification = { create: {} }
 
       // Create User
       const createUser = await db.userAuth.create({ data })

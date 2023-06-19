@@ -60,6 +60,20 @@ class ContactRequestController extends BaseController {
         *
       */
 
+      // Check if contact already exists with same email and same card
+      const contactExist = await db.contact.findFirst({
+        where: {
+          email,
+          cardId: card.cardId
+        }
+      })
+      if (contactExist) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.CONTACT_EXIST
+        })
+      }
+
       const data: INewContactRequest = {
         Contacts: {
           create: {
@@ -132,40 +146,56 @@ class ContactRequestController extends BaseController {
         }
       })
 
-      // const name = fullName.split('')
-      // const firstName = name.length > 1 ? name[0] : fullName
-      // const lastName = name.length > 1 ? name[1] : fullName
-      // const profileData = {
-      //   firstName,
-      //   lastName,
-      //   company,
-      //   profTitle: jobTitle,
-      //   phone,
-      //   state,
-      //   city
-      // }
-      // // Create Profile of shared contact and return
-      // const profile = await db.userAuth.create({
-      //   data: { email },
-      //   select: {
-      //     id: true
-      //   }
-      // })
+      const name = fullName.split(' ')
+      const firstName = name.length > 1 ? name[0] : fullName
+      const lastName = name.length > 1 ? name[1] : fullName
+      const profileData = {
+        firstName,
+        lastName,
+        company,
+        profTitle: jobTitle,
+        profileAvatar: data.Contacts.create.contactImage,
+        phone,
+        state,
+        city
+      }
 
-      // console.log('Profile data ', profile)
+      // Create Profile of shared contact and return
+      const findProfile = await db.userAuth.findFirst({
+        where: { email },
+        select: {
+          id: true
+        }
+      })
+      if (!findProfile) {
+        const profile = await db.userAuth.create({
+          data: { email },
+          select: {
+            id: true
+          }
+        })
 
-      // if (profile) {
-      //   const userBio = await db.userAuth.update({
-      //     where: {
-      //       id: profile.id
-      //     },
-      //     data: profileData,
-      //     select: {
-      //       id: true
-      //     }
-      //   })
-      //   console.log('Bio data ', userBio)
-      // }
+        console.log('Profile data ', profile)
+
+        if (profile) {
+          const userBio = await db.userAuth.update({
+            where: {
+              id: profile.id
+            },
+            data: {
+              userBio: {
+                create: profileData
+              },
+              userPreference: { create: {} },
+              userNotification: { create: {} }
+            },
+            select: {
+              id: true
+            }
+          })
+          console.log('Bio data ', userBio)
+        }
+      }
 
       const contactId = contactRequest.Contacts[0].contactId
 
