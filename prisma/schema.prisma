@@ -36,7 +36,7 @@ model UserAuth {
 model UserBio {
   id                   String          @id
   User                 UserAuth?       @relation(fields: [id, email, phone], references: [id, email, phone], onDelete: Cascade, onUpdate: Cascade)
-  profileAvatar        String          @default("routeToOurDefaultAvatar")
+  profileAvatar        String          @default("https://hlyx-dev-s3-bucket.s3.us-west-1.amazonaws.com/user-avatar.png")
   isOnBoardingComplete Boolean         @default(false)
   profileType          ProfileType     @default(user)
   // Personal Info
