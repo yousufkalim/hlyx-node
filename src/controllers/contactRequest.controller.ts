@@ -155,7 +155,6 @@ class ContactRequestController extends BaseController {
         company,
         profTitle: jobTitle,
         profileAvatar: data.Contacts.create.contactImage,
-        phone,
         state,
         city
       }
@@ -169,32 +168,40 @@ class ContactRequestController extends BaseController {
       })
       if (!findProfile) {
         const profile = await db.userAuth.create({
-          data: { email },
+          data: {
+            email,
+            phone,
+            userBio: {
+              create: profileData
+            },
+            userPreference: { create: {} },
+            userNotification: { create: {} }
+          },
           select: {
             id: true
           }
         })
 
-        console.log('Profile data ', profile)
+        console.log('Created Data ', profile)
 
-        if (profile) {
-          const userBio = await db.userAuth.update({
-            where: {
-              id: profile.id
-            },
-            data: {
-              userBio: {
-                create: profileData
-              },
-              userPreference: { create: {} },
-              userNotification: { create: {} }
-            },
-            select: {
-              id: true
-            }
-          })
-          console.log('Bio data ', userBio)
-        }
+        // if (profile) {
+        //   const userBio = await db.userAuth.update({
+        //     where: {
+        //       id: profile.id
+        //     },
+        //     data: {
+        //       userBio: {
+        //         create: profileData
+        //       },
+        //       userPreference: { create: {} },
+        //       userNotification: { create: {} }
+        //     },
+        //     select: {
+        //       id: true
+        //     }
+        //   })
+        //   console.log('Bio data ', userBio)
+        // }
       }
 
       const contactId = contactRequest.Contacts[0].contactId

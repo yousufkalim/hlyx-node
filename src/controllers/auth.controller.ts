@@ -284,7 +284,11 @@ class AuthController extends BaseController {
       const savedContactUser = await db.contact.findFirst({ where: { email } })
       // Check if email is already registered
       const userWithEmail = await db.userAuth.findUnique({ where: { email } })
-      if (userWithEmail && savedContactUser) {
+      if (
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        (userWithEmail && !savedContactUser) ||
+        (userWithEmail && savedContactUser && userWithEmail?.isEmailVerified)
+      ) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: `${messages.USER_ALREADY_EXIST} with email "${email}"`
