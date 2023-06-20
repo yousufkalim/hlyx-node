@@ -38,6 +38,7 @@ model UserBio {
   User                 UserAuth?       @relation(fields: [id, email, phone], references: [id, email, phone], onDelete: Cascade, onUpdate: Cascade)
   profileAvatar        String          @default("routeToOurDefaultAvatar")
   isOnBoardingComplete Boolean         @default(false)
+  profileType          ProfileType     @default(user)
   // Personal Info
   firstName            String?
   middleInitial        String?
@@ -603,4 +604,9 @@ enum ConnectionViaPersonFilters {
 enum DesignationType {
   receivedAt
   receivedFrom
+}
+
+enum ProfileType {
+  user
+  contact
 }

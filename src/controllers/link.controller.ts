@@ -1114,10 +1114,16 @@ class LinkController extends BaseController {
         allLinks = response
 
         // Get card contacts of each card
-        const cardContacts = await this.#getContactsOfCard(card.cardId, searchType, search)
+        const cardContacts: IContact[] | undefined = await this.#getContactsOfCard(
+          card.cardId,
+          searchType,
+          search
+        )
+        // const cardEmails = cardContacts?.map((item) => item.email)
+
         contacts.push({
           myCardId: card.cardId,
-          contacts: cardContacts
+          contacts: cardContacts ?? []
         })
 
         general.push({
@@ -2076,6 +2082,7 @@ class LinkController extends BaseController {
         if (searchType === 'location') {
           const response: any | null = await db.userBio.findFirst({
             where: {
+              profileType: 'user',
               cards: {
                 some: { cardId: otherUserId }
               },
@@ -2111,6 +2118,7 @@ class LinkController extends BaseController {
           const lowerCasedFullName = search?.toLowerCase()
           const response: any | null = await db.userBio.findFirst({
             where: {
+              profileType: 'user',
               cards: {
                 some: { cardId: otherUserId }
               }
@@ -2140,6 +2148,7 @@ class LinkController extends BaseController {
         } else {
           const response: any | null = await db.userBio.findFirst({
             where: {
+              profileType: 'user',
               cards: {
                 some: { cardId: otherUserId }
               },
@@ -2165,6 +2174,7 @@ class LinkController extends BaseController {
       } else {
         const response: any | null = await db.userBio.findFirst({
           where: {
+            profileType: 'user',
             cards: {
               some: { cardId: otherUserId }
             }

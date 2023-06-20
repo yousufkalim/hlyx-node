@@ -12,7 +12,8 @@ import {
   validateCardAboutPage,
   validateCardServices,
   validateCardPortfolio,
-  validateCardSlug
+  validateCardSlug,
+  validateCardAboutForMinimal
 } from '../utils/validations/card.controller.validation'
 import { templateIds } from '../config/enumTypes'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
@@ -1562,7 +1563,7 @@ class CardController extends BaseController {
       }
 
       if (card.profileLayout === 'minimal') {
-        const cardAboutValidationError = validateCardAboutPage(cardAboutData)
+        const cardAboutValidationError = validateCardAboutForMinimal(cardAboutData)
         if (cardAboutValidationError) {
           return res.status(400).json({
             code: codes.BAD_REQUEST,
