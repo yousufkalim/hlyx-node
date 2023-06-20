@@ -1114,10 +1114,16 @@ class LinkController extends BaseController {
         allLinks = response
 
         // Get card contacts of each card
-        const cardContacts = await this.#getContactsOfCard(card.cardId, searchType, search)
+        const cardContacts: IContact[] | undefined = await this.#getContactsOfCard(
+          card.cardId,
+          searchType,
+          search
+        )
+        // const cardEmails = cardContacts?.map((item) => item.email)
+
         contacts.push({
           myCardId: card.cardId,
-          contacts: cardContacts
+          contacts: cardContacts ?? []
         })
 
         general.push({
@@ -1154,7 +1160,6 @@ class LinkController extends BaseController {
           searchType,
           search
         )
-        console.log('Allllll ', otherCards)
         mutualCards = otherCards
       }
 
@@ -2053,7 +2058,6 @@ class LinkController extends BaseController {
           otherUserId = link.cardTwo
         }
         const linkedCardUser = await this.#getLinkCardUserInfo(query, otherUserId)
-        // console.log("Other user")
         if (linkedCardUser) {
           const userExists = linkInfo.find((item) => item.id === linkedCardUser.id)
           if (!userExists) {
@@ -2074,12 +2078,11 @@ class LinkController extends BaseController {
       const { search, searchBy } = query
       const searchType: string = searchBy ?? ''
       let result: any | null
-      console.log('Searching ', search)
-      console.log('Searching type ', searchType)
       if (search && searchType) {
         if (searchType === 'location') {
           const response: any | null = await db.userBio.findFirst({
             where: {
+              profileType: 'user',
               cards: {
                 some: { cardId: otherUserId }
               },
@@ -2101,8 +2104,9 @@ class LinkController extends BaseController {
             select: {
               id: true,
               firstName: true,
-              profileAvatar: true,
+              middleInitial: true,
               lastName: true,
+              profileAvatar: true,
               profTitle: true,
               company: true,
               city: true,
@@ -2114,6 +2118,7 @@ class LinkController extends BaseController {
           const lowerCasedFullName = search?.toLowerCase()
           const response: any | null = await db.userBio.findFirst({
             where: {
+              profileType: 'user',
               cards: {
                 some: { cardId: otherUserId }
               }
@@ -2121,22 +2126,21 @@ class LinkController extends BaseController {
             select: {
               id: true,
               firstName: true,
-              profileAvatar: true,
+              middleInitial: true,
               lastName: true,
+              profileAvatar: true,
               profTitle: true,
               company: true,
               city: true,
               state: true
             }
           })
-          console.log('Other response ', response)
           if (response) {
             const record = {
               ...response,
-              fullName: `${response?.firstName?.toLowerCase()} ${response?.lastName?.toLowerCase()}`
+              fullName: `${response?.firstName?.toLowerCase()} ${response?.middleInitial?.toLowerCase()} ${response?.lastName?.toLowerCase()}`
             }
             const findUser = record.fullName.includes(lowerCasedFullName) ? response : null
-            console.log('Find response ', findUser)
             if (findUser) {
               result = response
             }
@@ -2144,6 +2148,7 @@ class LinkController extends BaseController {
         } else {
           const response: any | null = await db.userBio.findFirst({
             where: {
+              profileType: 'user',
               cards: {
                 some: { cardId: otherUserId }
               },
@@ -2155,8 +2160,9 @@ class LinkController extends BaseController {
             select: {
               id: true,
               firstName: true,
-              profileAvatar: true,
+              middleInitial: true,
               lastName: true,
+              profileAvatar: true,
               profTitle: true,
               company: true,
               city: true,
@@ -2168,6 +2174,7 @@ class LinkController extends BaseController {
       } else {
         const response: any | null = await db.userBio.findFirst({
           where: {
+            profileType: 'user',
             cards: {
               some: { cardId: otherUserId }
             }
@@ -2175,8 +2182,9 @@ class LinkController extends BaseController {
           select: {
             id: true,
             firstName: true,
-            profileAvatar: true,
+            middleInitial: true,
             lastName: true,
+            profileAvatar: true,
             profTitle: true,
             company: true,
             city: true,
@@ -2392,10 +2400,7 @@ class LinkController extends BaseController {
       const cards: ILinkCardUsers[] = []
       const query = { searchBy, search }
       for (const card of otherCardIds) {
-        console.log('Mutual query ', query)
-
         const linkedCardUser = await this.#getLinkCardUserInfo(query, card)
-        console.log('Mutual linked ', linkedCardUser)
         if (linkedCardUser) {
           const userExists = cards.find((item) => item.id === linkedCardUser.id)
           if (!userExists) {

@@ -76,12 +76,8 @@ export interface IValidateCardType {
   profileLayout: IProfileLayoutEnum
 }
 
-export interface IValidateCardAboutPage {
+export interface IValidateCardAboutPage extends IValidateCardAboutMinimal {
   about: string
-  company: string
-  profTitle: string
-  occupation: string
-  industry: string
   education?: ICardEducation[]
   accolades?: ICardAccolades[]
   achievements?: ICardAchievements[]
@@ -91,6 +87,13 @@ export interface IValidateCardAboutPage {
   interests?: string[]
   skills?: string[]
   motto?: string
+}
+
+export interface IValidateCardAboutMinimal {
+  company: string
+  profTitle: string
+  occupation: string
+  industry: string
 }
 
 export interface IValidateCardServices {

@@ -12,7 +12,8 @@ import {
   validateCardAboutPage,
   validateCardServices,
   validateCardPortfolio,
-  validateCardSlug
+  validateCardSlug,
+  validateCardAboutForMinimal
 } from '../utils/validations/card.controller.validation'
 import { templateIds } from '../config/enumTypes'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
@@ -941,6 +942,7 @@ class CardController extends BaseController {
   updateAboutPage = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, cardAboutPageParams)
     try {
+      console.log('body ', req.body)
       const validationError = validateCardAboutPage(params)
       if (validationError) {
         return res.status(400).json({
@@ -1040,7 +1042,7 @@ class CardController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
-      console.error(error)
+      console.error('ERRORr ', error.message)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
@@ -1073,34 +1075,38 @@ class CardController extends BaseController {
           4. Second conditional checks that the last element is the same as the legnth
       */
       const featuredServices: any = services.filter((service: any) => service.type === 'featured')
-      const featuredPositionings = featuredServices.map((a: any) => a.positioning)
-      featuredPositionings.sort((a: any, b: any) => {
-        return a - b
-      })
-
-      if (
-        featuredPositionings.length !== new Set(featuredPositionings).size ||
-        featuredPositionings.length - 1 !== featuredPositionings[featuredPositionings.length - 1]
-      ) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: messages.POSITIONING_ERROR_SERVICE
+      if (featuredServices?.length > 0) {
+        const featuredPositionings = featuredServices.map((a: any) => a.positioning)
+        featuredPositionings.sort((a: any, b: any) => {
+          return a - b
         })
+
+        if (
+          featuredPositionings.length !== new Set(featuredPositionings).size ||
+          featuredPositionings.length - 1 !== featuredPositionings[featuredPositionings.length - 1]
+        ) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.POSITIONING_ERROR_SERVICE
+          })
+        }
       }
 
       const mainServices: any = services.filter((service: any) => service.type === 'main')
-      const mainPositionings = mainServices.map((a: any) => a.positioning)
-      mainPositionings.sort((a: any, b: any) => {
-        return a - b
-      })
-      if (
-        mainPositionings.length !== new Set(mainPositionings).size ||
-        mainPositionings.length - 1 !== mainPositionings[mainPositionings.length - 1]
-      ) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: messages.POSITIONING_ERROR_SERVICE
+      if (mainServices?.length > 0) {
+        const mainPositionings = mainServices.map((a: any) => a.positioning)
+        mainPositionings.sort((a: any, b: any) => {
+          return a - b
         })
+        if (
+          mainPositionings.length !== new Set(mainPositionings).size ||
+          mainPositionings.length - 1 !== mainPositionings[mainPositionings.length - 1]
+        ) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.POSITIONING_ERROR_SERVICE
+          })
+        }
       }
 
       // Delete Existing Services
@@ -1557,7 +1563,7 @@ class CardController extends BaseController {
       }
 
       if (card.profileLayout === 'minimal') {
-        const cardAboutValidationError = validateCardAboutPage(cardAboutData)
+        const cardAboutValidationError = validateCardAboutForMinimal(cardAboutData)
         if (cardAboutValidationError) {
           return res.status(400).json({
             code: codes.BAD_REQUEST,

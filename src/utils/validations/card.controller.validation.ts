@@ -7,7 +7,8 @@ import {
   IValidateCardServices,
   IValidateCardPortfolio,
   IValidateCardSlug,
-  IValidateCardType
+  IValidateCardType,
+  IValidateCardAboutMinimal
 } from '../../config/interfaces/card.validation.interface'
 import { stringLengths } from '../../config/stringLengths'
 import {
@@ -253,6 +254,18 @@ export const validateCardAboutPage = (
       .max(arrayLimits.MAX_SKILLS)
       .items(Joi.string().max(stringLengths.SKILLS_MAX)),
     motto: Joi.string().max(stringLengths.MOTTO_MAX)
+  })
+  return aboutPageSchema.validate(cardAboutPagePayload)?.error?.message
+}
+
+export const validateCardAboutForMinimal = (
+  cardAboutPagePayload: IValidateCardAboutMinimal
+): string | undefined => {
+  const aboutPageSchema = Joi.object({
+    company: Joi.string().max(stringLengths.COMPANY_MAX).required(),
+    profTitle: Joi.string().max(stringLengths.PROFESSIONAL_TITLE_MAX).required(),
+    occupation: Joi.string().max(stringLengths.OCCUPATION_MAX).required(),
+    industry: Joi.string().max(stringLengths.INDUSTRY_MAX).required()
   })
   return aboutPageSchema.validate(cardAboutPagePayload)?.error?.message
 }
