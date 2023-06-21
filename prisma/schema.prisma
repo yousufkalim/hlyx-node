@@ -3,7 +3,6 @@
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["filteredRelationCount"]
 }
 
 datasource db {
@@ -178,14 +177,11 @@ model Card {
   fullName          String
   // Contact Page
   headerPhoto       String?
-  country           String?
-  city              String
-  state             String?
-  streetAddress     String?
-  zipcode           String?
   emails            CardEmails[]
   phones            CardPhones[]
   websites          CardWebsites[]
+  city              String
+  state             String?
   socialMedias      CardSocialMedias[]
   calendars         CardCalendars[]
   officeAddresses   CardOfficeAddresses[]

@@ -1,11 +1,11 @@
 import bcrypt from 'bcrypt'
 
 import { db } from '../utils/db'
-import { generateData, generateCardData, getRandomLinkStatus } from './data'
+import { generateData, generateCardData, getRandomLinkStatus, generateDummyImage } from './data'
 
 const main = async (): Promise<void> => {
   try {
-    const numberOfSeeds = 100
+    const numberOfSeeds = 1
 
     const data = await generateData()
     const {
@@ -18,6 +18,7 @@ const main = async (): Promise<void> => {
       professionalTitles,
       industries,
       occupations,
+      websites,
       cities,
       states,
       zipcodes
@@ -46,6 +47,7 @@ const main = async (): Promise<void> => {
               profTitle: professionalTitles[i][0],
               industry: industries[i][0],
               profRole: occupations[i % occupations.length][0],
+              website: websites[i][0],
               country: 'Unites States',
               city: cities[i][0],
               state: states[i][0],
@@ -61,6 +63,10 @@ const main = async (): Promise<void> => {
                   industry: industries[i][0],
                   city: cities[i][0],
                   state: states[i][0],
+                  coverPhoto: generateDummyImage('200', '200'),
+                  brandedCoverPhoto: generateDummyImage('300', '300'),
+                  headerPhoto: generateDummyImage('100', '100'),
+                  companyIcon: generateDummyImage('50', '50'),
                   emails: {
                     create: cardData.cardEmails[i]
                   },

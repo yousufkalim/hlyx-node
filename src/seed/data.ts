@@ -1,5 +1,6 @@
 import fs from 'fs/promises'
 import { parse } from 'csv-parse/sync'
+import crypto from 'crypto'
 
 import { socialMedia, additionalLinksType, emailTypes, phoneTypes, linksTypes } from '../config/enumTypes'
 
@@ -13,6 +14,7 @@ interface seedData {
   professionalTitles: string[]
   industries: string[]
   occupations: string[]
+  websites: string[]
   cities: string[]
   states: string[]
   zipcodes: string[]
@@ -371,4 +373,8 @@ const getRandomLinkType = (words: typeof additionalLinksType): typeof additional
 
 export const getRandomLinkStatus = (): typeof linksTypes[number] => {
   return linksTypes[Math.floor(Math.random() * linksTypes.length)]
+}
+
+export const generateDummyImage = (width: string, height: string): string => {
+  return `https://dummyimage.com/${width}x${height}.png/${crypto.randomBytes(4).toString('hex')}/${crypto.randomBytes(4).toString('hex')}`
 }
