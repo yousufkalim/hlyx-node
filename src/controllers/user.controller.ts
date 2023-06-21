@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/indent */
 import {
-  validateCardAboutPage,
+  validateCardAboutForMinimal,
   validateCardContactPage,
   validateCardType
 } from './../utils/validations/card.controller.validation'
@@ -271,6 +271,7 @@ class UserController extends BaseController {
   // Add a card to user
   addCard = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
+      console.log('Body ', req.body)
       const body: any = {}
       for (const item in req.body) {
         try {
@@ -373,7 +374,7 @@ class UserController extends BaseController {
       }
 
       if (profileLayout === 'minimal') {
-        const cardAboutValidationError = validateCardAboutPage(cardAboutData)
+        const cardAboutValidationError = validateCardAboutForMinimal(cardAboutData)
         if (cardAboutValidationError) {
           return res.status(400).json({
             code: codes.BAD_REQUEST,
@@ -434,6 +435,8 @@ class UserController extends BaseController {
       }
 
       /*  ====  Validation for Cover Photo  ===== */
+      console.log('Files ', req.files)
+      console.log('Cover photo => ', req.files?.coverPhoto)
       const coverPhoto = req.files?.coverPhoto as UploadedFile
       if (coverPhoto) {
         // Verify Acceptable MIME Type
@@ -459,10 +462,11 @@ class UserController extends BaseController {
           coverPhoto.name,
           coverPhoto.mimetype
         )
-        cardAboutData.coverPhoto = coverPhotoPath
+        cardContactData.coverPhoto = coverPhotoPath
       }
 
       /*  ====  Validation for Company Icon  ===== */
+      console.log('Company Icon => ', req.files?.companyIcon)
       const companyIcon = req.files?.companyIcon as UploadedFile
       if (companyIcon) {
         // Verify Acceptable MIME Type
@@ -488,7 +492,7 @@ class UserController extends BaseController {
           companyIcon.mimetype
         )
 
-        cardAboutData.companyIcon = companyIconPath
+        cardContactData.companyIcon = companyIconPath
       }
 
       /*  ====  Validation for Branded Cover Photo  ===== */
@@ -516,11 +520,12 @@ class UserController extends BaseController {
           brandedCover.name,
           brandedCover.mimetype
         )
-        cardAboutData.brandedCoverPhoto = brandCoverPath
+        cardContactData.brandedCoverPhoto = brandCoverPath
       }
 
       const data = { ...cardContactData, ...cardAboutData, profileLayout }
 
+      console.log('Data final ', cardContactData)
       // Update UserBio, create Card, and return
       const createdCard = await db.userBio.update({
         where: { id: req.params.userId },
@@ -554,13 +559,7 @@ class UserController extends BaseController {
         width: 200,
         errorCorrectionLevel: 'H'
       })
-      const qrCodeImage = await awsUploadFile(
-        bufferImage,
-        cardId,
-        'qrcode',
-        '',
-        'image/png'
-      )
+      const qrCodeImage = await awsUploadFile(bufferImage, cardId, 'qrcode', '', 'image/png')
 
       await db.card.update({
         where: {
@@ -577,6 +576,7 @@ class UserController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
+      console.log('Error ', error.message)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
@@ -933,6 +933,129 @@ class UserController extends BaseController {
   }
 
   userStats = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      // Verify user exists
+      const user = await db.userBio.findUnique({
+        where: {
+          id: req.user?.id
+        },
+        include: {
+          _count: {
+            select: {
+              cards: true
+            }
+          },
+          groups: true,
+          cards: {
+            select: {
+              cardId: true,
+              cardName: true,
+              fullName: true,
+              headerPhoto: true,
+              coverPhoto: true,
+              brandedCoverPhoto: true
+            }
+          }
+        }
+      })
+      if (!user) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.USER_NOT_FOUND
+        })
+      }
+
+      const linkedCards = []
+      const savedContacts = []
+      if (user.cards) {
+        for (const card of user.cards) {
+          const links = await db.link.findMany({
+            where: {
+              status: 'accepted',
+              OR: [
+                {
+                  cardOne: card.cardId
+                },
+                {
+                  cardTwo: card.cardId
+                }
+              ]
+            },
+            select: {
+              CardOneRef: {
+                select: {
+                  cardId: true,
+                  coverPhoto: true,
+                  cardName: true,
+                  fullName: true,
+                  headerPhoto: true,
+                  brandedCoverPhoto: true,
+                  Contacts: {
+                    select: {
+                      contactImage: true,
+                      status: true,
+                      fullName: true,
+                      company: true,
+                      jobTitle: true
+                    }
+                  }
+                }
+              },
+              CardTwoRef: {
+                select: {
+                  cardId: true,
+                  coverPhoto: true,
+                  cardName: true,
+                  fullName: true,
+                  headerPhoto: true,
+                  brandedCoverPhoto: true,
+                  Contacts: {
+                    select: {
+                      contactImage: true,
+                      status: true,
+                      fullName: true,
+                      company: true,
+                      jobTitle: true
+                    }
+                  }
+                }
+              }
+            }
+          })
+
+          if (links) {
+            // collect linked cards with my card
+            for (const link of links) {
+              if (link.CardOneRef.cardId === card.cardId) {
+                linkedCards.push(link.CardTwoRef)
+                if (link.CardOneRef.Contacts) {
+                  savedContacts.push(...link.CardOneRef.Contacts)
+                }
+              } else {
+                linkedCards.push(link.CardOneRef)
+                savedContacts.push(...link.CardTwoRef.Contacts)
+              }
+            }
+          }
+        }
+      }
+
+      const data = { links: linkedCards, cards: user.cards, savedContacts }
+      // Return
+      return res.status(200).json({
+        user: data,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  userContactDetails = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       // Verify user exists
       const user = await db.userBio.findUnique({

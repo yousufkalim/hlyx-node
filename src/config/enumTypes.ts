@@ -74,6 +74,6 @@ export const linksTypes = [
 
 export const sharedContactStatus = ['requested', 'saved', 'archived']
 
-export const searchTypeEnum = ['fullName', 'profTitle', 'tags', 'company', 'location']
+export const searchTypeEnum = ['name', 'profTitle', 'tags', 'company', 'location']
 
-export const searchTypeContactEnum = ['fullName', 'company', 'location']
+export const searchTypeContactEnum = ['name', 'company', 'location']

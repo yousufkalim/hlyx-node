@@ -7,7 +7,8 @@ import {
   IValidateCardServices,
   IValidateCardPortfolio,
   IValidateCardSlug,
-  IValidateCardType
+  IValidateCardType,
+  IValidateCardAboutMinimal
 } from '../../config/interfaces/card.validation.interface'
 import { stringLengths } from '../../config/stringLengths'
 import {
@@ -175,7 +176,7 @@ export const validateCardAboutPage = (
   cardAboutPagePayload: IValidateCardAboutPage
 ): string | undefined => {
   const aboutPageSchema = Joi.object({
-    about: Joi.string().max(stringLengths.ABOUT_MAX),
+    about: Joi.string().max(stringLengths.ABOUT_MAX).required(),
     company: Joi.string().max(stringLengths.COMPANY_MAX).required(),
     profTitle: Joi.string().max(stringLengths.PROFESSIONAL_TITLE_MAX).required(),
     occupation: Joi.string().max(stringLengths.OCCUPATION_MAX).required(),
@@ -234,7 +235,8 @@ export const validateCardAboutPage = (
       .max(arrayLimits.MAX_NEEDSASKS)
       .items(
         Joi.object({
-          date: Joi.date(),
+          startDate: Joi.date().required(),
+          endDate: Joi.date(),
           title: Joi.string().max(stringLengths.BUSINESS_GOAL_NEEDS_TITLE).required(),
           description: Joi.string().max(stringLengths.BUSINESS_GOAL_NEEDS_DESC),
           status: Joi.string()
@@ -256,6 +258,18 @@ export const validateCardAboutPage = (
   return aboutPageSchema.validate(cardAboutPagePayload)?.error?.message
 }
 
+export const validateCardAboutForMinimal = (
+  cardAboutPagePayload: IValidateCardAboutMinimal
+): string | undefined => {
+  const aboutPageSchema = Joi.object({
+    company: Joi.string().max(stringLengths.COMPANY_MAX).required(),
+    profTitle: Joi.string().max(stringLengths.PROFESSIONAL_TITLE_MAX).required(),
+    occupation: Joi.string().max(stringLengths.OCCUPATION_MAX).required(),
+    industry: Joi.string().max(stringLengths.INDUSTRY_MAX).required()
+  })
+  return aboutPageSchema.validate(cardAboutPagePayload)?.error?.message
+}
+
 /**
  *
  * @param cardServicesPayload
@@ -273,9 +287,11 @@ export const validateCardServices = (
             .valid(...Object.values(servicesTypes))
             .required(),
           title: Joi.string().max(stringLengths.SERVICES_TITLE).required(),
-          subtitle: Joi.string().max(stringLengths.SERVICES_SUBTITLE).required(),
-          details: Joi.string().max(stringLengths.SERVICES_DETAILS),
-          url: Joi.string().max(stringLengths.WEBSITES_MAX).hostname(),
+          subtitle: Joi.string()
+            .max(stringLengths.SERVICES_SUBTITLE)
+            .when('type', { is: 'featured', then: Joi.required() }),
+          details: Joi.string().max(stringLengths.SERVICES_DETAILS).allow(''),
+          url: Joi.array().items(Joi.string().max(stringLengths.WEBSITES_MAX).hostname()),
           positioning: Joi.number().integer().min(0).max(arrayLimits.MAX_PORTFOLIO).required()
         })
       )
