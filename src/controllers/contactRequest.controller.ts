@@ -171,6 +171,7 @@ class ContactRequestController extends BaseController {
           data: {
             email,
             phone,
+            password: 'temp',
             userBio: {
               create: profileData
             },
