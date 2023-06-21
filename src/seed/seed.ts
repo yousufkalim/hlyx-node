@@ -63,10 +63,10 @@ const main = async (): Promise<void> => {
                   industry: industries[i][0],
                   city: cities[i][0],
                   state: states[i][0],
-                  // coverPhoto: generateDummyImage('200', '200'),
-                  // brandedCoverPhoto: generateDummyImage('300', '300'),
-                  // headerPhoto: generateDummyImage('100', '100'),
-                  // companyIcon: generateDummyImage('50', '50'),
+                  coverPhoto: generateDummyImage('200', '200'),
+                  brandedCoverPhoto: generateDummyImage('300', '300'),
+                  headerPhoto: generateDummyImage('100', '100'),
+                  companyIcon: generateDummyImage('50', '50'),
                   emails: {
                     create: cardData.cardEmails[i]
                   },
