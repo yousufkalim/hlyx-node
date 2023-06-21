@@ -87,3 +87,18 @@ export interface ISearchQuery {
   search: string
   searchBy: string
 }
+
+export interface IContactUser {
+  id: string
+  email: string
+  userBio: IUserBio | null
+}
+
+export interface IUserBio {
+  firstName: string
+  middleInitial: string
+  lastName: string
+  profileAvatar: string
+  phone: string
+  profileType: string
+}
