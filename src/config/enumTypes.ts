@@ -1,10 +1,18 @@
-export const emailTypes = ['work', 'personal']
+export const emailTypes = ['work', 'personal', 'alternate'] as const
 
 export const twoFactorAuthTypes = ['none', 'phone', 'email']
 
 export const connectViaPersonFilters = ['auto', 'manual']
 
-export const phoneTypes = ['home', 'work', 'mobile', 'main', 'fax', 'direct', 'office']
+export const phoneTypes = [
+  'home',
+  'work',
+  'mobile',
+  'main',
+  'fax',
+  'direct',
+  'office'
+] as const
 
 export const academicLevels = [
   'High School',
@@ -39,9 +47,15 @@ export const socialMedia = [
   'twitter',
   'instagram',
   'medium'
-]
+] as const
 
-export const additionalLinksType = ['article', 'audio', 'video', 'website', 'file']
+export const additionalLinksType = [
+  'article',
+  'audio',
+  'video',
+  'website',
+  'file'
+] as const
 
 export const businessGoalsStatus = ['Active', 'Achieved']
 
@@ -51,7 +65,12 @@ export const servicesTypes = ['featured', 'main']
 
 export const templateIds = ['DEFAULT', 'FULL']
 
-export const linksTypes = ['requested', 'accepted', 'declined', 'blocked']
+export const linksTypes = [
+  'requested',
+  'accepted',
+  'declined',
+  'blocked'
+] as const
 
 export const sharedContactStatus = ['requested', 'saved', 'archived']
 

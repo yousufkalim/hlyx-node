@@ -29,6 +29,12 @@ model UserAuth {
 }
 
 model UserBio {
+  id                   String      @id
+  User                 UserAuth?   @relation(fields: [id, email, phone], references: [id, email, phone], onDelete: Cascade, onUpdate: Cascade)
+  profileAvatar        String      @default("https://hlyx-dev-s3-bucket.s3.us-west-1.amazonaws.com/user-avatar.png")
+  isOnBoardingComplete Boolean     @default(false)
+  profileType          ProfileType @default(user)
+  // Personal Info
   firstName            String?
   middleInitial        String?
   lastName             String?
@@ -39,25 +45,21 @@ model UserBio {
   city                 String?
   state                String?
   zipcode              String?
-  updatedAt            DateTime        @updatedAt
+  updatedAt            DateTime    @updatedAt
   email                String
   phone                String?
   website              String?
   profRole             String?
-  profileAvatar        String          @default("routeToOurDefaultAvatar")
-  id                   String          @id
-  isOnBoardingComplete Boolean         @default(false)
-  userName             String?         @unique
-  blockedUserId        String?
-  profileType          ProfileType     @default(user)
-  cards                Card[]
-  Group                Group[]
-  GroupMessages        GroupMessages[]
-  groups               GroupsOnUsers[]
-  blockedUser          UserBio?        @relation("BlockedUsers", fields: [blockedUserId], references: [id])
-  blockedUsers         UserBio[]       @relation("BlockedUsers")
-  User                 UserAuth?       @relation(fields: [id, email, phone], references: [id, email, phone], onDelete: Cascade)
-  profilePhotos        UserPhoto[]
+
+  userName      String?         @unique
+  blockedUserId String?
+  cards         Card[]
+  Group         Group[]
+  GroupMessages GroupMessages[]
+  groups        GroupsOnUsers[]
+  blockedUser   UserBio?        @relation("BlockedUsers", fields: [blockedUserId], references: [id])
+  blockedUsers  UserBio[]       @relation("BlockedUsers")
+  profilePhotos UserPhoto[]
 
   @@unique([id, email, phone])
   @@unique([id, profileAvatar])
@@ -142,6 +144,22 @@ model Card {
   userAvatar        String
   coverPhoto        String?
   fullName          String
+  cardName          String
+  profileLayout     ProfileLayout
+  isPrivate         Boolean                         @default(false)
+  activeCard        Boolean                         @default(true)
+  // Contact Page
+  headerPhoto       String?
+  city              String
+  state             String?
+  emails            CardEmails[]
+  phones            CardPhones[]
+  websites          CardWebsites[]
+  socialMedias      CardSocialMedias[]
+  calendars         CardCalendars[]
+  officeAddresses   CardOfficeAddresses[]
+  additionalLinks   CardAdditionalLinks[]
+  // About Page
   about             String?
   company           String?
   profTitle         String?
@@ -153,9 +171,6 @@ model Card {
   motto             String?
   createdAt         DateTime                        @default(now())
   updatedAt         DateTime                        @updatedAt
-  city              String
-  country           String?
-  state             String?
   streetAddress     String?
   zipcode           String?
   publicCard        Boolean                         @default(true)
@@ -164,31 +179,19 @@ model Card {
   cardId            String                          @id @default(uuid())
   templateId        TemplateIdentification          @default(DEFAULT)
   slug              String?                         @unique
-  cardName          String
-  headerPhoto       String?
-  profileLayout     ProfileLayout
-  isPrivate         Boolean                         @default(false)
-  activeCard        Boolean                         @default(true)
   brandedCoverPhoto String?
   qrCodeImage       String?                         @unique
   User              UserBio                         @relation(fields: [userId, userAvatar], references: [id, profileAvatar], onDelete: Cascade)
   accolades         CardAccolades[]
   achievements      CardAchievements[]
-  additionalLinks   CardAdditionalLinks[]
   businessGoals     CardBusinessGoals[]
   businessNeeds     CardBusinessNeeds[]
-  calendars         CardCalendars[]
   companyIcons      CardCompanyIcons[]
   coverPhotos       CardCoverPhotos[]
   education         CardEducations[]
-  emails            CardEmails[]
-  officeAddresses   CardOfficeAddresses[]
-  phones            CardPhones[]
   portfolio         CardPortfolio[]
   portfolioImages   CardPortfolioImages[]
   services          CardServices[]
-  socialMedias      CardSocialMedias[]
-  websites          CardWebsites[]
   Contacts          Contact[]
   Links             Link[]                          @relation("CardOneRef")
   LinksDuplicate    Link[]                          @relation("CardTwoRef")

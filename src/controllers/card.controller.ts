@@ -127,11 +127,8 @@ class CardController extends BaseController {
               streetAddress: true
             }
           },
-          country: true,
           city: true,
           state: true,
-          streetAddress: true,
-          zipcode: true,
           socialMedias: {
             select: {
               platform: true,
