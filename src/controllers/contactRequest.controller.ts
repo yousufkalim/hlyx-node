@@ -149,14 +149,15 @@ class ContactRequestController extends BaseController {
       const name = fullName.split(' ')
       const firstName = name.length > 1 ? name[0] : fullName
       const lastName = name.length > 1 ? name[1] : fullName
-      const profileData = {
+      const profileData: any = {
         firstName,
         lastName,
         company,
         profTitle: jobTitle,
         profileAvatar: data.Contacts.create.contactImage,
         state,
-        city
+        city,
+        profileType: 'contact'
       }
 
       // Create Profile of shared contact and return

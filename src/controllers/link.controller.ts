@@ -1119,11 +1119,41 @@ class LinkController extends BaseController {
           searchType,
           search
         )
-        // const cardEmails = cardContacts?.map((item) => item.email)
+        const contactProfiles = []
+        if (cardContacts) {
+          for (const contact of cardContacts) {
+            const contactProfile: any = await db.userAuth.findUnique({
+              where: {
+                email: contact.email
+              },
+              select: {
+                id: true,
+                userBio: {
+                  select: {
+                    profileType: true,
+                    firstName: true,
+                    middleInitial: true,
+                    lastName: true,
+                    phone: true,
+                    userName: true,
+                    profileAvatar: true
+                  }
+                }
+              }
+            })
+            // contactProfile = { ...contactProfile, ...contactProfile?.userBio }
+            contactProfiles.push({
+              id: contactProfile.id,
+              email: contactProfile.email,
+              contactId: contact.contactId,
+              ...contactProfile?.userBio
+            })
+          }
+        }
 
         contacts.push({
           myCardId: card.cardId,
-          contacts: cardContacts ?? []
+          contacts: contactProfiles ?? []
         })
 
         general.push({
