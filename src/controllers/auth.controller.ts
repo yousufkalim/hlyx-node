@@ -625,7 +625,7 @@ class AuthController extends BaseController {
         }
       })
 
-      res.status(200).sendFile(path.join(__dirname, '../utils/html-templates/', 'successful.html'))
+      res.status(200).sendFile(path.join(__dirname, '../utils/html-templates/', 'success.html'))
       return res
     } catch (error: any) {
       console.error(error)
