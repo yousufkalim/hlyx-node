@@ -11,6 +11,10 @@ export interface IValidateVerifyCode extends IValidateSendVerificationCode {
   code: string
 }
 
+export interface IValidateEmailUpdate extends IValidateVerifyCode {
+  phone: string
+}
+
 export interface IValidateAddPhone {
   phone: string
 }

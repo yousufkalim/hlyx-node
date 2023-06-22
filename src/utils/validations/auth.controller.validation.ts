@@ -3,6 +3,7 @@ import {
   IValidateLoginRegister,
   IValidateSendVerificationCode,
   IValidateVerifyCode,
+  IValidateEmailUpdate,
   IValidateAddPhone,
   IValidateVerifyPhone
 } from '../../config/interfaces/auth.validations.interface'
@@ -69,6 +70,23 @@ export const validateSendVerificationCode = (
  * @param verifyCodePayload
  * @returns Error message
  */
+export const validateEmailUpdate = (verifyCodePayload: IValidateEmailUpdate): string | undefined => {
+  const verifyCodeSchema = Joi.object({
+    email: Joi.string()
+      .email({ tlds: { allow: false } })
+      .required(),
+    phone: Joi.string().required(),
+    code: Joi.string().required()
+  })
+
+  return verifyCodeSchema.validate(verifyCodePayload)?.error?.message
+}
+
+/**
+ *
+ * @param verifyCodePayload
+ * @returns Error message
+ */
 export const validateVerifyCode = (verifyCodePayload: IValidateVerifyCode): string | undefined => {
   const verifyCodeSchema = Joi.object({
     email: Joi.string()
@@ -99,10 +117,10 @@ export const validateChangePassword = (
 
 /**
  *
- * @param addPhonePayload
+ * @param phonePayload
  * @returns Error message
  */
-export const validatePhone = (addPhonePayload: IValidateAddPhone): string | undefined => {
+export const validatePhone = (phonePayload: IValidateAddPhone): string | undefined => {
   const phoneSchema = Joi.object({
     phone: Joi.string()
       .min(stringLengths.PHONE_MIN)
@@ -111,7 +129,7 @@ export const validatePhone = (addPhonePayload: IValidateAddPhone): string | unde
       .required()
   })
 
-  return phoneSchema.validate(addPhonePayload)?.error?.message
+  return phoneSchema.validate(phonePayload)?.error?.message
 }
 
 /**

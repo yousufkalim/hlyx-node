@@ -15,6 +15,7 @@ import {
   validateLogin,
   validateRegister,
   validateSendVerificationCode,
+  validateEmailUpdate,
   validateVerifyCode,
   validatePhone,
   validateVerifyPhone
@@ -506,78 +507,6 @@ class AuthController extends BaseController {
     }
   }
 
-  /* REMINDER MODIFY THIS FOR LINK CLICK */
-  // Verify code from email
-  verifyCodeEmail = async (req: Request, res: Response): Promise<Response> => {
-    const params = this.filterParams(req.body, authControllerParams)
-    const { email, code } = params
-    try {
-      // Validate input
-      const validationError = validateVerifyCode(params)
-      if (validationError) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: validationError
-        })
-      }
-
-      // Verify User exists
-      const user = await db.userAuth.findUnique({ where: { email } })
-      if (!user) {
-        return res.status(404).json({
-          code: codes.NOT_FOUND,
-          message: `User with "${email}" does not exist`
-        })
-      }
-
-      // Twilio verify
-      let twilioFound = true
-      const verification = await twilioClient.verify.v2
-        .services(config.get('email_verification_sid') as string)
-        .verificationChecks.create({ to: email, code })
-        .catch((error) => {
-          console.error(error)
-          twilioFound = false
-        })
-
-      if (!twilioFound) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: messages.TWILIO_NOT_FOUND
-        })
-      }
-
-      if (verification?.status !== 'approved') {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: messages.INVALID_CODE
-        })
-      }
-
-      // Update User and return
-      await db.userAuth.update({
-        where: { email },
-        data: {
-          isEmailVerified: true
-        }
-      })
-
-      return res.status(200).json({
-        isPhoneVerified: user.isPhoneVerified,
-        code: codes.OK,
-        message: messages.VERIFIED_SUCCESS
-      })
-    } catch (error: any) {
-      console.error(error)
-      if (error.status) {
-        return res.status(error.status).json({ code: error.status, message: error.message })
-      }
-      return res
-        .status(500)
-        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
-    }
-  }
-
   // Verify Code via URL
   verifyCodeURL = async (req: Request, res: Response): Promise<Response> => {
     try {
@@ -772,13 +701,22 @@ class AuthController extends BaseController {
     }
   }
 
-  // Update Phone
-  updatePhone = async (req: RequestUserAuth, res: Response): Promise<Response | undefined> => {
+  // Update email
+  /*
+    *
+    *
+    * Final functionality has not been discussed yet but I have set it up as
+    * if we require OTP text message to allow user to change email. That is why
+    * phone is being included and used to verify user
+    *
+    *
+  */
+  updateEmail = async (req: Request, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, authControllerParams)
-    const { phone } = params
+    const { email, phone, code } = params
     try {
-      // Verify Input
-      const validationError = validatePhone(params)
+      // Validate input
+      const validationError = validateEmailUpdate(params)
       if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -786,48 +724,59 @@ class AuthController extends BaseController {
         })
       }
 
-      // Verify User exists
-      const user = await db.userAuth.findUnique({ where: { id: req.params.userId } })
+      // Verify Phone belongs to a user
+      const user = await db.userAuth.findUnique({ where: { phone } })
       if (!user) {
-        return res.status(404).json({
-          code: codes.NOT_FOUND,
-          message: messages.USER_NOT_FOUND
-        })
-      }
-
-      // Check phone uniqueness
-      const uniqueness = await db.userAuth.findUnique({ where: { phone } })
-      if (uniqueness !== null) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
-          message: `${messages.USER_ALREADY_EXIST} with phone "${phone}"`
+          message: `User with "${phone}" does not exist`
         })
       }
 
-      // Update User
+      // Verify unique Email is not already used
+      const uniqueness = await db.userAuth.findUnique({ where: { email } })
+      if (uniqueness) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: `${messages.USER_ALREADY_EXIST} with email "${email}"`
+        })
+      }
+
+      // Twilio verify +1 is for USA only
+      let twilioFound = true
+      const verification = await twilioClient.verify.v2
+        .services(config.get('sms_verification_sid') as string)
+        .verificationChecks.create({ to: `${phone}`, code })
+        .catch((error) => {
+          console.error(error)
+          twilioFound = false
+        })
+      if (!twilioFound) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.TWILIO_NOT_FOUND
+        })
+      }
+
+      if (verification?.status !== 'approved') {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.INVALID_CODE
+        })
+      }
+
+      // Update User and return
       await db.userAuth.update({
-        where: {
-          id: req.params.userId
-        },
+        where: { phone },
         data: {
-          phone,
-          isPhoneVerified: false
+          email,
+          isEmailVerified: false
         }
       })
-      // (NOT NECESSARY?????)
-      await db.userBio.update({
-        where: {
-          id: req.params.userId
-        },
-        data: {
-          phone
-        }
-      })
-      // Send SMS Code and return
-      await sendCodeToPhone(phone)
+
       return res.status(200).json({
         code: codes.OK,
-        message: messages.CODE_SENT_PHONE_SUCCESS
+        message: messages.EMAIL_UPDATED
       })
     } catch (error: any) {
       console.error(error)
@@ -893,15 +842,6 @@ class AuthController extends BaseController {
         })
       }
 
-      // Verify User exists
-      // const user = await db.userAuth.findUnique({ where: { phone } })
-      // if (!user) {
-      //   return res.status(404).json({
-      //     code: codes.NOT_FOUND,
-      //     message: `User with "${phone}" does not exist`
-      //   })
-      // }
-
       // Twilio verify +1 is for USA only
       let twilioFound = true
       const verification = await twilioClient.verify.v2
@@ -911,7 +851,6 @@ class AuthController extends BaseController {
           console.error(error)
           twilioFound = false
         })
-
       if (!twilioFound) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
