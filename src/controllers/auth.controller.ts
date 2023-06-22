@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import path from 'path'
 
 import { RequestUserAuth } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
@@ -585,18 +586,15 @@ class AuthController extends BaseController {
       // Validate input
       const validationError = validateVerifyCode(params)
       if (validationError) {
-        return res.status(400).send(`<h1>${validationError}</h1>`)
+        res.status(400)
+        throw Error(validationError)
       }
 
       // Verify User exists
       const user = await db.userAuth.findUnique({ where: { email } })
       if (!user) {
-        // return res.status(404).json({
-        //   code: codes.NOT_FOUND,
-        //   message: `User with "${email}" does not exist`
-        // })
-
-        return res.status(404).send(`<h3>User with "${email}" does not exist</h3>`)
+        res.status(400)
+        throw Error(`User with "${email}" does not exist`)
       }
 
       // Twilio verify
@@ -610,11 +608,13 @@ class AuthController extends BaseController {
         })
 
       if (!twilioFound) {
-        return res.send(`<h3>${messages.TWILIO_NOT_FOUND}</h3>`)
+        res.status(401)
+        throw Error(messages.TWILIO_NOT_FOUND)
       }
 
       if (verification?.status !== 'approved') {
-        return res.send(`<h3>${messages.INVALID_CODE}</h3>`)
+        res.status(401)
+        throw Error(messages.INVALID_CODE)
       }
 
       // Update User and return
@@ -625,15 +625,15 @@ class AuthController extends BaseController {
         }
       })
 
-      return res.status(200).send(`<h3>${messages.EMAIL_VERIFIED}</h3>`)
+      res.status(200).sendFile(path.join(__dirname, '../utils/html-templates/', 'successful.html'))
+      return res
     } catch (error: any) {
       console.error(error)
-      if (error.status) {
-        return res.status(error.status).send(`<h3>${error.message}</h3>`)
+      if (!res.status) {
+        res.status(500)
       }
+      res.sendFile(path.join(__dirname, '../utils/html-templates/', 'failure.html'))
       return res
-        .status(500)
-        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
 

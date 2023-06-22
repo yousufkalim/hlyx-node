@@ -5,9 +5,10 @@ import { generateData, generateCardData, getRandomLinkStatus, generateDummyImage
 
 const main = async (): Promise<void> => {
   try {
-    const numberOfSeeds = 1
+    const numberOfSeeds = 100
 
     const data = await generateData()
+
     const {
       emails,
       passwords,
