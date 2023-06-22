@@ -12,7 +12,7 @@ export const verifyEmailEmailer = async (email: string): Promise<VerificationIns
       channelConfiguration: {
         substitutions: {
           email,
-          callback_url: `${baseUrl}api/v1/auth/verify-email-url`
+          callback_url: `${baseUrl}/api/v1/auth/verify-email-url`
         }
       },
       to: email,
