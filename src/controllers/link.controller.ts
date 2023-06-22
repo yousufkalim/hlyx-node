@@ -412,6 +412,7 @@ class LinkController extends BaseController {
           })
       }
 
+      const linkedAt = status === 'accepted' ? new Date() : null
       // Update link status and return
       const link = await db.link.update({
         where: {
@@ -419,6 +420,7 @@ class LinkController extends BaseController {
         },
         data: {
           status,
+          linkedAt,
           recentChangeBy: req.card.requester
         },
         select: {

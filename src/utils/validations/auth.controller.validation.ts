@@ -107,7 +107,7 @@ export const validatePhone = (addPhonePayload: IValidateAddPhone): string | unde
     phone: Joi.string()
       .min(stringLengths.PHONE_MIN)
       .max(stringLengths.PHONE_MAX)
-      .pattern(/^[0-9]+$/)
+      // .pattern(/^[0-9]+$/)
       .required()
   })
 
@@ -124,7 +124,7 @@ export const validateVerifyPhone = (addPhonePayload: IValidateVerifyPhone): stri
     phone: Joi.string()
       .min(stringLengths.PHONE_MIN)
       .max(stringLengths.PHONE_MAX)
-      .pattern(/^[0-9]+$/)
+      // .pattern(/^[0-9]+$/)
       .required(),
     code: Joi.string().required()
   })

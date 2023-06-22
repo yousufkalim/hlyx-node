@@ -375,6 +375,7 @@ model Link {
   recentChangeBy  String
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
+  linkedAt        DateTime?
   id              String         @id @default(uuid())
   bothUserBlock   Boolean        @default(false)
   cardOneFavorite Boolean        @default(false)

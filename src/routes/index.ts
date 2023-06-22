@@ -42,8 +42,18 @@ router.put(
   userAuthorization,
   AuthController.updatePhone
 )
-router.post('/auth/send-code-phone', authenticate, AuthController.sendCodePhone)
-router.post('/auth/verify-code-phone', authenticate, AuthController.verifyCodePhone)
+router.post(
+  '/auth/send-code-phone/:userId',
+  authenticate,
+  userAuthorization,
+  AuthController.sendCodePhone
+)
+router.post(
+  '/auth/verify-code-phone/:userId',
+  authenticate,
+  userAuthorization,
+  AuthController.verifyCodePhone
+)
 router.put(
   '/auth/pause-account/:userId',
   authenticate,
@@ -60,7 +70,7 @@ router.delete(
 // User Routes
 router.get('/user/find/me', authenticate, UserController.me)
 router.get('/user/stats/:userId', authenticate, UserController.userStats)
-router.get('/user/contact-details/:userId', authenticate, UserController.userContactDetails)
+router.get('/user/contact-details', authenticate, UserController.userContactDetails)
 router.get('/user/find-profile/:userName', authenticate, UserController.getUserByUserName)
 router.put('/user/update/bio/:userId', authenticate, userAuthorization, UserController.updateBio)
 router.post('/user/add/card/:userId', authenticate, userAuthorization, UserController.addCard)

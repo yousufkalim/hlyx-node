@@ -26,6 +26,8 @@ export const userPreferenceParams = [
 ]
 
 export const userNotificationParams = [
+  'newContactRequest',
+  'newContactRequestPhone',
   'newLinkRequest',
   'newMessage',
   'groupMessages',

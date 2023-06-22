@@ -1,5 +1,6 @@
 import Joi from 'joi'
 import {
+  IValidateUserNotification,
   IValidateUserPreference,
   IValidateUserUpdate
 } from '../../config/interfaces/user.validation.interface'
@@ -49,7 +50,7 @@ export const validateUserPreferences = (
 }
 
 export const validateUserNotification = (
-  userNotificationPayload: IValidateUserPreference
+  userNotificationPayload: IValidateUserNotification
 ): string | undefined => {
   const userNotificationSchema = Joi.object({
     newLinkRequest: Joi.boolean(),

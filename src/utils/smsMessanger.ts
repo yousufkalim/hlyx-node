@@ -8,24 +8,35 @@ import { messages } from '../config/messages'
 export const sendCodeToPhone = async (phone: string): Promise<VerificationInstance> => {
   return await twilioClient.verify.v2
     .services(config.get('sms_verification_sid') as string)
-    .verifications.create({ to: `+1${phone}`, channel: 'sms' })
+    .verifications.create({ to: `${phone}`, channel: 'sms' })
 }
 
-export const contactRequesterPhone = async (phone: string, receiverName: string, requesterName: string, cardUrl: string, mediaUrl: string | null): Promise<MessageInstance> => {
+export const contactRequesterPhone = async (
+  phone: string,
+  receiverName: string,
+  requesterName: string,
+  cardUrl: string,
+  mediaUrl: string | null
+): Promise<MessageInstance> => {
   if (!mediaUrl) {
     throw Error(messages.SMS_ERROR)
   }
   return await twilioClient.messages.create({
-    body:
-    `Hello ${requesterName},\nWe've successfully shared your contact information with ${receiverName}\n\nHere is ${receiverName} contact info:\n\nProfile Card\n${cardUrl}\n\nUnlock all the benefits of HLYX, create your own profile today!`,
+    body: `Hello ${requesterName},\nWe've successfully shared your contact information with ${receiverName}\n\nHere is ${receiverName} contact info:\n\nProfile Card\n${cardUrl}\n\nUnlock all the benefits of HLYX, create your own profile today!`,
     messagingServiceSid: config.get('sms_messaging_sid') as string,
     mediaUrl,
     from: '+18668756944',
-    to: `+1${phone}`
+    to: `${phone}`
   })
 }
 
-export const contactRecieverPhone = async (phone: string | null, receiverName: string, requesterName: string, cardName: string, mediaUrl?: string): Promise<MessageInstance> => {
+export const contactRecieverPhone = async (
+  phone: string | null,
+  receiverName: string,
+  requesterName: string,
+  cardName: string,
+  mediaUrl?: string
+): Promise<MessageInstance> => {
   if (!phone) {
     throw Error(messages.SMS_ERROR)
   }
@@ -33,6 +44,6 @@ export const contactRecieverPhone = async (phone: string | null, receiverName: s
     body: `Hi ${receiverName},\nYou have a new contact share!\n\n${requesterName} has just shared contact information with you through your HYLX profile card "${cardName}".\n\nSign in to view the details`,
     messagingServiceSid: config.get('sms_messaging_sid') as string,
     mediaUrl,
-    to: `+1${phone}`
+    to: `${phone}`
   })
 }
