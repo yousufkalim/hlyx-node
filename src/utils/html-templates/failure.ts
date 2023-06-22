@@ -19,6 +19,9 @@ export const failureHTML = `
       display: flex;
       flex-direction: column;
       align-items: center;
+      max-width: 600px; 
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .container img {
@@ -31,6 +34,7 @@ export const failureHTML = `
       font-weight: 700;
       line-height: 30px;
       margin-top: 20px;
+      width: 100%;
     }
     
     p {
@@ -75,4 +79,3 @@ export const failureHTML = `
 </body>
 </html>
 `
-
