@@ -1,7 +1,6 @@
 import { Request, Response } from 'express'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-import path from 'path'
 
 import { RequestUserAuth } from '../config/interfaces/common.interface'
 import { codes } from '../config/codes'
@@ -22,6 +21,8 @@ import {
 } from '../utils/validations/auth.controller.validation'
 import { verifyEmailEmailer, passwordResetEmailer } from '../utils/emailers'
 import { db } from '../utils/db'
+import { successHTML } from '../utils/html-templates/success'
+import { failureHTML } from '../utils/html-templates/failure'
 
 class AuthController extends BaseController {
   // Login in user
@@ -625,14 +626,14 @@ class AuthController extends BaseController {
         }
       })
 
-      res.status(200).sendFile(path.join(__dirname, '../utils/html-templates/', 'success.html'))
+      res.status(200).send(successHTML)
       return res
     } catch (error: any) {
       console.error(error)
       if (!res.status) {
         res.status(500)
       }
-      res.sendFile(path.join(__dirname, '../utils/html-templates/', 'failure.html'))
+      res.send(failureHTML)
       return res
     }
   }

@@ -22,6 +22,7 @@ import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { config } from '../config/env.config.validations'
 import GroupController from '../controllers/group.controller'
+import { successHTML } from '../utils/html-templates/success'
 
 const router = Router()
 
@@ -460,6 +461,7 @@ router.post(
 
 // Health Check
 router.get('/health-check', (req: Request, res: Response) => {
+  console.log(successHTML)
   return res.status(200).json({
     code: codes.OK,
     message: `${messages.HEALTH_CHECK} on ${config.get('env')}`
