@@ -16,18 +16,26 @@ export const successHTML = `
     .container {
       text-align: center;
       padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container img {
+      margin-top: 100px;
     }
     
     h1 {
       font-family: 'Montserrat';
-      font-size: 24px;
+      font-size: 32px;
+      font-weight: 700;
       line-height: 30px;
       margin-top: 20px;
     }
     
     p {
       font-family: 'Poppins';
-      font-size: 15px;
+      font-size: 18px;
       color: #8A8A8A;
       margin-top: 10px;
       line-height: 21px;
