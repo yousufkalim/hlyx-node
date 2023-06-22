@@ -72,6 +72,12 @@ class AuthController extends BaseController {
           message: messages.EMAIL_NOT_VERIFIED
         })
       }
+      // if (!user.isPhoneVerified) {
+      //   return res.status(400).json({
+      //     code: codes.BAD_REQUEST,
+      //     message: messages.PHONE_NOT_VERIFIED
+      //   })
+      // }
       // Handle Pause / Deleted Flags if set
       if (user.isPaused) {
         if (user.isDeleted) {
@@ -476,8 +482,6 @@ class AuthController extends BaseController {
 
       // Verify User exists
       const user = await db.userAuth.findUnique({ where: { email } })
-      console.log('Email ', email)
-      console.log('user ', user)
       if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
@@ -850,12 +854,12 @@ class AuthController extends BaseController {
         })
       }
 
-      // Verify User exists
+      // Verify Phone associate with user or not
       const user = await db.userAuth.findUnique({ where: { phone } })
-      if (!user) {
-        return res.status(404).json({
-          code: codes.NOT_FOUND,
-          message: `User with "${phone}" does not exist`
+      if (user) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: `User with "${phone}" already exist`
         })
       }
       // Send code and return
@@ -890,19 +894,19 @@ class AuthController extends BaseController {
       }
 
       // Verify User exists
-      const user = await db.userAuth.findUnique({ where: { phone } })
-      if (!user) {
-        return res.status(404).json({
-          code: codes.NOT_FOUND,
-          message: `User with "${phone}" does not exist`
-        })
-      }
+      // const user = await db.userAuth.findUnique({ where: { phone } })
+      // if (!user) {
+      //   return res.status(404).json({
+      //     code: codes.NOT_FOUND,
+      //     message: `User with "${phone}" does not exist`
+      //   })
+      // }
 
       // Twilio verify +1 is for USA only
       let twilioFound = true
       const verification = await twilioClient.verify.v2
         .services(config.get('sms_verification_sid') as string)
-        .verificationChecks.create({ to: `+1${phone}`, code })
+        .verificationChecks.create({ to: `${phone}`, code })
         .catch((error) => {
           console.error(error)
           twilioFound = false
@@ -924,8 +928,9 @@ class AuthController extends BaseController {
 
       // Update User and return
       await db.userAuth.update({
-        where: { phone },
+        where: { id: req.user?.id },
         data: {
+          phone,
           isPhoneVerified: true
         }
       })

@@ -61,6 +61,8 @@ class UserController extends BaseController {
           id: req.user?.id
         },
         select: {
+          isPhoneVerified: true,
+          phone: true,
           userPreference: {
             select: {
               twoFactorAuth: true,
@@ -75,7 +77,7 @@ class UserController extends BaseController {
         }
       })
 
-      const data = { ...user, userPreferences }
+      const data = { ...user, phone: userPreferences?.phone, userPreferences }
       // Return
       return res.status(200).json({
         user: data,
@@ -271,7 +273,6 @@ class UserController extends BaseController {
   // Add a card to user
   addCard = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
-      console.log('Body ', req.body)
       const body: any = {}
       for (const item in req.body) {
         try {
@@ -435,8 +436,6 @@ class UserController extends BaseController {
       }
 
       /*  ====  Validation for Cover Photo  ===== */
-      console.log('Files ', req.files)
-      console.log('Cover photo => ', req.files?.coverPhoto)
       const coverPhoto = req.files?.coverPhoto as UploadedFile
       if (coverPhoto) {
         // Verify Acceptable MIME Type
@@ -466,7 +465,6 @@ class UserController extends BaseController {
       }
 
       /*  ====  Validation for Company Icon  ===== */
-      console.log('Company Icon => ', req.files?.companyIcon)
       const companyIcon = req.files?.companyIcon as UploadedFile
       if (companyIcon) {
         // Verify Acceptable MIME Type
@@ -525,7 +523,6 @@ class UserController extends BaseController {
 
       const data = { ...cardContactData, ...cardAboutData, profileLayout }
 
-      console.log('Data final ', cardContactData)
       // Update UserBio, create Card, and return
       const createdCard = await db.userBio.update({
         where: { id: req.params.userId },
@@ -576,7 +573,6 @@ class UserController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
-      console.log('Error ', error.message)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
@@ -1057,26 +1053,80 @@ class UserController extends BaseController {
 
   userContactDetails = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
+      const { userId, linkId } = req.query as any
+
+      const link = await db.link.findUnique({
+        where: {
+          id: linkId
+        },
+        select: {
+          id: true,
+          metAt: true,
+          event: true,
+          linkedAt: true,
+          notes: {
+            select: {
+              id: true,
+              note: true,
+              createdAt: true,
+              updatedAt: true
+            }
+          }
+        }
+      })
       // Verify user exists
+      const userAuth = await db.userAuth.findUnique({
+        where: {
+          id: userId
+        }
+      })
       const user = await db.userBio.findUnique({
         where: {
-          id: req.user?.id
+          id: userId
         },
-        include: {
+        select: {
           _count: {
             select: {
               cards: true
             }
           },
           groups: true,
+          firstName: true,
+          middleInitial: true,
+          lastName: true,
+          city: true,
+          country: true,
+          company: true,
+          profileAvatar: true,
+          state: true,
           cards: {
+            where: {
+              publicCard: true,
+              activeCard: true
+            },
             select: {
               cardId: true,
               cardName: true,
               fullName: true,
               headerPhoto: true,
               coverPhoto: true,
-              brandedCoverPhoto: true
+              brandedCoverPhoto: true,
+              Contacts: {
+                where: {
+                  status: 'saved'
+                },
+                select: {
+                  fullName: true,
+                  contactId: true,
+                  contactImage: true,
+                  city: true,
+                  state: true,
+                  company: true,
+                  jobTitle: true,
+                  event: true,
+                  metAt: true
+                }
+              }
             }
           }
         }
@@ -1088,8 +1138,10 @@ class UserController extends BaseController {
         })
       }
 
-      const linkedCards = []
+      // const linkedCards = []
+      const linkedProfiles: any = []
       const savedContacts = []
+      const mutualLinks: any = []
       if (user.cards) {
         for (const card of user.cards) {
           const links = await db.link.findMany({
@@ -1105,6 +1157,7 @@ class UserController extends BaseController {
               ]
             },
             select: {
+              id: true,
               CardOneRef: {
                 select: {
                   cardId: true,
@@ -1145,25 +1198,72 @@ class UserController extends BaseController {
               }
             }
           })
+          if (card.Contacts) {
+            savedContacts.push(...card.Contacts)
+          }
 
           if (links) {
             // collect linked cards with my card
             for (const link of links) {
+              let otherCard = link.CardOneRef
+              let myCardId = link.CardTwoRef.cardId
               if (link.CardOneRef.cardId === card.cardId) {
-                linkedCards.push(link.CardTwoRef)
-                if (link.CardOneRef.Contacts) {
-                  savedContacts.push(...link.CardOneRef.Contacts)
-                }
-              } else {
-                linkedCards.push(link.CardOneRef)
-                savedContacts.push(...link.CardTwoRef.Contacts)
+                otherCard = link.CardTwoRef
+                myCardId = link.CardOneRef.cardId
               }
+              // Getting and push other card profile details
+              const userInfo = await this.#getLinkedUserInfo(otherCard.cardId)
+              if (userInfo) {
+                linkedProfiles.push({ ...userInfo, cardId: otherCard.cardId, linkId: link.id })
+              }
+
+              // Getting Mutual link profiles
+              const mutuals = await this.#getMutualLinksUsers(otherCard.cardId, myCardId)
+              if (mutuals?.length > 0) {
+                mutualLinks.push(...mutuals)
+              }
+              // linkedCards.push({ ...link.CardTwoRef, linkId: link.id })
             }
           }
         }
       }
 
-      const data = { links: linkedCards, cards: user.cards, savedContacts }
+      // if (linkedCards?.length > 0) {
+      //   for (const link of linkedCards) {
+      //     const response: any | null = await db.userBio.findFirst({
+      //       where: {
+      //         profileType: 'user',
+      //         cards: {
+      //           some: { cardId: link.cardId }
+      //         }
+      //       },
+      //       select: {
+      //         id: true,
+      //         firstName: true,
+      //         middleInitial: true,
+      //         lastName: true,
+      //         profileAvatar: true,
+      //         profTitle: true,
+      //         company: true,
+      //         city: true,
+      //         state: true
+      //       }
+      //     })
+      //     if (response) {
+      //       linkedProfiles.push({ ...response, cardId: link.cardId, linkId: link.linkId })
+      //     }
+      //   }
+      // }
+
+      const data = {
+        ...user,
+        createdAt: userAuth?.createdAt,
+        link,
+        mutualLinks,
+        links: linkedProfiles,
+        cards: user.cards,
+        savedContacts
+      }
       // Return
       return res.status(200).json({
         user: data,
@@ -1175,6 +1275,122 @@ class UserController extends BaseController {
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  #getLinkedUserInfo = async (cardId: string): Promise<any> => {
+    try {
+      const response: any | null = await db.userBio.findFirst({
+        where: {
+          profileType: 'user',
+          cards: {
+            some: { cardId }
+          }
+        },
+        select: {
+          id: true,
+          firstName: true,
+          middleInitial: true,
+          lastName: true,
+          profileAvatar: true,
+          profTitle: true,
+          company: true,
+          city: true,
+          state: true
+        }
+      })
+      return response
+    } catch (err) {
+      return undefined
+    }
+  }
+
+  #getMutualLinksUsers = async (cardId: string, myCardId: string): Promise<any> => {
+    try {
+      const mutualProfiles: any = []
+      const links = await db.link.findMany({
+        where: {
+          status: 'accepted',
+          OR: [
+            {
+              cardOne: cardId
+            },
+            {
+              cardTwo: cardId
+            }
+          ],
+          AND: [
+            {
+              cardOne: {
+                not: myCardId
+              }
+            },
+            {
+              cardTwo: {
+                not: myCardId
+              }
+            }
+          ]
+        },
+        select: {
+          id: true,
+          CardOneRef: {
+            select: {
+              cardId: true,
+              coverPhoto: true,
+              cardName: true,
+              fullName: true,
+              headerPhoto: true,
+              brandedCoverPhoto: true,
+              Contacts: {
+                select: {
+                  contactImage: true,
+                  status: true,
+                  fullName: true,
+                  company: true,
+                  jobTitle: true
+                }
+              }
+            }
+          },
+          CardTwoRef: {
+            select: {
+              cardId: true,
+              coverPhoto: true,
+              cardName: true,
+              fullName: true,
+              headerPhoto: true,
+              brandedCoverPhoto: true,
+              Contacts: {
+                select: {
+                  contactImage: true,
+                  status: true,
+                  fullName: true,
+                  company: true,
+                  jobTitle: true
+                }
+              }
+            }
+          }
+        }
+      })
+
+      if (links) {
+        // collect linked cards with my card
+        for (const link of links) {
+          let otherCardId = link.CardOneRef.cardId
+          if (link.CardOneRef.cardId === cardId) {
+            otherCardId = link.CardTwoRef.cardId
+          }
+          const userInfo = await this.#getLinkedUserInfo(otherCardId)
+          if (userInfo) {
+            mutualProfiles.push({ ...userInfo, cardId: otherCardId, linkId: link.id })
+          }
+        }
+      }
+      return mutualProfiles
+    } catch (err) {
+      return []
     }
   }
 }

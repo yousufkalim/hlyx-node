@@ -168,7 +168,7 @@ class ContactRequestController extends BaseController {
         }
       })
       if (!findProfile) {
-        const profile = await db.userAuth.create({
+        await db.userAuth.create({
           data: {
             email,
             phone,
@@ -183,8 +183,6 @@ class ContactRequestController extends BaseController {
             id: true
           }
         })
-
-        console.log('Created Data ', profile)
 
         // if (profile) {
         //   const userBio = await db.userAuth.update({
@@ -253,7 +251,6 @@ class ContactRequestController extends BaseController {
       }
       // Always send text to requester
       const cardUrl = `https://hlyx.me/${card.cardId}`
-      console.log(card.qrCodeImage)
       await contactRequesterPhone(
         params.phone,
         card.fullName,
