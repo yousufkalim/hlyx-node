@@ -19,31 +19,32 @@ export const failureHTML = `
       display: flex;
       flex-direction: column;
       align-items: center;
-      max-width: 600px; 
       margin: 0 auto;
       width: 100%;
       box-sizing: border-box;
     }
 
     .container img {
-      margin-top: 100px;
+      width: 70%;
+      max-width: 100%;
+      margin-top: 300px;
     }
     
     h1 {
       font-family: 'Montserrat';
-      font-size: 32px;
+      margin-top: 100px;
+      font-size: 64px;
+      line-height: 28px;
       font-weight: 700;
-      line-height: 30px;
-      margin-top: 20px;
       width: 100%;
     }
     
     p {
       font-family: 'Poppins';
-      font-size: 18px;
+      font-size: 42px;
+      line-height: 42px;
       color: #8A8A8A;
       margin-top: 10px;
-      line-height: 21px;
     }
     
     .button {
@@ -53,11 +54,11 @@ export const failureHTML = `
       background-color: #181A1C;
       font-family: 'Montserrat';
       font-weight: 700;
-      font-size: 16;
+      font-size: 64px;
       color: white;
       border: 1px solid white;
       border-radius: 50px;
-      padding: 10px 21px;
+      padding: 20px 60px;
       margin-top: 20px;
       text-decoration: none;
       position: relative;
@@ -65,8 +66,8 @@ export const failureHTML = `
     
     .button::after {
       content: ">";
-      font-size: 24px;
-      margin-left: 10px;
+      font-size: 70px;
+      margin-left: 20px;
     }
   </style>
 </head>
@@ -79,5 +80,4 @@ export const failureHTML = `
   </div>
 </body>
 </html>
-
 `
