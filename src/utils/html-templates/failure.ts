@@ -20,8 +20,9 @@ export const failureHTML = `
       flex-direction: column;
       align-items: center;
       max-width: 600px; 
-      margin-left: auto;
-      margin-right: auto;
+      margin: 0 auto;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .container img {
@@ -78,4 +79,5 @@ export const failureHTML = `
   </div>
 </body>
 </html>
+
 `
