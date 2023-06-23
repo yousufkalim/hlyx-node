@@ -19,7 +19,6 @@ export const successHTML = `
       display: flex;
       flex-direction: column;
       align-items: center;
-      max-width: 600px; 
       margin: 0 auto;
       width: 100%;
       box-sizing: border-box;
@@ -68,6 +67,36 @@ export const successHTML = `
       font-size: 24px;
       margin-left: 10px;
     }
+
+    /* Media Query for Mobile Devices */
+    @media (max-width: 600px) {
+      .container img {
+        width: 70%;
+        max-width: 100%;
+        margin-top: 300px;
+      }
+      
+      h1 {
+        margin-top: 100px;
+        font-size: 64px;
+        line-height: 28px;
+      }
+      
+      p {
+        font-size: 42px;
+        line-height: 42px;
+      }
+      
+      .button {
+        font-size: 64px;
+        padding: 20px 60px;
+      }
+      
+      .button::after {
+        font-size: 70px;
+        margin-left: 20px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -79,5 +108,4 @@ export const successHTML = `
   </div>
 </body>
 </html>
-
 `
