@@ -36,6 +36,12 @@ router.get('/auth/verify-email-url', AuthController.verifyCodeURL)
 router.post('/auth/verify-code-password-reset', AuthController.verifyCodePassword)
 router.put('/auth/forgot-password', AuthController.forgotPassword)
 router.put(
+  '/auth/update-phone/:userId',
+  authenticate,
+  userAuthorization,
+  AuthController.updatePhone
+)
+router.put(
   '/auth/update-email/:userId',
   authenticate,
   userAuthorization,

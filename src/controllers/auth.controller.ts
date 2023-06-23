@@ -889,6 +889,66 @@ class AuthController extends BaseController {
     }
   }
 
+  // Update Phone
+  updatePhone = async (req: RequestUserAuth, res: Response): Promise<Response | undefined> => {
+    const params = this.filterParams(req.body, authControllerParams)
+    const { phone } = params
+    try {
+      // Verify Input
+      const validationError = validatePhone(params)
+      if (validationError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+
+      // Verify User exists
+      const user = await db.userAuth.findUnique({ where: { id: req.params.userId } })
+      if (!user) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.USER_NOT_FOUND
+        })
+      }
+
+      // Check phone uniqueness
+      const uniqueness = await db.userAuth.findUnique({ where: { phone } })
+      if (uniqueness !== null) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: `${messages.USER_ALREADY_EXIST} with phone "${phone}"`
+        })
+      }
+
+      // Update User
+      await db.userAuth.update({
+        where: {
+          id: req.params.userId
+        },
+        data: {
+          phone,
+          isPhoneVerified: false
+        }
+      })
+
+      // Send SMS Code and return
+      await sendCodeToPhone(phone)
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.CODE_SENT_PHONE_SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      if (error.status) {
+        return res.status(error.status).json({ code: error.status, message: error.message })
+      }
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
   // Pause Account
   pauseAccount = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
