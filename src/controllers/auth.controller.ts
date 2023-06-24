@@ -285,9 +285,9 @@ class AuthController extends BaseController {
 
       const salt = await bcrypt.genSalt(10)
       const data: any = {
-        email
+        email,
+        password: await bcrypt.hash(password, salt)
       }
-      data.password = await bcrypt.hash(password, salt)
 
       // Check if contact request user exists
       const savedContactUser = await db.contact.findFirst({ where: { email } })
@@ -318,8 +318,6 @@ class AuthController extends BaseController {
         })
       }
 
-      // Encrypt password
-
       data.userBio = { create: {} }
       data.userPreference = { create: {} }
       data.userNotification = { create: {} }
@@ -327,13 +325,6 @@ class AuthController extends BaseController {
       // Create User
       const createUser = await db.userAuth.create({ data })
 
-      // Return jsonwebtoken
-      // const payload = {
-      //   user: {
-      //     id: createUser.id,
-      //     email: createUser.email
-      //   }
-      // }
       // Emailer
       await verifyEmailEmailer(email)
       return res.status(201).json({
@@ -341,27 +332,6 @@ class AuthController extends BaseController {
         code: codes.CREATED,
         message: messages.LINK_SENT_SUCCESS
       })
-      // jwt.sign(
-      //   payload,
-      //   config.get('jwt_secret_key') as string,
-      //   { expiresIn: config.get('jwt_secret_key_expiry') as string },
-      //   async (err, token) => {
-      //     if (err) {
-      //       return res.status(400).json({
-      //         code: codes.BAD_REQUEST,
-      //         message: messages.TOKEN_FAILURE
-      //       })
-      //     }
-      //     // Emailer
-      //     await verifyEmailEmailer(email)
-      //     return res.status(201).json({
-      //       token,
-      //       id: createUser.id,
-      //       code: codes.CREATED,
-      //       message: messages.CODE_SENT_SUCCESS
-      //     })
-      //   }
-      // )
     } catch (error: any) {
       console.error(error)
       if (error.status) {
@@ -725,7 +695,7 @@ class AuthController extends BaseController {
       }
 
       // Verify Phone belongs to a user
-      const user = await db.userAuth.findUnique({ where: { phone } })
+      const user = await db.userBio.findUnique({ where: { phone } })
       if (!user) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -767,7 +737,7 @@ class AuthController extends BaseController {
 
       // Update User and return
       await db.userAuth.update({
-        where: { phone },
+        where: { id: user.id },
         data: {
           email,
           isEmailVerified: false
@@ -804,7 +774,7 @@ class AuthController extends BaseController {
       }
 
       // Verify Phone associate with user or not
-      const user = await db.userAuth.findUnique({ where: { phone } })
+      const user = await db.userBio.findUnique({ where: { phone } })
       if (user) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -869,7 +839,11 @@ class AuthController extends BaseController {
       await db.userAuth.update({
         where: { id: req.user?.id },
         data: {
-          phone,
+          userBio: {
+            update: {
+              phone
+            }
+          },
           isPhoneVerified: true
         }
       })
@@ -913,7 +887,7 @@ class AuthController extends BaseController {
       }
 
       // Check phone uniqueness
-      const uniqueness = await db.userAuth.findUnique({ where: { phone } })
+      const uniqueness = await db.userBio.findUnique({ where: { phone } })
       if (uniqueness !== null) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -927,7 +901,11 @@ class AuthController extends BaseController {
           id: req.params.userId
         },
         data: {
-          phone,
+          userBio: {
+            update: {
+              phone
+            }
+          },
           isPhoneVerified: false
         }
       })

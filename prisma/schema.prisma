@@ -10,7 +10,6 @@ datasource db {
 
 model UserAuth {
   email            String            @unique
-  phone            String?           @unique
   password         String?
   isEmailVerified  Boolean           @default(false)
   isPhoneVerified  Boolean           @default(false)
@@ -25,12 +24,12 @@ model UserAuth {
   userNotification UserNotification?
   userPreference   UserPreferences?
 
-  @@unique([id, email, phone])
+  @@unique([id, email])
 }
 
 model UserBio {
   id                   String      @id
-  User                 UserAuth?   @relation(fields: [id, email, phone], references: [id, email, phone], onDelete: Cascade, onUpdate: Cascade)
+  User                 UserAuth    @relation(fields: [id, email], references: [id, email], onDelete: Cascade, onUpdate: Cascade)
   profileAvatar        String      @default("https://hlyx-dev-s3-bucket.s3.us-west-1.amazonaws.com/user-avatar.png")
   isOnBoardingComplete Boolean     @default(false)
   profileType          ProfileType @default(user)
@@ -47,7 +46,7 @@ model UserBio {
   zipcode              String?
   updatedAt            DateTime    @updatedAt
   email                String
-  phone                String?
+  phone                String?     @unique
   website              String?
   profRole             String?
 
@@ -61,7 +60,7 @@ model UserBio {
   blockedUsers  UserBio[]       @relation("BlockedUsers")
   profilePhotos UserPhoto[]
 
-  @@unique([id, email, phone])
+  @@unique([id, email])
   @@unique([id, profileAvatar])
 }
 

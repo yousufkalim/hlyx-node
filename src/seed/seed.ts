@@ -35,7 +35,6 @@ const main = async (): Promise<void> => {
         data: {
           email: emails[i][0],
           password: await bcrypt.hash(passwords[i][0], salt),
-          phone: phones[i][0],
           isEmailVerified: true,
           isPhoneVerified: true,
           userBio: {
@@ -44,6 +43,7 @@ const main = async (): Promise<void> => {
               firstName: firstNames[i][0],
               lastName: lastNames[i][0],
               userName: `${firstNames[i][0]}-${lastNames[i][0]}-${i}`,
+              phone: phones[i][0],
               company: companies[i][0],
               profTitle: professionalTitles[i][0],
               industry: industries[i][0],
