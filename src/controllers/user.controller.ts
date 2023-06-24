@@ -62,7 +62,11 @@ class UserController extends BaseController {
         },
         select: {
           isPhoneVerified: true,
-          phone: true,
+          userBio: {
+            select: {
+              phone: true
+            }
+          },
           userPreference: {
             select: {
               twoFactorAuth: true,
@@ -77,7 +81,7 @@ class UserController extends BaseController {
         }
       })
 
-      const data = { ...user, phone: userPreferences?.phone, userPreferences }
+      const data = { ...user, phone: userPreferences?.userBio?.phone, userPreferences }
       // Return
       return res.status(200).json({
         user: data,

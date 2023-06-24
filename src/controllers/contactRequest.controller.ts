@@ -153,6 +153,7 @@ class ContactRequestController extends BaseController {
         firstName,
         lastName,
         company,
+        phone,
         profTitle: jobTitle,
         profileAvatar: data.Contacts.create.contactImage,
         state,
@@ -171,7 +172,6 @@ class ContactRequestController extends BaseController {
         await db.userAuth.create({
           data: {
             email,
-            phone,
             password: 'temp',
             userBio: {
               create: profileData
@@ -228,7 +228,11 @@ class ContactRequestController extends BaseController {
         },
         select: {
           email: true,
-          phone: true,
+          userBio: {
+            select: {
+              phone: true
+            }
+          },
           userNotification: {
             select: {
               newContactRequest: true,
@@ -240,9 +244,10 @@ class ContactRequestController extends BaseController {
       if (user?.userNotification?.newContactRequest) {
         await contactRequestEmailer(user.email, card.fullName, params.fullName, card.cardName)
       }
-      if (user?.userNotification?.newContactRequestPhone) {
+      if (user?.userNotification?.newContactRequestPhone &&
+          user?.userBio?.phone) {
         await contactRecieverPhone(
-          user.phone,
+          user.userBio.phone,
           card.fullName,
           params.fullName,
           card.cardName,
