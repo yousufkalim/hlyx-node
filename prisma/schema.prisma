@@ -30,7 +30,7 @@ model UserAuth {
 model UserBio {
   id                   String      @id
   User                 UserAuth    @relation(fields: [id, email], references: [id, email], onDelete: Cascade, onUpdate: Cascade)
-  profileAvatar        String      @default("https://hlyx-dev-s3-bucket.s3.us-west-1.amazonaws.com/user-avatar.png")
+  profileAvatar        String      @default("")
   isOnBoardingComplete Boolean     @default(false)
   profileType          ProfileType @default(user)
   // Personal Info
