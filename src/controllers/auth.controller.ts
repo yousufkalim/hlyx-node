@@ -144,11 +144,12 @@ class AuthController extends BaseController {
       const expiry = keepSignIn
         ? config.get('jwt_secret_key_long_expiry')
         : config.get('jwt_secret_key_expiry')
+      const expiryDuration: string = expiry ?? '1d'
 
       jwt.sign(
         payload,
         config.get('jwt_secret_key') as string,
-        { expiresIn: expiry as string },
+        { expiresIn: expiryDuration },
         (err, token) => {
           console.log('Error ', err)
           if (err) {
@@ -250,10 +251,12 @@ class AuthController extends BaseController {
         ? config.get('jwt_secret_key_long_expiry')
         : config.get('jwt_secret_key_expiry')
 
+      const expiryDuration: string = expiry ?? '1d'
+
       jwt.sign(
         payload,
         config.get('jwt_secret_key') as string,
-        { expiresIn: expiry as string },
+        { expiresIn: expiryDuration },
         (err, token) => {
           if (err) {
             return res.status(400).json({

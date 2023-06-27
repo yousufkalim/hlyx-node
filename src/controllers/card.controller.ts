@@ -90,6 +90,8 @@ class CardController extends BaseController {
           companyIcon: true,
           profileLayout: true,
           brandedCoverPhoto: true,
+          occupation: true,
+          industry: true,
           company: true,
           fullName: true,
           profTitle: true,
