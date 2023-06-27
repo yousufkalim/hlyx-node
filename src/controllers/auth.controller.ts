@@ -141,12 +141,16 @@ class AuthController extends BaseController {
           email: user.email
         }
       }
-      const expiry = keepSignIn ? 'jwt_secret_key_expiry_long' : 'jwt_secret_key_expiry'
+      const expiry = keepSignIn
+        ? config.get('jwt_secret_key_long_expiry')
+        : config.get('jwt_secret_key_expiry')
+
       jwt.sign(
         payload,
         config.get('jwt_secret_key') as string,
-        { expiresIn: config.get(expiry) as string },
+        { expiresIn: expiry as string },
         (err, token) => {
+          console.log('Error ', err)
           if (err) {
             return res.status(400).json({
               code: codes.BAD_REQUEST,
@@ -164,6 +168,7 @@ class AuthController extends BaseController {
         }
       )
     } catch (error: any) {
+      console.log('Error ', error)
       console.error(error)
       return res
         .status(500)
@@ -241,12 +246,14 @@ class AuthController extends BaseController {
           email: user.email
         }
       }
-      const expiry = keepSignIn ? 'jwt_secret_key_expiry_long' : 'jwt_secret_key_expiry'
+      const expiry = keepSignIn
+        ? config.get('jwt_secret_key_long_expiry')
+        : config.get('jwt_secret_key_expiry')
 
       jwt.sign(
         payload,
         config.get('jwt_secret_key') as string,
-        { expiresIn: config.get(expiry) as string },
+        { expiresIn: expiry as string },
         (err, token) => {
           if (err) {
             return res.status(400).json({
