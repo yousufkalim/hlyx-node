@@ -23,7 +23,8 @@ export const validateLogin = (loginPayload: IValidateLoginRegister): string | un
     password: Joi.string()
       .pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d$&+,:;=?@#|'<>.^*()%!-]{8,}$/)
       .required()
-      .error(new Error(`${messages.PASSWORD_FAILURE}`))
+      .error(new Error(`${messages.PASSWORD_FAILURE}`)),
+    keepSignIn: Joi.boolean().required()
   })
 
   return loginSchema.validate(loginPayload)?.error?.message
@@ -70,7 +71,9 @@ export const validateSendVerificationCode = (
  * @param verifyCodePayload
  * @returns Error message
  */
-export const validateEmailUpdate = (verifyCodePayload: IValidateEmailUpdate): string | undefined => {
+export const validateEmailUpdate = (
+  verifyCodePayload: IValidateEmailUpdate
+): string | undefined => {
   const verifyCodeSchema = Joi.object({
     email: Joi.string()
       .email({ tlds: { allow: false } })

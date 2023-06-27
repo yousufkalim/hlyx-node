@@ -27,7 +27,7 @@ export const validateSharedContactCreate = (
     phone: Joi.string()
       .min(stringLengths.PHONE_MIN)
       .max(stringLengths.PHONE_MAX)
-      .pattern(/^[0-9]+$/)
+      // .pattern(/^[0-9]+$/)
       .required(),
     city: Joi.string().max(stringLengths.LOCATION_MAX).allow(''),
     state: Joi.string().max(stringLengths.LOCATION_MAX).allow(''),

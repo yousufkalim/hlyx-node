@@ -63,10 +63,18 @@ class ContactRequestController extends BaseController {
       // Check if contact already exists with same email and same card
       const contactExist = await db.contact.findFirst({
         where: {
-          email,
+          OR: [
+            {
+              email
+            },
+            {
+              phone
+            }
+          ],
           cardId: card.cardId
         }
       })
+      console.log('Exist ', contactExist)
       if (contactExist) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -162,8 +170,17 @@ class ContactRequestController extends BaseController {
       }
 
       // Create Profile of shared contact and return
-      const findProfile = await db.userAuth.findFirst({
-        where: { email },
+      const findProfile = await db.userBio.findFirst({
+        where: {
+          OR: [
+            {
+              email
+            },
+            {
+              phone
+            }
+          ]
+        },
         select: {
           id: true
         }
@@ -244,8 +261,7 @@ class ContactRequestController extends BaseController {
       if (user?.userNotification?.newContactRequest) {
         await contactRequestEmailer(user.email, card.fullName, params.fullName, card.cardName)
       }
-      if (user?.userNotification?.newContactRequestPhone &&
-          user?.userBio?.phone) {
+      if (user?.userNotification?.newContactRequestPhone && user?.userBio?.phone) {
         await contactRecieverPhone(
           user.userBio.phone,
           card.fullName,
@@ -388,8 +404,7 @@ class ContactRequestController extends BaseController {
                   state: true,
                   message: true,
                   notes: true,
-                  createdAt: true,
-                  Card: true
+                  createdAt: true
                 }
               }
             }
@@ -438,8 +453,7 @@ class ContactRequestController extends BaseController {
                   state: true,
                   message: true,
                   notes: true,
-                  createdAt: true,
-                  Card: true
+                  createdAt: true
                 }
               }
             }

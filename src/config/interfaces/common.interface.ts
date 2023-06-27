@@ -57,8 +57,21 @@ export interface IEmail {
 
 export interface ISharedCard {
   directsTo: string
-  sharedBy: string
+  sharedBy: any
   message?: string
+}
+
+export interface IProfile {
+  id: string
+  firstName: string
+  middleInitial: string
+  lastName: string
+  company: string
+  profileAvatar: string
+  profTitle: string
+  city: string
+  state: string
+  country: string
 }
 
 export interface ICreateNotification {

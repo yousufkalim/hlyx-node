@@ -125,13 +125,29 @@ class NotificationController extends BaseController {
       const obj = { idDirectedTo: cardId, ...details }
       const data = await this.#getIdDirectedToDetails(obj)
 
-      // getting data of shared card
-      data.sharedBy = data.cardDirectedTo
-      if (details.sharedBy !== cardId) {
-        const notificationDetails = { idDirectedTo: details.sharedBy, ...details }
-        const res = await this.#getIdDirectedToDetails(notificationDetails)
-        data.sharedBy = res.cardDirectedTo
-      }
+      data.sharedBy = details.sharedBy
+
+      // data.sharedBy = data.cardDirectedTo
+      // if (details.sharedBy !== cardId) {
+      //   const notificationDetails = { idDirectedTo: details.sharedBy, ...details }
+      //   const res = await this.#getIdDirectedToDetails(notificationDetails)
+      //   const profile = await db.userBio.findUnique({
+      //     where: {
+      //       id: details.sharedBy
+      //     },
+      //     select: {
+      //       firstName: true,
+      //       middleInitial: true,
+      //       lastName: true,
+      //       company: true,
+      //       city: true,
+      //       state: true,
+      //       country: true
+      //     }
+      //   })
+      //   data.profileDirectedTo = profile
+      //   data.sharedBy = res.cardDirectedTo
+      // }
 
       if (sharedWithLinks) {
         for (const link of sharedWithLinks) {
@@ -146,7 +162,7 @@ class NotificationController extends BaseController {
                   directsTo: details.directsTo,
                   message: details.message,
                   idDirectedTo: cardId,
-                  sharedBy: details.sharedBy
+                  sharedBy: details.sharedBy.id
                 }
               }
             },
@@ -241,6 +257,7 @@ class NotificationController extends BaseController {
           }
         }
       })
+      console.log('Cards ', cards)
 
       // const data = []
       const data = await this.#getDetailsForNotifications(cards)
@@ -389,7 +406,8 @@ class NotificationController extends BaseController {
                 cardName: true,
                 cardId: true,
                 userAvatar: true,
-                coverPhoto: true
+                coverPhoto: true,
+                userId: true
               }
             },
             CardTwoRef: {
@@ -398,7 +416,8 @@ class NotificationController extends BaseController {
                 cardName: true,
                 cardId: true,
                 userAvatar: true,
-                coverPhoto: true
+                coverPhoto: true,
+                userId: true
               }
             }
           }
@@ -411,8 +430,7 @@ class NotificationController extends BaseController {
         }
 
         notification.sharedByRole = 'card'
-        notification.sharedBy = res
-        notification.cardDirectedTo = res?.CardOneRef
+        notification.sharedBy = null
 
         return notification
       } else if (notification?.directsTo === 'contactRequest' && notification?.idDirectedTo) {
@@ -460,10 +478,11 @@ class NotificationController extends BaseController {
 
   #getDetailsForNotifications = async (cards: any): Promise<any> => {
     try {
-      const data = await Promise.all(
+      const data: any = await Promise.all(
         cards.map(async (card: any) => {
           const Notifications = await Promise.all(
             card.Notifications.map(async (notification: any) => {
+              console.log('DirectTo ', notification.directsTo)
               if (notification.directsTo === 'linkRequest') {
                 const res = await db.link.findUnique({
                   where: { id: notification.idDirectedTo },
@@ -499,7 +518,7 @@ class NotificationController extends BaseController {
                   ...notification,
                   // cardDirectedTo: res?.CardOneRef,
                   sharedByRole: 'card',
-                  sharedBy: notification.cardDirectedTo
+                  sharedBy: null
                 }
               } else if (notification?.directsTo === 'contactRequest') {
                 const res = await db.contact.findUnique({
@@ -527,6 +546,43 @@ class NotificationController extends BaseController {
                   cardDirectedTo: res,
                   sharedByRole: 'card'
                 }
+              } else if (notification?.directsTo === 'sharedCard') {
+                const res = await db.userBio.findFirst({
+                  where: {
+                    cards: {
+                      some: { cardId: notification.idDirectedTo }
+                    }
+                  },
+                  select: {
+                    firstName: true,
+                    middleInitial: true,
+                    lastName: true,
+                    profileAvatar: true
+                  }
+                })
+
+                // Get profile of person that shared
+                const profile = await db.userBio.findUnique({
+                  where: {
+                    id: notification.sharedBy
+                  },
+                  select: {
+                    firstName: true,
+                    middleInitial: true,
+                    lastName: true,
+                    company: true,
+                    city: true,
+                    state: true,
+                    country: true
+                  }
+                })
+                data.sharedBy = profile
+
+                return {
+                  ...notification,
+                  sharedByRole: 'card',
+                  cardDirectedTo: res
+                }
               } else {
                 const res = await db.card.findUnique({
                   where: { cardId: notification.idDirectedTo },
@@ -535,13 +591,32 @@ class NotificationController extends BaseController {
                     cardName: true,
                     cardId: true,
                     userAvatar: true,
-                    coverPhoto: true
+                    coverPhoto: true,
+                    userId: true
                   }
                 })
 
                 if (notification.sharedBy !== notification.idDirectedTo) {
                   const cardDetails = await this.#getCardDetails(notification.sharedBy)
                   notification.sharedBy = cardDetails
+                  // Get profile of person that shared
+                  // const profile = await db.userBio.findUnique({
+                  //   where: {
+                  //     id: notification.sharedBy
+                  //   },
+                  //   select: {
+                  //     firstName: true,
+                  //     middleInitial: true,
+                  //     lastName: true,
+                  //     company: true,
+                  //     city: true,
+                  //     state: true,
+                  //     country: true
+                  //   }
+                  // })
+                  // console.log('Profile ', profile)
+                  // console.log('shared by ', notification.sharedBy)
+                  // data.profileDirectedTo = profile
                 } else {
                   notification.sharedBy = res
                 }

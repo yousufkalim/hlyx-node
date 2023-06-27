@@ -13,7 +13,8 @@ import {
   validateCardServices,
   validateCardPortfolio,
   validateCardSlug,
-  validateCardAboutForMinimal
+  validateCardAboutForMinimal,
+  validateUpdateCardContactPage
 } from '../utils/validations/card.controller.validation'
 import { templateIds } from '../config/enumTypes'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
@@ -851,7 +852,7 @@ class CardController extends BaseController {
   updateContactPage = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, cardContactPageParams)
     try {
-      const validationError = validateCardContactPage(params)
+      const validationError = validateUpdateCardContactPage(params)
       if (validationError) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -1739,18 +1740,27 @@ class CardController extends BaseController {
       })
 
       // Validate sharedby exists or not
-      const sharedByCard = await db.card.findUnique({
+      const sharedByProfile = await db.userBio.findUnique({
         where: {
-          cardId: sharedBy
+          id: sharedBy
         },
         select: {
-          cardId: true
+          id: true,
+          firstName: true,
+          middleInitial: true,
+          lastName: true,
+          company: true,
+          profileAvatar: true,
+          profTitle: true,
+          city: true,
+          state: true,
+          country: true
         }
       })
-      if (!sharedByCard) {
+      if (!sharedByProfile) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
-          message: messages.CARD_NOT_FOUND
+          message: messages.USER_NOT_FOUND
         })
       }
 
@@ -1792,7 +1802,7 @@ class CardController extends BaseController {
       const obj: ISharedCard = {
         directsTo: 'sharedCard',
         message: req.body.message,
-        sharedBy
+        sharedBy: sharedByProfile
       }
 
       await notificationController.createNotificationOfSharedCard(card.cardId, cardsSharedWith, obj)
