@@ -72,6 +72,20 @@ export interface IValidateCardContactPage {
   additionalLinks?: ICardAdditionalLinks[]
 }
 
+export interface IValidateUpdateCardContactPage {
+  emails?: ICardEmails[]
+  phones?: ICardPhones[]
+  calendar: ICardCalendars[]
+  websites?: ICardWebsites[]
+  country?: string
+  city: string
+  state?: string
+  streetAddress?: string
+  zipcode?: string
+  socialMedias?: ICardSocialMedias[]
+  additionalLinks?: ICardAdditionalLinks[]
+}
+
 export interface IValidateCardType {
   profileLayout: IProfileLayoutEnum
 }

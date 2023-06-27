@@ -3,6 +3,8 @@ export const messages = {
   HEALTH_CHECK: 'Server is up and running',
   USER_NOT_FOUND: 'User not found',
   USER_ALREADY_EXIST: 'User already exists',
+  USER_OLD_PASSWORD_MATCH:
+    'Provided password matched with your current password. Please provide different one.',
   USER_SETTING_PERSON_FILTER: 'User must enable Connection Via Person to enable this option',
   INVALID_INPUT: 'Invalid input',
   INVALID_CREDENTIALS: 'Invalid credentials',

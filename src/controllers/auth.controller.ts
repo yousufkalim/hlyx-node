@@ -29,7 +29,7 @@ class AuthController extends BaseController {
   // Login in user
   login = async (req: Request, res: Response): Promise<Response | undefined> => {
     const params = this.filterParams(req.body, authControllerParams)
-    const { email, password } = params
+    const { email, password, keepSignIn } = params
     try {
       // Validate input
       const validationError = validateLogin(params)
@@ -141,10 +141,11 @@ class AuthController extends BaseController {
           email: user.email
         }
       }
+      const expiry = keepSignIn ? 'jwt_secret_key_expiry_long' : 'jwt_secret_key_expiry'
       jwt.sign(
         payload,
         config.get('jwt_secret_key') as string,
-        { expiresIn: config.get('jwt_secret_key_expiry') as string },
+        { expiresIn: config.get(expiry) as string },
         (err, token) => {
           if (err) {
             return res.status(400).json({
@@ -173,7 +174,7 @@ class AuthController extends BaseController {
   // Login in user
   loginWith2FA = async (req: Request, res: Response): Promise<Response | undefined> => {
     const params = this.filterParams(req.body, authControllerParams)
-    const { email, code } = params
+    const { email, code, keepSignIn } = params
     try {
       // Validate input
       const validationError = validateVerifyCode(params)
@@ -240,10 +241,12 @@ class AuthController extends BaseController {
           email: user.email
         }
       }
+      const expiry = keepSignIn ? 'jwt_secret_key_expiry_long' : 'jwt_secret_key_expiry'
+
       jwt.sign(
         payload,
         config.get('jwt_secret_key') as string,
-        { expiresIn: config.get('jwt_secret_key_expiry') as string },
+        { expiresIn: config.get(expiry) as string },
         (err, token) => {
           if (err) {
             return res.status(400).json({
@@ -623,11 +626,27 @@ class AuthController extends BaseController {
       }
 
       // Verify User exists
-      const user = await db.userAuth.findUnique({ where: { email } })
+      const user = await db.userAuth.findUnique({
+        where: { email },
+        select: {
+          password: true,
+          passwordReset: true
+        }
+      })
       if (!user) {
         return res.status(404).json({
           code: codes.NOT_FOUND,
           message: `User with "${email}" does not exist`
+        })
+      }
+
+      const userPassword = user.password as string
+      const isMatchedWithOldPassword = await bcrypt.compare(password, userPassword)
+
+      if (isMatchedWithOldPassword) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.USER_OLD_PASSWORD_MATCH
         })
       }
 
@@ -673,14 +692,14 @@ class AuthController extends BaseController {
 
   // Update email
   /*
-    *
-    *
-    * Final functionality has not been discussed yet but I have set it up as
-    * if we require OTP text message to allow user to change email. That is why
-    * phone is being included and used to verify user
-    *
-    *
-  */
+   *
+   *
+   * Final functionality has not been discussed yet but I have set it up as
+   * if we require OTP text message to allow user to change email. That is why
+   * phone is being included and used to verify user
+   *
+   *
+   */
   updateEmail = async (req: Request, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, authControllerParams)
     const { email, phone, code } = params
@@ -836,16 +855,29 @@ class AuthController extends BaseController {
       }
 
       // Update User and return
+      const data: any = {
+        userBio: {
+          update: {
+            phone
+          }
+        },
+        isPhoneVerified: true
+      }
+
+      const user = await db.userBio.findUnique({
+        where: { id: req.user?.id },
+        select: {
+          profileType: true
+        }
+      })
+      if (user?.profileType === 'contact') {
+        data.userBio.update.isOnBoardingComplete = true
+        data.userBio.update.profileType = 'user'
+      }
+
       await db.userAuth.update({
         where: { id: req.user?.id },
-        data: {
-          userBio: {
-            update: {
-              phone
-            }
-          },
-          isPhoneVerified: true
-        }
+        data
       })
 
       return res.status(200).json({

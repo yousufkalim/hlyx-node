@@ -8,7 +8,8 @@ import {
   IValidateCardPortfolio,
   IValidateCardSlug,
   IValidateCardType,
-  IValidateCardAboutMinimal
+  IValidateCardAboutMinimal,
+  IValidateUpdateCardContactPage
 } from '../../config/interfaces/card.validation.interface'
 import { stringLengths } from '../../config/stringLengths'
 import {
@@ -60,6 +61,103 @@ export const validateCardFullName = (
  * @param cardContactPagePayload
  * @returns Error message
  */
+
+export const validateUpdateCardContactPage = (
+  cardContactPagePayload: IValidateUpdateCardContactPage
+): string | undefined => {
+  const contactPageSchema = Joi.object({
+    headerPhoto: Joi.string(),
+    emails: Joi.array()
+      .max(arrayLimits.MAX_EMAILS)
+      .items(
+        Joi.object({
+          email: Joi.string()
+            .min(stringLengths.EMAIL_MIN)
+            .max(stringLengths.EMAIL_MAX)
+            .email({ tlds: { allow: false } })
+            .required(),
+          type: Joi.string()
+        })
+      ),
+    phones: Joi.array()
+      .max(arrayLimits.MAX_PHONES)
+      .items(
+        Joi.object({
+          phone: Joi.string()
+            .min(stringLengths.PHONE_MIN)
+            .max(stringLengths.PHONE_MAX)
+            .pattern(/^[0-9]+$/)
+            .required(),
+          extention: Joi.string()
+            .max(stringLengths.PHONE_EXT_MAX)
+            .pattern(/^[0-9]+$/),
+          type: Joi.string()
+            .valid(...Object.values(phoneTypes))
+            .required()
+        })
+      ),
+    calendars: Joi.array()
+      .max(arrayLimits.MAX_CALENDARS)
+      .items(
+        Joi.object({
+          label: Joi.string().max(stringLengths.CALENDAR_LABEL_MAX).allow(''),
+          title: Joi.string().max(stringLengths.CALENDAR_TITLE_MAX).required(),
+          url: Joi.string().max(stringLengths.WEBSITES_MAX).hostname().required()
+        })
+      ),
+    websites: Joi.array()
+      .max(arrayLimits.MAX_WEBSITES)
+      .items(
+        Joi.object({
+          url: Joi.string().max(stringLengths.WEBSITES_MAX).hostname().required(),
+          description: Joi.string().max(stringLengths.WEBSITES_DESC_MAX)
+        })
+      ),
+    officeAddresses: Joi.array()
+      .max(arrayLimits.MAX_OFFICE_ADDRESSES)
+      .items(
+        Joi.object({
+          label: Joi.string().allow('').max(stringLengths.NAME_MAX),
+          streetAddress: Joi.string().max(stringLengths.STREET_MAX).required(),
+          city: Joi.string().max(stringLengths.CITY_MAX).required(),
+          state: Joi.string().valid(...Object.values(stateAbbreviations)),
+          zipcode: Joi.string().max(stringLengths.ZIPCODE_MAX)
+        })
+      ),
+    country: Joi.string().max(stringLengths.COUNTRY_MAX),
+    city: Joi.string().max(stringLengths.CITY_MAX).required(),
+    state: Joi.string().valid(...Object.values(stateAbbreviations)),
+    streetAddress: Joi.string().max(stringLengths.STREET_MAX),
+    zipcode: Joi.string()
+      .min(stringLengths.ZIPCODE_MIN)
+      .max(stringLengths.ZIPCODE_MAX)
+      .pattern(/^[0-9]+$/),
+    socialMedias: Joi.array()
+      .max(arrayLimits.MAX_SOCIAL_MEDIA)
+      .items(
+        Joi.object({
+          platform: Joi.string()
+            .valid(...Object.values(socialMedia))
+            .required(),
+          handle: Joi.string().max(stringLengths.HANDLES_MAX),
+          label: Joi.string().max(stringLengths.NAME_MAX),
+          profileUrl: Joi.string().max(stringLengths.WEBSITES_MAX).hostname().required()
+        })
+      ),
+    additionalLinks: Joi.array()
+      .max(arrayLimits.MAX_ADDITIONAL_LINKS)
+      .items(
+        Joi.object({
+          url: Joi.string().max(stringLengths.WEBSITES_MAX).hostname().required(),
+          title: Joi.string().max(stringLengths.SERVICES_TITLE).required(),
+          typeContent: Joi.string().valid(...Object.values(additionalLinksType)),
+          description: Joi.string().max(stringLengths.LINK_DESC_MAX)
+        })
+      )
+  })
+  return contactPageSchema.validate(cardContactPagePayload)?.error?.message
+}
+
 export const validateCardContactPage = (
   cardContactPagePayload: IValidateCardContactPage
 ): string | undefined => {

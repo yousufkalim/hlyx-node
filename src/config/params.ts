@@ -1,4 +1,12 @@
-export const authControllerParams = ['email', 'password', 'code', 'phone', 'accessToken', 'id']
+export const authControllerParams = [
+  'email',
+  'password',
+  'keepSignIn',
+  'code',
+  'phone',
+  'accessToken',
+  'id'
+]
 
 export const userControllerParams = [
   'firstName',
