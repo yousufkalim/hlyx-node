@@ -38,11 +38,11 @@ const config = convict({
     default: process.env.JWT_SECRET_KEY_EXPIRY,
     env: 'JWT_SECRET_KEY_EXPIRY'
   },
-  jwt_secret_key_expiry_long: {
+  jwt_secret_key_long_expiry: {
     doc: 'Jwt secret key expiration value long',
     format: 'String',
-    default: process.env.JWT_SECRET_KEY_EXPIRY_LONG,
-    env: 'JWT_SECRET_KEY_EXPIRY_LONG'
+    default: process.env.JWT_SECRET_KEY_LONG_EXPIRY,
+    env: 'JWT_SECRET_KEY_LONG_EXPIRY'
   },
   twilio_account_sid: {
     doc: 'Twilio account sid',
