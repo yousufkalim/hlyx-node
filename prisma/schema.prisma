@@ -241,13 +241,13 @@ model CardWebsites {
 }
 
 model CardSocialMedias {
-  id         String  @id @default(uuid())
-  platform   String
+  id         String               @id @default(uuid())
+  platform   SocialMediaPlatforms
   handle     String?
   cardId     String
   label      String?
   profileUrl String
-  Card       Card    @relation(fields: [cardId], references: [cardId], onDelete: Cascade)
+  Card       Card                 @relation(fields: [cardId], references: [cardId], onDelete: Cascade)
 }
 
 model CardAdditionalLinks {
@@ -484,72 +484,72 @@ enum PhoneType {
   office
 }
 
-// enum SocialMediaPlatforms {
-//   '500 px"
-//   apple music
-//   apple podcast
-//   badoo
-//   baidu
-//   behance
-//   clubhouse
-//   dailymotion
-//   devianart
-//   discord
-//   dribble
-//   facebook
-//   flickr
-//   foursquare
-//   giphy
-//   github
-//   gmail
-//   google meets
-//   google podcast
-//   imo
-//   instagram
-//   ivoox
-//   kompoz
-//   kwai
-//   likee
-//   line
-//   linkedin
-//   match
-//   medium
-//   meetme
-//   meetup
-//   messenger
-//   myspace
-//   patreon
-//   pinterest
-//   qq
-//   quora
-//   qzone
-//   reddit
-//   skype
-//   slack
-//   snapchat
-//   soundcloud
-//   spotify
-//   stack overflow
-//   teams
-//   telegram
-//   tik tok
-//   tinder
-//   truth social
-//   tumbler
-//   twitch
-//   twitter
-//   viber
-//   vimeo
-//   vkontakte
-//   watppad
-//   weechat
-//   weibo
-//   whatsapp
-//   xing
-//   yelp
-//   youtube
-//   zoom'
-// }
+enum SocialMediaPlatforms {
+  fivehundredpixel
+  applemusic
+  applepodcast
+  badoo
+  baidu
+  behance
+  clubhouse
+  dailymotion
+  devianart
+  discord
+  dribble
+  facebook
+  flickr
+  foursquare
+  giphy
+  github
+  gmail
+  googlemeets
+  googlepodcast
+  imo
+  instagram
+  ivoox
+  kompoz
+  kwai
+  likee
+  line
+  linkedin
+  match
+  medium
+  meetme
+  meetup
+  messenger
+  myspace
+  patreon
+  pinterest
+  qq
+  quora
+  qzone
+  reddit
+  skype
+  slack
+  snapchat
+  soundcloud
+  spotify
+  stackoverflow
+  teams
+  telegram
+  tiktok
+  tinder
+  truthsocial
+  tumbler
+  twitch
+  twitter
+  viber
+  vimeo
+  vkontakte
+  watppad
+  weechat
+  weibo
+  whatsapp
+  xing
+  yelp
+  youtube
+  zoom
+}
 
 enum DegreeType {
   Associates
