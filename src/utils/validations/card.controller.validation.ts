@@ -88,7 +88,7 @@ export const validateUpdateCardContactPage = (
             .max(stringLengths.PHONE_MAX)
             .pattern(/^[0-9]+$/)
             .required(),
-          extention: Joi.string()
+          extension: Joi.string()
             .max(stringLengths.PHONE_EXT_MAX)
             .pattern(/^[0-9]+$/),
           type: Joi.string()
@@ -186,7 +186,7 @@ export const validateCardContactPage = (
             .max(stringLengths.PHONE_MAX)
             .pattern(/^[0-9]+$/)
             .required(),
-          extention: Joi.string()
+          extension: Joi.string()
             .max(stringLengths.PHONE_EXT_MAX)
             .pattern(/^[0-9]+$/),
           type: Joi.string()

@@ -226,7 +226,7 @@ model CardEmails {
 model CardPhones {
   id        String    @id @default(uuid())
   phone     String
-  extention String?
+  extension String?
   type      PhoneType
   cardId    String
   Card      Card      @relation(fields: [cardId], references: [cardId], onDelete: Cascade)

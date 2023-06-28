@@ -104,7 +104,7 @@ class CardController extends BaseController {
           phones: {
             select: {
               phone: true,
-              extention: true,
+              extension: true,
               type: true
             }
           },
