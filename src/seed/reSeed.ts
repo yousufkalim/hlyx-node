@@ -14,9 +14,9 @@ const reSeedDatabase = async (): Promise<void> => {
       trim: true
     })
 
-    emails.forEach(async (email: string) => {
-      await db.userAuth.delete({ where: { email } })
-    })
+    for (let i = 0; i < emails.length; i++) {
+      await db.userAuth.delete({ where: { email: emails[i][0] } })
+    }
 
     await seedData()
   } catch (error: any) {

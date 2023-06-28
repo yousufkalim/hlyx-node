@@ -7,7 +7,6 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "start:prod": "node dist/src/server.js",
         "dev": "tsc-watch --onSuccess \"node ./dist/src/server.js\"",
-        "seed": "ts-node prisma/seed.ts",
         "build": "tsc",
         "lint:fix": "eslint src/**/*.ts --fix",
         "lint": "eslint src/**/*.ts",
