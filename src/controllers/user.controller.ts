@@ -966,6 +966,7 @@ class UserController extends BaseController {
       }
 
       const linkedCards = []
+      let linkRequests: any[] = []
       const savedContacts = []
       if (user.cards) {
         for (const card of user.cards) {
@@ -982,6 +983,7 @@ class UserController extends BaseController {
               ]
             },
             select: {
+              linkedAt: true,
               CardOneRef: {
                 select: {
                   cardId: true,
@@ -996,7 +998,8 @@ class UserController extends BaseController {
                       status: true,
                       fullName: true,
                       company: true,
-                      jobTitle: true
+                      jobTitle: true,
+                      createdAt: true
                     }
                   }
                 }
@@ -1015,7 +1018,8 @@ class UserController extends BaseController {
                       status: true,
                       fullName: true,
                       company: true,
-                      jobTitle: true
+                      jobTitle: true,
+                      createdAt: true
                     }
                   }
                 }
@@ -1027,20 +1031,157 @@ class UserController extends BaseController {
             // collect linked cards with my card
             for (const link of links) {
               if (link.CardOneRef.cardId === card.cardId) {
-                linkedCards.push(link.CardTwoRef)
-                if (link.CardOneRef.Contacts) {
-                  savedContacts.push(...link.CardOneRef.Contacts)
-                }
+                linkedCards.push(link)
+                savedContacts.push(...link.CardOneRef.Contacts)
               } else {
-                linkedCards.push(link.CardOneRef)
+                linkedCards.push(link)
                 savedContacts.push(...link.CardTwoRef.Contacts)
               }
             }
           }
+
+          // Active Incoming Requests
+          linkRequests = linkRequests.concat(
+            await db.link.findMany({
+              where: {
+                status: 'requested',
+                recentChangeBy: {
+                  not: card.cardId
+                },
+                OR: [
+                  {
+                    cardOne: card.cardId
+                  },
+                  {
+                    cardTwo: card.cardId
+                  }
+                ]
+              }
+            })
+          )
+
+          // Accepted Incoming Request by User
+          linkRequests = linkRequests.concat(
+            await db.link.findMany({
+              where: {
+                status: 'accepted',
+                recentChangeBy: card.cardId,
+                OR: [
+                  {
+                    cardOne: card.cardId
+                  },
+                  {
+                    cardTwo: card.cardId
+                  }
+                ]
+              }
+            })
+          )
         }
       }
 
-      const data = { links: linkedCards, cards: user.cards, savedContacts }
+      // Percent Increases
+      const currentTime = new Date()
+      const millisecondsInDay = 60 * 60 * 24 * 1000
+
+      const dates = {
+        oneWeekAgo: new Date(currentTime.getTime() - (7 * millisecondsInDay)),
+        thirtyDaysAgo: new Date(currentTime.getTime() - (30 * millisecondsInDay)),
+        oneYearAgo: new Date(currentTime.getTime() - (365 * millisecondsInDay))
+      }
+
+      // Grab filtered data
+      const filteredLinks = {
+        pastWeek: linkedCards.filter(link => link.linkedAt && link.linkedAt > dates.oneWeekAgo).length,
+        pastMonth: linkedCards.filter(link => link.linkedAt && link.linkedAt > dates.thirtyDaysAgo).length,
+        pastYear: linkedCards.filter(link => link.linkedAt && link.linkedAt > dates.oneYearAgo).length
+      }
+
+      const filteredLinkRequests = {
+        pastWeek: linkRequests.filter(linkRequest => linkRequest.status === 'requested' && linkRequest.updatedAt > dates.oneWeekAgo)
+          .concat(linkRequests.filter(linkRequest => linkRequest.status === 'accepted' && linkRequest.linkedAt > dates.oneWeekAgo)).length,
+        pastMonth: linkRequests.filter(linkRequest => linkRequest.status === 'requested' && linkRequest.updatedAt > dates.thirtyDaysAgo)
+          .concat(linkRequests.filter(linkRequest => linkRequest.status === 'accepted' && linkRequest.linkedAt > dates.thirtyDaysAgo)).length,
+        pastYear: linkRequests.filter(linkRequest => linkRequest.status === 'requested' && linkRequest.updatedAt > dates.oneYearAgo)
+          .concat(linkRequests.filter(linkRequest => linkRequest.status === 'accepted' && linkRequest.linkedAt > dates.oneYearAgo)).length
+      }
+
+      const filteredContacts = {
+        pastWeek: savedContacts.filter(contact => contact.createdAt > dates.oneWeekAgo).length,
+        pastMonth: savedContacts.filter(contact => contact.createdAt > dates.thirtyDaysAgo).length,
+        pastYear: savedContacts.filter(contact => contact.createdAt > dates.oneYearAgo).length
+      }
+
+      const filteredOpsRequests = {
+        pastWeek: filteredLinks.pastWeek + filteredLinkRequests.pastWeek + filteredContacts.pastWeek,
+        pastMonth: filteredLinks.pastMonth + filteredLinkRequests.pastMonth + filteredContacts.pastMonth,
+        pastYear: filteredLinks.pastYear + filteredLinkRequests.pastYear + filteredContacts.pastYear
+      }
+
+      const totalOps = linkedCards.length + linkRequests.length + savedContacts.length
+
+      // Find Percent Increases
+      const percentIncreases = {
+        linkPercentIncrease: {
+          pastWeek: {
+            count: filteredLinks.pastWeek,
+            percentIncrease: linkedCards.length > 0 ? +(filteredLinks.pastWeek / linkedCards.length).toFixed(2) : 0
+          },
+          pastMonth: {
+            count: filteredLinks.pastMonth,
+            percentIncrease: linkedCards.length > 0 ? +(filteredLinks.pastMonth / linkedCards.length).toFixed(2) : 0
+          },
+          pastYear: {
+            count: filteredLinks.pastYear,
+            percentIncrease: linkedCards.length > 0 ? +(filteredLinks.pastYear / linkedCards.length).toFixed(2) : 0
+          }
+        },
+        linkRequestPercentIncrease: {
+          pastWeek: {
+            count: filteredLinkRequests.pastWeek,
+            percentIncrease: linkRequests.length > 0 ? +(filteredLinkRequests.pastWeek / linkRequests.length).toFixed(2) : 0
+          },
+          pastMonth: {
+            count: filteredLinkRequests.pastMonth,
+            percentIncrease: linkRequests.length > 0 ? +(filteredLinkRequests.pastMonth / linkRequests.length).toFixed(2) : 0
+          },
+          pastYear: {
+            count: filteredLinkRequests.pastYear,
+            percentIncrease: linkRequests.length > 0 ? +(filteredLinkRequests.pastYear / linkRequests.length).toFixed(2) : 0
+          }
+        },
+        contactPercentIncrease: {
+          pastWeek: {
+            count: filteredContacts.pastWeek,
+            percentIncrease: savedContacts.length > 0 ? +(filteredContacts.pastWeek / savedContacts.length).toFixed(2) : 0
+          },
+          pastMonth: {
+            count: filteredContacts.pastMonth,
+            percentIncrease: savedContacts.length > 0 ? +(filteredContacts.pastMonth / savedContacts.length).toFixed(2) : 0
+          },
+          pastYear: {
+            count: filteredContacts.pastYear,
+            percentIncrease: savedContacts.length > 0 ? +(filteredContacts.pastYear / savedContacts.length).toFixed(2) : 0
+          }
+        },
+        opsRequestPercentIncrease: {
+          pastWeek: {
+            count: filteredOpsRequests.pastWeek,
+            percentIncrease: totalOps > 0 ? +(filteredOpsRequests.pastWeek / totalOps).toFixed(2) : 0
+          },
+          pastMonth: {
+            count: filteredOpsRequests.pastMonth,
+            percentIncrease: totalOps > 0 ? +(filteredOpsRequests.pastMonth / totalOps).toFixed(2) : 0
+          },
+          pastYear: {
+            count: filteredOpsRequests.pastYear,
+            percentIncrease: totalOps > 0 ? +(filteredOpsRequests.pastYear / totalOps).toFixed(2) : 0
+          }
+        }
+      }
+
+      const data = { links: linkedCards, cards: user.cards, savedContacts, percentIncreases }
+
       // Return
       return res.status(200).json({
         user: data,

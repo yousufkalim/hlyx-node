@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt'
 import { db } from '../utils/db'
 import { generateData, generateCardData, getRandomLinkStatus, generateDummyImage } from './data'
 
-const main = async (): Promise<void> => {
+export const seedData = async (): Promise<void> => {
   try {
     const numberOfSeeds = 100
 
@@ -112,13 +112,17 @@ const main = async (): Promise<void> => {
       const newestCard = user.userBio?.cards[0].cardId
       if (newestCard) {
         for (const card of createdCardIds) {
+          const data: any = {
+            cardOne: newestCard,
+            cardTwo: card,
+            status: getRandomLinkStatus(),
+            recentChangeBy: newestCard
+          }
+          if (data.status === 'accepted') {
+            data.linkedAt = new Date()
+          }
           await db.link.create({
-            data: {
-              cardOne: newestCard,
-              cardTwo: card,
-              status: getRandomLinkStatus(),
-              recentChangeBy: newestCard
-            }
+            data
           })
         }
         createdCardIds.push(newestCard)
@@ -129,7 +133,7 @@ const main = async (): Promise<void> => {
   }
 }
 
-main().then(async () => {
+seedData().then(async () => {
   await db.$disconnect()
 }).catch(async (error: any) => {
   console.error(error)
