@@ -228,6 +228,7 @@ model CardPhones {
   phone     String
   extension String?
   type      PhoneType
+  label     String?
   cardId    String
   Card      Card      @relation(fields: [cardId], references: [cardId], onDelete: Cascade)
 }

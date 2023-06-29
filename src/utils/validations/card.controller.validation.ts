@@ -93,7 +93,9 @@ export const validateUpdateCardContactPage = (
             .pattern(/^[0-9]+$/),
           type: Joi.string()
             .valid(...Object.values(phoneTypes))
-            .required()
+            .required(),
+          label: Joi.string()
+            .max(stringLengths.PHONE_LABEL_MAX)
         })
       ),
     calendars: Joi.array()
@@ -191,7 +193,9 @@ export const validateCardContactPage = (
             .pattern(/^[0-9]+$/),
           type: Joi.string()
             .valid(...Object.values(phoneTypes))
-            .required()
+            .required(),
+          label: Joi.string()
+            .max(stringLengths.PHONE_LABEL_MAX)
         })
       ),
     calendars: Joi.array()

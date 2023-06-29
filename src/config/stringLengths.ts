@@ -11,6 +11,7 @@ export const stringLengths = {
   EMAIL_MAX: 50,
   PHONE_MIN: 10,
   PHONE_MAX: 15,
+  PHONE_LABEL_MAX: 50,
   PHONE_EXT_MAX: 6,
   PASSWORD_MIN: 8,
   PASSWORD_MAX: 255,

@@ -139,6 +139,7 @@ interface ICardPhones {
   phone: string
   extension?: string
   type: string
+  label: string
   cardId: string
 }
 
