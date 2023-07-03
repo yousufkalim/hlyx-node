@@ -88,14 +88,14 @@ export const validateUpdateCardContactPage = (
             .max(stringLengths.PHONE_MAX)
             .pattern(/^[0-9]+$/)
             .required(),
-          extension: Joi.string()
+          extention: Joi.string()
             .max(stringLengths.PHONE_EXT_MAX)
-            .pattern(/^[0-9]+$/),
+            .pattern(/^[0-9]+$/)
+            .allow(''),
           type: Joi.string()
             .valid(...Object.values(phoneTypes))
             .required(),
-          label: Joi.string()
-            .max(stringLengths.PHONE_LABEL_MAX)
+          label: Joi.string().max(stringLengths.PHONE_LABEL_MAX)
         })
       ),
     calendars: Joi.array()
@@ -188,14 +188,14 @@ export const validateCardContactPage = (
             .max(stringLengths.PHONE_MAX)
             .pattern(/^[0-9]+$/)
             .required(),
-          extension: Joi.string()
+          extention: Joi.string()
             .max(stringLengths.PHONE_EXT_MAX)
-            .pattern(/^[0-9]+$/),
+            .pattern(/^[0-9]+$/)
+            .allow(''),
           type: Joi.string()
             .valid(...Object.values(phoneTypes))
             .required(),
-          label: Joi.string()
-            .max(stringLengths.PHONE_LABEL_MAX)
+          label: Joi.string().max(stringLengths.PHONE_LABEL_MAX)
         })
       ),
     calendars: Joi.array()

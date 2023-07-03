@@ -137,7 +137,7 @@ interface ICardEmails {
 interface ICardPhones {
   id: string
   phone: string
-  extension?: string
+  extention?: string
   type: string
   label: string
   cardId: string
