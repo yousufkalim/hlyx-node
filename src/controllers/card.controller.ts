@@ -104,7 +104,7 @@ class CardController extends BaseController {
           phones: {
             select: {
               phone: true,
-              extension: true,
+              extention: true,
               type: true,
               label: true
             }
@@ -1487,6 +1487,7 @@ class CardController extends BaseController {
       }
 
       const params = this.filterParams(body, cardControllerParams)
+      console.log('Body ', params)
       const {
         fullName,
         cardName,

@@ -226,7 +226,7 @@ model CardEmails {
 model CardPhones {
   id        String    @id @default(uuid())
   phone     String
-  extension String?
+  extention String?
   type      PhoneType
   label     String?
   cardId    String
