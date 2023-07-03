@@ -943,7 +943,6 @@ class CardController extends BaseController {
   updateAboutPage = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, cardAboutPageParams)
     try {
-      console.log('body ', req.body)
       const validationError = validateCardAboutPage(params)
       if (validationError) {
         return res.status(400).json({
@@ -1056,10 +1055,14 @@ class CardController extends BaseController {
     const { services } = params
     try {
       if (!services) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: 'services is required'
+        return res.status(200).json({
+          code: codes.OK,
+          message: messages.SUCCESS
         })
+        // return res.status(400).json({
+        //   code: codes.BAD_REQUEST,
+        //   message: 'services is required'
+        // })
       }
       const validationError = validateCardServices(params)
       if (validationError) {
@@ -1207,10 +1210,14 @@ class CardController extends BaseController {
     try {
       const validationError = validateCardPortfolio(params)
       if (validationError) {
-        return res.status(400).json({
-          code: codes.BAD_REQUEST,
-          message: validationError
+        return res.status(200).json({
+          code: codes.OK,
+          message: messages.SUCCESS
         })
+        // return res.status(400).json({
+        //   code: codes.BAD_REQUEST,
+        //   message: validationError
+        // })
       }
 
       // Verify all Images are in our database
@@ -1487,7 +1494,6 @@ class CardController extends BaseController {
       }
 
       const params = this.filterParams(body, cardControllerParams)
-      console.log('Body ', params)
       const {
         fullName,
         cardName,
