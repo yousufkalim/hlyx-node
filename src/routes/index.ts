@@ -78,7 +78,20 @@ router.get('/user/stats/:userId', authenticate, UserController.userStats)
 router.get('/user/contact-details', authenticate, UserController.userContactDetails)
 router.get('/user/find-profile/:userName', authenticate, UserController.getUserByUserName)
 router.put('/user/update/bio/:userId', authenticate, userAuthorization, UserController.updateBio)
-router.post('/user/add/card/:userId', authenticate, userAuthorization, UserController.addCard)
+router.post(
+  '/user/add/minimal-card/:userId',
+  authenticate,
+  userAuthorization,
+  UserController.addMinimalCard
+)
+
+router.post(
+  '/user/add/premium-card/:userId',
+  authenticate,
+  userAuthorization,
+  UserController.addPremiumCard
+)
+
 router.post(
   '/user/add/profile-photo/:userId',
   authenticate,
@@ -120,6 +133,7 @@ router.put(
 
 // Card Routes
 router.get('/card/find/base-info/:cardId', CardController.getBaseInfo)
+router.get('/card/find/card-info/:cardId', CardController.getCardInfo)
 router.get('/card/find/contact-page/:cardId', CardController.getContact)
 router.get('/card/find/about-page/:cardId', CardController.getAbout)
 router.get('/card/find/services-page/:cardId', CardController.getServices)
@@ -179,10 +193,17 @@ router.delete(
 
 // Card Update Info Routes
 router.put(
-  '/card/update/card-details/:cardId',
+  '/card/update/minimal-card/:cardId',
   authenticate,
   cardAuthorization,
-  CardController.updateCard
+  CardController.updateMinimalCard
+)
+
+router.put(
+  '/card/update/premium-card/:cardId',
+  authenticate,
+  cardAuthorization,
+  CardController.updatePremiumCard
 )
 
 router.put(
@@ -216,9 +237,9 @@ router.put(
   CardController.updateServicesPage
 )
 router.post(
-  '/card/add/portfolio-image/:cardId',
+  '/card/add/portfolio-image/:userId',
   authenticate,
-  cardAuthorization,
+  userAuthorization,
   CardController.addPortfolioImage
 )
 router.put(

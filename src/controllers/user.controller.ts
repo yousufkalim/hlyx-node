@@ -1,9 +1,4 @@
 /* eslint-disable @typescript-eslint/indent */
-import {
-  validateCardAboutForMinimal,
-  validateCardContactPage,
-  validateCardType
-} from './../utils/validations/card.controller.validation'
 import { Response } from 'express'
 import { UploadedFile } from 'express-fileupload'
 
@@ -11,6 +6,7 @@ import { RequestUserAuth, RequestUserPreference } from '../config/interfaces/com
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import {
+  cardAboutPageParams,
   cardControllerParams,
   userControllerParams,
   userNotificationParams,
@@ -21,6 +17,14 @@ import {
   validateUserPreferences,
   validateUserUpdate
 } from '../utils/validations/user.controller.validation'
+import {
+  validateCardAboutForMinimal,
+  validateCardAboutPage,
+  validateCardContactPage,
+  validateCardServices,
+  validateCardType,
+  validateCardPortfolio
+} from './../utils/validations/card.controller.validation'
 import { arrayLimits } from '../config/arrayLimits'
 import { ACCEPTABLE_MIME_TYPES, MAX_BYTES } from '../config/fileLimits'
 import { awsDeleteFile, awsUploadFile } from '../utils/aws-image'
@@ -274,8 +278,8 @@ class UserController extends BaseController {
     }
   }
 
-  // Add a card to user
-  addCard = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+  // Add a minimal card to user
+  addMinimalCard = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
       const body: any = {}
       for (const item in req.body) {
@@ -378,14 +382,12 @@ class UserController extends BaseController {
         })
       }
 
-      if (profileLayout === 'minimal') {
-        const cardAboutValidationError = validateCardAboutForMinimal(cardAboutData)
-        if (cardAboutValidationError) {
-          return res.status(400).json({
-            code: codes.BAD_REQUEST,
-            message: cardAboutValidationError
-          })
-        }
+      const cardAboutValidationError = validateCardAboutForMinimal(cardAboutData)
+      if (cardAboutValidationError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: cardAboutValidationError
+        })
       }
 
       // Add optional fields if set
@@ -526,6 +528,496 @@ class UserController extends BaseController {
       }
 
       const data = { ...cardContactData, ...cardAboutData, profileLayout }
+
+      // Update UserBio, create Card, and return
+      const createdCard = await db.userBio.update({
+        where: { id: req.params.userId },
+        data: {
+          cards: {
+            create: data
+          }
+        },
+        select: {
+          cards: {
+            select: {
+              cardId: true
+            }
+          }
+        }
+      })
+
+      const allCardIds = user.cards.map((a) => a.cardId)
+      let cardId = ''
+      // Isolate newly create id from previous
+      for (const id of createdCard.cards) {
+        if (!allCardIds.includes(id.cardId)) {
+          cardId = id.cardId
+        }
+      }
+
+      // Create QR Code and Add
+      const urlRoute = 'https://hlyx.me/' + cardId
+      const bufferImage = await QRCode.toBuffer(urlRoute, {
+        type: 'png',
+        width: 200,
+        errorCorrectionLevel: 'H'
+      })
+      const qrCodeImage = await awsUploadFile(bufferImage, cardId, 'qrcode', '', 'image/png')
+
+      await db.card.update({
+        where: {
+          cardId
+        },
+        data: {
+          qrCodeImage
+        }
+      })
+
+      return res.status(200).json({
+        cardId,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Add a card to user
+  addPremiumCard = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      const body: any = {}
+
+      for (const item in req.body) {
+        try {
+          body[item] = JSON.parse(req.body[item])
+        } catch (err) {
+          body[item] = req.body[item]
+        }
+      }
+
+      const contactData = this.filterParams(body, cardControllerParams)
+      const aboutData = this.filterParams(body, cardAboutPageParams)
+      const servicesData = this.filterParams(body, cardControllerParams)
+      const portfolioData = this.filterParams(body, cardControllerParams)
+      const { services } = servicesData
+      const { portfolio } = portfolioData
+
+      const {
+        fullName,
+        cardName,
+        profileLayout,
+        city,
+        emails,
+        phones,
+        zipcode,
+        state,
+        websites,
+        officeAddresses,
+        socialMedias,
+        additionalLinks,
+        calendars
+      } = contactData
+
+      // Verify user exists
+      const user = await db.userBio.findUnique({
+        where: {
+          id: req.params.userId
+        },
+        include: {
+          cards: true
+        }
+      })
+      if (!user) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.USER_NOT_FOUND
+        })
+      }
+
+      if (!user.isOnBoardingComplete) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.ONBOARDING_INCOMPLETE
+        })
+      }
+
+      // Verify under maximum amount of Cards
+      const cards = await db.card.findMany({ where: { userId: req.params.userId } })
+      if (cards.length >= arrayLimits.MAX_CARDS) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.EXCEEDS_CARD_LIMIT
+        })
+      }
+
+      // Create Card data
+      const cardContactData: any = {
+        fullName,
+        cardName,
+        city,
+        country: user?.country ?? undefined,
+        state: state ?? undefined,
+        zipcode: zipcode ?? undefined,
+        emails,
+        phones,
+        websites,
+        officeAddresses,
+        socialMedias,
+        additionalLinks,
+        calendars
+      }
+
+      const cardTypeError = validateCardType({ profileLayout })
+      if (cardTypeError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: cardTypeError
+        })
+      }
+      const cardContactValidationError = validateCardContactPage(cardContactData)
+      const aboutError = validateCardAboutPage(aboutData)
+
+      if (cardContactValidationError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: cardContactValidationError
+        })
+      }
+
+      // Add optional fields if set
+      if (contactData.emails?.length > 0) {
+        cardContactData.emails = {
+          createMany: {
+            data: contactData.emails
+          }
+        }
+      }
+      if (contactData.phones?.length > 0) {
+        cardContactData.phones = {
+          createMany: {
+            data: contactData.phones
+          }
+        }
+      }
+      if (contactData.calendars?.length > 0) {
+        cardContactData.calendars = {
+          createMany: {
+            data: contactData.calendars
+          }
+        }
+      }
+      if (contactData.websites?.length > 0) {
+        cardContactData.websites = {
+          createMany: {
+            data: contactData.websites
+          }
+        }
+      }
+      if (contactData.officeAddresses?.length > 0) {
+        cardContactData.officeAddresses = {
+          createMany: {
+            data: contactData.officeAddresses
+          }
+        }
+      }
+      if (contactData.socialMedias?.length > 0) {
+        cardContactData.socialMedias = {
+          createMany: {
+            data: contactData.socialMedias
+          }
+        }
+      }
+      if (contactData.additionalLinks?.length > 0) {
+        cardContactData.additionalLinks = {
+          createMany: {
+            data: contactData.additionalLinks
+          }
+        }
+      }
+
+      /*  ====  Validation od About Data  =====  */
+      if (aboutError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: aboutError
+        })
+      }
+
+      // Check one-to-many relations
+      // Education
+      if (aboutData.education) {
+        for (const edu of aboutData.education) {
+          if (edu.startDate) {
+            edu.startDate = new Date(edu.startDate)
+          }
+          if (edu.endDate) {
+            edu.endDate = new Date(edu.endDate)
+          }
+        }
+        aboutData.education = {
+          create: aboutData.education
+        }
+        // await db.cardEducations.deleteMany({ where: { cardId: req.params.cardId } })
+      }
+      // Accolades
+      if (aboutData.accolades) {
+        for (const accolade of aboutData.accolades) {
+          if (accolade.startDate) {
+            accolade.startDate = new Date(accolade.startDate)
+          }
+          if (accolade.endDate) {
+            accolade.endDate = new Date(accolade.endDate)
+          }
+        }
+        aboutData.accolades = {
+          create: aboutData.accolades
+        }
+        // await db.cardAccolades.deleteMany({ where: { cardId: req.params.cardId } })
+      }
+      // Achievements
+      if (aboutData.achievements) {
+        for (const achievement of aboutData.achievements) {
+          if (achievement.startDate) {
+            achievement.startDate = new Date(achievement.startDate)
+          }
+          if (achievement.endDate) {
+            achievement.endDate = new Date(achievement.endDate)
+          }
+        }
+        aboutData.achievements = {
+          create: aboutData.achievements
+        }
+        // await db.cardAchievements.deleteMany({ where: { cardId: req.params.cardId } })
+      }
+      // Business Goals
+      if (aboutData.businessGoals) {
+        for (const goal of aboutData.businessGoals) {
+          if (goal.startDate) {
+            goal.startDate = new Date(goal.startDate)
+          }
+          if (goal.endDate) {
+            goal.endDate = new Date(goal.endDate)
+          }
+        }
+        aboutData.businessGoals = {
+          create: aboutData.businessGoals
+        }
+        // await db.cardBusinessGoals.deleteMany({ where: { cardId: req.params.cardId } })
+      }
+      // Business Needs
+      if (aboutData.businessNeeds) {
+        for (const need of aboutData.businessNeeds) {
+          if (need.startDate) {
+            need.startDate = new Date(need.startDate)
+          }
+          if (need.endDate) {
+            need.endDate = new Date(need.endDate)
+          }
+        }
+        aboutData.businessNeeds = {
+          create: aboutData.businessNeeds
+        }
+        // await db.cardBusinessNeeds.deleteMany({ where: { cardId: req.params.cardId } })
+      }
+
+      /*  ====  Validation for Card Services  ===== */
+      const servicesError = validateCardServices({ services })
+      if (servicesError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: servicesError
+        })
+      }
+      if (services?.length > 0) {
+        const featuredServices: any = services.filter((service: any) => service.type === 'featured')
+        if (featuredServices?.length > 0) {
+          const featuredPositionings = featuredServices.map((a: any) => a.positioning)
+          featuredPositionings.sort((a: any, b: any) => {
+            return a - b
+          })
+
+          if (
+            featuredPositionings.length !== new Set(featuredPositionings).size ||
+            featuredPositionings.length - 1 !==
+              featuredPositionings[featuredPositionings.length - 1]
+          ) {
+            return res.status(400).json({
+              code: codes.BAD_REQUEST,
+              message: messages.POSITIONING_ERROR_SERVICE
+            })
+          }
+        }
+
+        const mainServices: any = services.filter((service: any) => service.type === 'main')
+        if (mainServices?.length > 0) {
+          const mainPositionings = mainServices.map((a: any) => a.positioning)
+          mainPositionings.sort((a: any, b: any) => {
+            return a - b
+          })
+          if (
+            mainPositionings.length !== new Set(mainPositionings).size ||
+            mainPositionings.length - 1 !== mainPositionings[mainPositionings.length - 1]
+          ) {
+            return res.status(400).json({
+              code: codes.BAD_REQUEST,
+              message: messages.POSITIONING_ERROR_SERVICE
+            })
+          }
+        }
+      }
+
+      const servicesCard = {
+        create: services
+      }
+
+      /*  ====  Validation for Card Portfolio  ===== */
+      const portfolioError = validateCardPortfolio({ portfolio })
+      if (portfolioError) {
+        // return res.status(200).json({
+        //   code: codes.OK,
+        //   message: messages.SUCCESS
+        // })
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: portfolioError
+        })
+      }
+
+      // Verify all Images are in our database
+      // portfolio.forEach(async (element: any) => {
+      //   const image = await db.cardPortfolioImages.findUnique({
+      //     where: {
+      //       cardId_pathToFile: {
+      //         cardId: req.params.cardId,
+      //         pathToFile: element.image
+      //       }
+      //     }
+      //   })
+      //   if (!image) {
+      //     return res.status(404).json({
+      //       code: codes.NOT_FOUND,
+      //       message: messages.IMAGE_NOT_FOUND
+      //     })
+      //   }
+      // })
+
+      // Verify Uniqueness / Accuracy of Positioning
+      if (portfolio?.length > 0) {
+        portfolio.sort((a: any, b: any) => {
+          return a.positioning - b.positioning
+        })
+        const positionings = portfolio.map((a: any) => a.positioning)
+        if (
+          positionings.length !== new Set(positionings).size ||
+          positionings.length - 1 !== positionings[positionings.length - 1]
+        ) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.POSITIONING_ERROR_SERVICE
+          })
+        }
+      }
+
+      const portfolios = {
+        create: portfolio
+      }
+
+      /*  ====  Validation for Cover Photo  ===== */
+      const coverPhoto = req.files?.coverPhoto as UploadedFile
+      if (coverPhoto) {
+        // Verify Acceptable MIME Type
+        if (!ACCEPTABLE_MIME_TYPES.includes(coverPhoto.mimetype)) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.INVALID_MIME_TYPE
+          })
+        }
+        // Verify Image Size
+        if (coverPhoto.size > MAX_BYTES) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.FILE_SIZE_OVER_10
+          })
+        }
+
+        // AWS API Call
+        const coverPhotoPath = await awsUploadFile(
+          coverPhoto.data,
+          req.body.id,
+          'cover-photo',
+          coverPhoto.name,
+          coverPhoto.mimetype
+        )
+        cardContactData.coverPhoto = coverPhotoPath
+      }
+
+      /*  ====  Validation for Company Icon  ===== */
+      const companyIcon = req.files?.companyIcon as UploadedFile
+      if (companyIcon) {
+        // Verify Acceptable MIME Type
+        if (!ACCEPTABLE_MIME_TYPES.includes(companyIcon.mimetype)) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.INVALID_MIME_TYPE
+          })
+        }
+        // Verify Image Size
+        if (companyIcon.size > MAX_BYTES) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.FILE_SIZE_OVER_10
+          })
+        }
+
+        const companyIconPath = await awsUploadFile(
+          companyIcon.data,
+          req.body.id,
+          'company-icon',
+          companyIcon.name,
+          companyIcon.mimetype
+        )
+
+        cardContactData.companyIcon = companyIconPath
+      }
+
+      /*  ====  Validation for Branded Cover Photo  ===== */
+      const brandedCover = req.files?.brandedCoverPhoto as UploadedFile
+      if (brandedCover) {
+        // Verify Acceptable MIME Type
+        if (!ACCEPTABLE_MIME_TYPES.includes(brandedCover.mimetype)) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.INVALID_MIME_TYPE
+          })
+        }
+        // Verify Image Size
+        if (brandedCover.size > MAX_BYTES) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST,
+            message: messages.FILE_SIZE_OVER_10
+          })
+        }
+
+        const brandCoverPath = await awsUploadFile(
+          brandedCover.data,
+          req.body.id,
+          'company-icon',
+          brandedCover.name,
+          brandedCover.mimetype
+        )
+        cardContactData.brandedCoverPhoto = brandCoverPath
+      }
+
+      const data = {
+        profileLayout,
+        ...cardContactData,
+        ...aboutData,
+        services: servicesCard,
+        portfolio: portfolios
+      }
 
       // Update UserBio, create Card, and return
       const createdCard = await db.userBio.update({
@@ -1085,36 +1577,70 @@ class UserController extends BaseController {
       const millisecondsInDay = 60 * 60 * 24 * 1000
 
       const dates = {
-        oneWeekAgo: new Date(currentTime.getTime() - (7 * millisecondsInDay)),
-        thirtyDaysAgo: new Date(currentTime.getTime() - (30 * millisecondsInDay)),
-        oneYearAgo: new Date(currentTime.getTime() - (365 * millisecondsInDay))
+        oneWeekAgo: new Date(currentTime.getTime() - 7 * millisecondsInDay),
+        thirtyDaysAgo: new Date(currentTime.getTime() - 30 * millisecondsInDay),
+        oneYearAgo: new Date(currentTime.getTime() - 365 * millisecondsInDay)
       }
 
       // Grab filtered data
       const filteredLinks = {
-        pastWeek: linkedCards.filter(link => link.linkedAt && link.linkedAt > dates.oneWeekAgo).length,
-        pastMonth: linkedCards.filter(link => link.linkedAt && link.linkedAt > dates.thirtyDaysAgo).length,
-        pastYear: linkedCards.filter(link => link.linkedAt && link.linkedAt > dates.oneYearAgo).length
+        pastWeek: linkedCards.filter((link) => link.linkedAt && link.linkedAt > dates.oneWeekAgo)
+          .length,
+        pastMonth: linkedCards.filter(
+          (link) => link.linkedAt && link.linkedAt > dates.thirtyDaysAgo
+        ).length,
+        pastYear: linkedCards.filter((link) => link.linkedAt && link.linkedAt > dates.oneYearAgo)
+          .length
       }
 
       const filteredLinkRequests = {
-        pastWeek: linkRequests.filter(linkRequest => linkRequest.status === 'requested' && linkRequest.updatedAt > dates.oneWeekAgo)
-          .concat(linkRequests.filter(linkRequest => linkRequest.status === 'accepted' && linkRequest.linkedAt > dates.oneWeekAgo)).length,
-        pastMonth: linkRequests.filter(linkRequest => linkRequest.status === 'requested' && linkRequest.updatedAt > dates.thirtyDaysAgo)
-          .concat(linkRequests.filter(linkRequest => linkRequest.status === 'accepted' && linkRequest.linkedAt > dates.thirtyDaysAgo)).length,
-        pastYear: linkRequests.filter(linkRequest => linkRequest.status === 'requested' && linkRequest.updatedAt > dates.oneYearAgo)
-          .concat(linkRequests.filter(linkRequest => linkRequest.status === 'accepted' && linkRequest.linkedAt > dates.oneYearAgo)).length
+        pastWeek: linkRequests
+          .filter(
+            (linkRequest) =>
+              linkRequest.status === 'requested' && linkRequest.updatedAt > dates.oneWeekAgo
+          )
+          .concat(
+            linkRequests.filter(
+              (linkRequest) =>
+                linkRequest.status === 'accepted' && linkRequest.linkedAt > dates.oneWeekAgo
+            )
+          ).length,
+        pastMonth: linkRequests
+          .filter(
+            (linkRequest) =>
+              linkRequest.status === 'requested' && linkRequest.updatedAt > dates.thirtyDaysAgo
+          )
+          .concat(
+            linkRequests.filter(
+              (linkRequest) =>
+                linkRequest.status === 'accepted' && linkRequest.linkedAt > dates.thirtyDaysAgo
+            )
+          ).length,
+        pastYear: linkRequests
+          .filter(
+            (linkRequest) =>
+              linkRequest.status === 'requested' && linkRequest.updatedAt > dates.oneYearAgo
+          )
+          .concat(
+            linkRequests.filter(
+              (linkRequest) =>
+                linkRequest.status === 'accepted' && linkRequest.linkedAt > dates.oneYearAgo
+            )
+          ).length
       }
 
       const filteredContacts = {
-        pastWeek: savedContacts.filter(contact => contact.createdAt > dates.oneWeekAgo).length,
-        pastMonth: savedContacts.filter(contact => contact.createdAt > dates.thirtyDaysAgo).length,
-        pastYear: savedContacts.filter(contact => contact.createdAt > dates.oneYearAgo).length
+        pastWeek: savedContacts.filter((contact) => contact.createdAt > dates.oneWeekAgo).length,
+        pastMonth: savedContacts.filter((contact) => contact.createdAt > dates.thirtyDaysAgo)
+          .length,
+        pastYear: savedContacts.filter((contact) => contact.createdAt > dates.oneYearAgo).length
       }
 
       const filteredOpsRequests = {
-        pastWeek: filteredLinks.pastWeek + filteredLinkRequests.pastWeek + filteredContacts.pastWeek,
-        pastMonth: filteredLinks.pastMonth + filteredLinkRequests.pastMonth + filteredContacts.pastMonth,
+        pastWeek:
+          filteredLinks.pastWeek + filteredLinkRequests.pastWeek + filteredContacts.pastWeek,
+        pastMonth:
+          filteredLinks.pastMonth + filteredLinkRequests.pastMonth + filteredContacts.pastMonth,
         pastYear: filteredLinks.pastYear + filteredLinkRequests.pastYear + filteredContacts.pastYear
       }
 
@@ -1125,57 +1651,83 @@ class UserController extends BaseController {
         linkPercentIncrease: {
           pastWeek: {
             count: filteredLinks.pastWeek,
-            percentIncrease: linkedCards.length > 0 ? +(filteredLinks.pastWeek / linkedCards.length).toFixed(2) : 0
+            percentIncrease:
+              linkedCards.length > 0 ? +(filteredLinks.pastWeek / linkedCards.length).toFixed(2) : 0
           },
           pastMonth: {
             count: filteredLinks.pastMonth,
-            percentIncrease: linkedCards.length > 0 ? +(filteredLinks.pastMonth / linkedCards.length).toFixed(2) : 0
+            percentIncrease:
+              linkedCards.length > 0
+                ? +(filteredLinks.pastMonth / linkedCards.length).toFixed(2)
+                : 0
           },
           pastYear: {
             count: filteredLinks.pastYear,
-            percentIncrease: linkedCards.length > 0 ? +(filteredLinks.pastYear / linkedCards.length).toFixed(2) : 0
+            percentIncrease:
+              linkedCards.length > 0 ? +(filteredLinks.pastYear / linkedCards.length).toFixed(2) : 0
           }
         },
         linkRequestPercentIncrease: {
           pastWeek: {
             count: filteredLinkRequests.pastWeek,
-            percentIncrease: linkRequests.length > 0 ? +(filteredLinkRequests.pastWeek / linkRequests.length).toFixed(2) : 0
+            percentIncrease:
+              linkRequests.length > 0
+                ? +(filteredLinkRequests.pastWeek / linkRequests.length).toFixed(2)
+                : 0
           },
           pastMonth: {
             count: filteredLinkRequests.pastMonth,
-            percentIncrease: linkRequests.length > 0 ? +(filteredLinkRequests.pastMonth / linkRequests.length).toFixed(2) : 0
+            percentIncrease:
+              linkRequests.length > 0
+                ? +(filteredLinkRequests.pastMonth / linkRequests.length).toFixed(2)
+                : 0
           },
           pastYear: {
             count: filteredLinkRequests.pastYear,
-            percentIncrease: linkRequests.length > 0 ? +(filteredLinkRequests.pastYear / linkRequests.length).toFixed(2) : 0
+            percentIncrease:
+              linkRequests.length > 0
+                ? +(filteredLinkRequests.pastYear / linkRequests.length).toFixed(2)
+                : 0
           }
         },
         contactPercentIncrease: {
           pastWeek: {
             count: filteredContacts.pastWeek,
-            percentIncrease: savedContacts.length > 0 ? +(filteredContacts.pastWeek / savedContacts.length).toFixed(2) : 0
+            percentIncrease:
+              savedContacts.length > 0
+                ? +(filteredContacts.pastWeek / savedContacts.length).toFixed(2)
+                : 0
           },
           pastMonth: {
             count: filteredContacts.pastMonth,
-            percentIncrease: savedContacts.length > 0 ? +(filteredContacts.pastMonth / savedContacts.length).toFixed(2) : 0
+            percentIncrease:
+              savedContacts.length > 0
+                ? +(filteredContacts.pastMonth / savedContacts.length).toFixed(2)
+                : 0
           },
           pastYear: {
             count: filteredContacts.pastYear,
-            percentIncrease: savedContacts.length > 0 ? +(filteredContacts.pastYear / savedContacts.length).toFixed(2) : 0
+            percentIncrease:
+              savedContacts.length > 0
+                ? +(filteredContacts.pastYear / savedContacts.length).toFixed(2)
+                : 0
           }
         },
         opsRequestPercentIncrease: {
           pastWeek: {
             count: filteredOpsRequests.pastWeek,
-            percentIncrease: totalOps > 0 ? +(filteredOpsRequests.pastWeek / totalOps).toFixed(2) : 0
+            percentIncrease:
+              totalOps > 0 ? +(filteredOpsRequests.pastWeek / totalOps).toFixed(2) : 0
           },
           pastMonth: {
             count: filteredOpsRequests.pastMonth,
-            percentIncrease: totalOps > 0 ? +(filteredOpsRequests.pastMonth / totalOps).toFixed(2) : 0
+            percentIncrease:
+              totalOps > 0 ? +(filteredOpsRequests.pastMonth / totalOps).toFixed(2) : 0
           },
           pastYear: {
             count: filteredOpsRequests.pastYear,
-            percentIncrease: totalOps > 0 ? +(filteredOpsRequests.pastYear / totalOps).toFixed(2) : 0
+            percentIncrease:
+              totalOps > 0 ? +(filteredOpsRequests.pastYear / totalOps).toFixed(2) : 0
           }
         }
       }

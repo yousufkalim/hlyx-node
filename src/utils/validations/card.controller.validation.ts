@@ -104,14 +104,14 @@ export const validateUpdateCardContactPage = (
         Joi.object({
           label: Joi.string().max(stringLengths.CALENDAR_LABEL_MAX).allow(''),
           title: Joi.string().max(stringLengths.CALENDAR_TITLE_MAX).required(),
-          url: Joi.string().max(stringLengths.WEBSITES_MAX).hostname().required()
+          url: Joi.string().max(stringLengths.WEBSITES_MAX).required()
         })
       ),
     websites: Joi.array()
       .max(arrayLimits.MAX_WEBSITES)
       .items(
         Joi.object({
-          url: Joi.string().max(stringLengths.WEBSITES_MAX).hostname().required(),
+          url: Joi.string().max(stringLengths.WEBSITES_MAX).required(),
           description: Joi.string().max(stringLengths.WEBSITES_DESC_MAX)
         })
       ),
@@ -143,14 +143,14 @@ export const validateUpdateCardContactPage = (
             .required(),
           handle: Joi.string().max(stringLengths.HANDLES_MAX),
           label: Joi.string().max(stringLengths.NAME_MAX),
-          profileUrl: Joi.string().max(stringLengths.WEBSITES_MAX).hostname().required()
+          profileUrl: Joi.string().max(stringLengths.WEBSITES_MAX).required()
         })
       ),
     additionalLinks: Joi.array()
       .max(arrayLimits.MAX_ADDITIONAL_LINKS)
       .items(
         Joi.object({
-          url: Joi.string().max(stringLengths.WEBSITES_MAX).hostname().required(),
+          url: Joi.string().max(stringLengths.WEBSITES_MAX).required(),
           title: Joi.string().max(stringLengths.SERVICES_TITLE).required(),
           typeContent: Joi.string().valid(...Object.values(additionalLinksType)),
           description: Joi.string().max(stringLengths.LINK_DESC_MAX)
@@ -204,14 +204,14 @@ export const validateCardContactPage = (
         Joi.object({
           label: Joi.string().max(stringLengths.CALENDAR_LABEL_MAX).allow(''),
           title: Joi.string().max(stringLengths.CALENDAR_TITLE_MAX).required(),
-          url: Joi.string().max(stringLengths.WEBSITES_MAX).hostname().required()
+          url: Joi.string().max(stringLengths.WEBSITES_MAX).required()
         })
       ),
     websites: Joi.array()
       .max(arrayLimits.MAX_WEBSITES)
       .items(
         Joi.object({
-          url: Joi.string().max(stringLengths.WEBSITES_MAX).hostname().required(),
+          url: Joi.string().max(stringLengths.WEBSITES_MAX).required(),
           description: Joi.string().max(stringLengths.WEBSITES_DESC_MAX)
         })
       ),
@@ -243,14 +243,14 @@ export const validateCardContactPage = (
             .required(),
           handle: Joi.string().max(stringLengths.HANDLES_MAX),
           label: Joi.string().max(stringLengths.NAME_MAX),
-          profileUrl: Joi.string().max(stringLengths.WEBSITES_MAX).hostname().required()
+          profileUrl: Joi.string().max(stringLengths.WEBSITES_MAX).required()
         })
       ),
     additionalLinks: Joi.array()
       .max(arrayLimits.MAX_ADDITIONAL_LINKS)
       .items(
         Joi.object({
-          url: Joi.string().max(stringLengths.WEBSITES_MAX).hostname().required(),
+          url: Joi.string().max(stringLengths.WEBSITES_MAX).required(),
           title: Joi.string().max(stringLengths.SERVICES_TITLE).required(),
           typeContent: Joi.string().valid(...Object.values(additionalLinksType)),
           description: Joi.string().max(stringLengths.LINK_DESC_MAX)
@@ -393,11 +393,10 @@ export const validateCardServices = (
             .max(stringLengths.SERVICES_SUBTITLE)
             .when('type', { is: 'featured', then: Joi.required() }),
           details: Joi.string().max(stringLengths.SERVICES_DETAILS).allow(''),
-          url: Joi.array().items(Joi.string().max(stringLengths.WEBSITES_MAX).hostname()),
+          url: Joi.array().items(Joi.string().max(stringLengths.WEBSITES_MAX)),
           positioning: Joi.number().integer().min(0).max(arrayLimits.MAX_PORTFOLIO).required()
         })
       )
-      .required()
   })
   return servicesSchema.validate(cardServicesPayload)?.error?.message
 }
@@ -421,7 +420,6 @@ export const validateCardPortfolio = (
           positioning: Joi.number().integer().min(0).max(arrayLimits.MAX_PORTFOLIO).required()
         })
       )
-      .required()
   })
   return portfolioSchema.validate(cardPortfolioPayload)?.error?.message
 }

@@ -60,6 +60,8 @@ model UserBio {
   blockedUsers  UserBio[]       @relation("BlockedUsers")
   profilePhotos UserPhoto[]
 
+  portfolioImages CardPortfolioImages[]
+
   @@unique([id, email])
   @@unique([id, profileAvatar])
 }
@@ -190,7 +192,7 @@ model Card {
   coverPhotos       CardCoverPhotos[]
   education         CardEducations[]
   portfolio         CardPortfolio[]
-  portfolioImages   CardPortfolioImages[]
+  // portfolioImages   CardPortfolioImages[]
   services          CardServices[]
   Contacts          Contact[]
   Links             Link[]                          @relation("CardOneRef")
@@ -341,11 +343,11 @@ model CardPortfolio {
 }
 
 model CardPortfolioImages {
-  cardId     String
+  userId     String
   pathToFile String
-  Card       Card   @relation(fields: [cardId], references: [cardId], onDelete: Cascade)
+  User       UserBio @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@id([cardId, pathToFile])
+  @@id([userId, pathToFile])
 }
 
 model CardCalendars {

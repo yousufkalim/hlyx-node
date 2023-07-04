@@ -99,7 +99,6 @@ class NotificationController extends BaseController {
         success: true
       }
     } catch (error: any) {
-      console.error(error.message)
       return {
         success: false
       }
@@ -257,7 +256,7 @@ class NotificationController extends BaseController {
           }
         }
       })
-      console.log('Cards ', cards)
+      // console.log('Cards ', cards)
 
       // const data = []
       const data = await this.#getDetailsForNotifications(cards)
@@ -396,6 +395,8 @@ class NotificationController extends BaseController {
   #getIdDirectedToDetails = async (notification: any): Promise<any> => {
     try {
       // Get details of card
+      // console.log('Direct to ', notification?.directsTo)
+      // console.log('ID Direct to ', notification?.idDirectedTo)
       if (notification?.directsTo === 'linkRequest' && notification?.idDirectedTo) {
         const res = await db.link.findUnique({
           where: { id: notification.idDirectedTo },
@@ -423,12 +424,35 @@ class NotificationController extends BaseController {
           }
         })
 
+        // eslint-disable-next-line @typescript-eslint/no-inferrable-types
+        let cardId: any = ''
         if (res?.CardOneRef.cardId === notification.cardId) {
-          notification.cardDirectedTo = res?.CardTwoRef
+          cardId = res?.CardTwoRef.cardId
         } else {
-          notification.cardDirectedTo = res?.CardOneRef
+          cardId = res?.CardOneRef.cardId
         }
 
+        const response = await db.userBio.findFirst({
+          where: {
+            profileType: 'user',
+            cards: {
+              some: { cardId }
+            }
+          },
+          select: {
+            id: true,
+            firstName: true,
+            middleInitial: true,
+            lastName: true,
+            profileAvatar: true,
+            profTitle: true,
+            company: true,
+            city: true,
+            state: true
+          }
+        })
+
+        notification.cardDirectedTo = { ...response, cardId }
         notification.sharedByRole = 'card'
         notification.sharedBy = null
 
@@ -482,7 +506,7 @@ class NotificationController extends BaseController {
         cards.map(async (card: any) => {
           const Notifications = await Promise.all(
             card.Notifications.map(async (notification: any) => {
-              console.log('DirectTo ', notification.directsTo)
+              // console.log('DirectTo ', notification.directsTo)
               if (notification.directsTo === 'linkRequest') {
                 const res = await db.link.findUnique({
                   where: { id: notification.idDirectedTo },
@@ -508,15 +532,37 @@ class NotificationController extends BaseController {
                   }
                 })
 
+                let cardId: any = ''
                 if (res?.CardOneRef.cardId === notification.cardId) {
-                  notification.cardDirectedTo = res?.CardTwoRef
+                  cardId = res?.CardTwoRef.cardId
                 } else {
-                  notification.cardDirectedTo = res?.CardOneRef
+                  cardId = res?.CardOneRef.cardId
                 }
+
+                const response = await db.userBio.findFirst({
+                  where: {
+                    profileType: 'user',
+                    cards: {
+                      some: { cardId }
+                    }
+                  },
+                  select: {
+                    id: true,
+                    firstName: true,
+                    middleInitial: true,
+                    lastName: true,
+                    profileAvatar: true,
+                    profTitle: true,
+                    company: true,
+                    city: true,
+                    state: true
+                  }
+                })
+
+                notification.cardDirectedTo = { ...response, cardId }
 
                 return {
                   ...notification,
-                  // cardDirectedTo: res?.CardOneRef,
                   sharedByRole: 'card',
                   sharedBy: null
                 }
@@ -638,7 +684,7 @@ class NotificationController extends BaseController {
       )
 
       return data
-    } catch (err) {
+    } catch (err: any) {
       return []
     }
   }
