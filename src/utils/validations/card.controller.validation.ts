@@ -414,7 +414,7 @@ export const validateCardPortfolio = (
       .max(arrayLimits.MAX_PORTFOLIO)
       .items(
         Joi.object({
-          image: Joi.string().max(stringLengths.IMAGE_MAX).required(),
+          image: Joi.string().required(),
           title: Joi.string().max(stringLengths.PORTFOLIO_TITLE),
           details: Joi.string().max(stringLengths.PORTFOLIO_DETAILS),
           positioning: Joi.number().integer().min(0).max(arrayLimits.MAX_PORTFOLIO).required()
