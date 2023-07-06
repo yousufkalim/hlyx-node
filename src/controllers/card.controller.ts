@@ -2215,6 +2215,12 @@ class CardController extends BaseController {
       await db.cardBusinessGoals.deleteMany({ where: { cardId: req.params.cardId } })
       await db.cardBusinessNeeds.deleteMany({ where: { cardId: req.params.cardId } })
 
+      // Delete Portfolio
+      await db.cardPortfolio.deleteMany({ where: { cardId: req.params.cardId } })
+
+      // Delete Services
+      await db.cardServices.deleteMany({ where: { cardId: req.params.cardId } })
+
       // Update Card
       await db.card.update({
         where: {
@@ -2252,6 +2258,7 @@ class CardController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
+      console.log('ERRORRR ', error.message)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
