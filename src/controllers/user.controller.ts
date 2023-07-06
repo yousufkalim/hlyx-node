@@ -762,6 +762,7 @@ class UserController extends BaseController {
         }
         // await db.cardEducations.deleteMany({ where: { cardId: req.params.cardId } })
       }
+
       // Accolades
       if (aboutData.accolades) {
         for (const accolade of aboutData.accolades) {
@@ -777,6 +778,7 @@ class UserController extends BaseController {
         }
         // await db.cardAccolades.deleteMany({ where: { cardId: req.params.cardId } })
       }
+      console.log('About data ', aboutData)
       // Achievements
       if (aboutData.achievements) {
         for (const achievement of aboutData.achievements) {
@@ -1069,6 +1071,7 @@ class UserController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
+      console.log('Error ', error.message)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
