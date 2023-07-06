@@ -76,7 +76,7 @@ export const validateUpdateCardContactPage = (
             .max(stringLengths.EMAIL_MAX)
             .email({ tlds: { allow: false } })
             .required(),
-          type: Joi.string()
+          type: Joi.string().allow('')
         })
       ),
     phones: Joi.array()
@@ -95,7 +95,7 @@ export const validateUpdateCardContactPage = (
           type: Joi.string()
             .valid(...Object.values(phoneTypes))
             .required(),
-          label: Joi.string().max(stringLengths.PHONE_LABEL_MAX)
+          label: Joi.string().max(stringLengths.PHONE_LABEL_MAX).allow('')
         })
       ),
     calendars: Joi.array()
@@ -112,7 +112,7 @@ export const validateUpdateCardContactPage = (
       .items(
         Joi.object({
           url: Joi.string().max(stringLengths.WEBSITES_MAX).required(),
-          description: Joi.string().max(stringLengths.WEBSITES_DESC_MAX)
+          description: Joi.string().max(stringLengths.WEBSITES_DESC_MAX).allow('')
         })
       ),
     officeAddresses: Joi.array()
@@ -122,8 +122,10 @@ export const validateUpdateCardContactPage = (
           label: Joi.string().allow('').max(stringLengths.NAME_MAX),
           streetAddress: Joi.string().max(stringLengths.STREET_MAX).required(),
           city: Joi.string().max(stringLengths.CITY_MAX).required(),
-          state: Joi.string().valid(...Object.values(stateAbbreviations)),
-          zipcode: Joi.string().max(stringLengths.ZIPCODE_MAX)
+          state: Joi.string()
+            .valid(...Object.values(stateAbbreviations))
+            .allow(''),
+          zipcode: Joi.string().max(stringLengths.ZIPCODE_MAX).allow('')
         })
       ),
     country: Joi.string().max(stringLengths.COUNTRY_MAX),
@@ -141,8 +143,8 @@ export const validateUpdateCardContactPage = (
           platform: Joi.string()
             .valid(...Object.values(socialMedia))
             .required(),
-          handle: Joi.string().max(stringLengths.HANDLES_MAX),
-          label: Joi.string().max(stringLengths.NAME_MAX),
+          handle: Joi.string().max(stringLengths.HANDLES_MAX).allow(''),
+          label: Joi.string().max(stringLengths.NAME_MAX).allow(''),
           profileUrl: Joi.string().max(stringLengths.WEBSITES_MAX).required()
         })
       ),
@@ -152,8 +154,10 @@ export const validateUpdateCardContactPage = (
         Joi.object({
           url: Joi.string().max(stringLengths.WEBSITES_MAX).required(),
           title: Joi.string().max(stringLengths.SERVICES_TITLE).required(),
-          typeContent: Joi.string().valid(...Object.values(additionalLinksType)),
-          description: Joi.string().max(stringLengths.LINK_DESC_MAX)
+          typeContent: Joi.string()
+            .valid(...Object.values(additionalLinksType))
+            .allow(''),
+          description: Joi.string().max(stringLengths.LINK_DESC_MAX).allow('')
         })
       )
   })
@@ -176,7 +180,7 @@ export const validateCardContactPage = (
             .max(stringLengths.EMAIL_MAX)
             .email({ tlds: { allow: false } })
             .required(),
-          type: Joi.string()
+          type: Joi.string().allow('')
         })
       ),
     phones: Joi.array()
@@ -195,7 +199,7 @@ export const validateCardContactPage = (
           type: Joi.string()
             .valid(...Object.values(phoneTypes))
             .required(),
-          label: Joi.string().max(stringLengths.PHONE_LABEL_MAX)
+          label: Joi.string().max(stringLengths.PHONE_LABEL_MAX).allow('')
         })
       ),
     calendars: Joi.array()
@@ -212,7 +216,7 @@ export const validateCardContactPage = (
       .items(
         Joi.object({
           url: Joi.string().max(stringLengths.WEBSITES_MAX).required(),
-          description: Joi.string().max(stringLengths.WEBSITES_DESC_MAX)
+          description: Joi.string().max(stringLengths.WEBSITES_DESC_MAX).allow('')
         })
       ),
     officeAddresses: Joi.array()
@@ -222,8 +226,10 @@ export const validateCardContactPage = (
           label: Joi.string().allow('').max(stringLengths.NAME_MAX),
           streetAddress: Joi.string().max(stringLengths.STREET_MAX).required(),
           city: Joi.string().max(stringLengths.CITY_MAX).required(),
-          state: Joi.string().valid(...Object.values(stateAbbreviations)),
-          zipcode: Joi.string().max(stringLengths.ZIPCODE_MAX)
+          state: Joi.string()
+            .valid(...Object.values(stateAbbreviations))
+            .allow(''),
+          zipcode: Joi.string().max(stringLengths.ZIPCODE_MAX).allow('')
         })
       ),
     country: Joi.string().max(stringLengths.COUNTRY_MAX),
@@ -241,8 +247,8 @@ export const validateCardContactPage = (
           platform: Joi.string()
             .valid(...Object.values(socialMedia))
             .required(),
-          handle: Joi.string().max(stringLengths.HANDLES_MAX),
-          label: Joi.string().max(stringLengths.NAME_MAX),
+          handle: Joi.string().max(stringLengths.HANDLES_MAX).allow(''),
+          label: Joi.string().max(stringLengths.NAME_MAX).allow(''),
           profileUrl: Joi.string().max(stringLengths.WEBSITES_MAX).required()
         })
       ),
@@ -252,8 +258,10 @@ export const validateCardContactPage = (
         Joi.object({
           url: Joi.string().max(stringLengths.WEBSITES_MAX).required(),
           title: Joi.string().max(stringLengths.SERVICES_TITLE).required(),
-          typeContent: Joi.string().valid(...Object.values(additionalLinksType)),
-          description: Joi.string().max(stringLengths.LINK_DESC_MAX)
+          typeContent: Joi.string()
+            .valid(...Object.values(additionalLinksType))
+            .allow(''),
+          description: Joi.string().max(stringLengths.LINK_DESC_MAX).allow('')
         })
       )
   })
@@ -287,15 +295,19 @@ export const validateCardAboutPage = (
       .max(arrayLimits.MAX_EDUCATIONS)
       .items(
         Joi.object({
-          academicLevel: Joi.string().valid(...Object.values(academicLevels)),
+          academicLevel: Joi.string()
+            .valid(...Object.values(academicLevels))
+            .allow(''),
           schoolName: Joi.string().max(stringLengths.SCHOOL_NAME_MAX).required(),
           startDate: Joi.date().required(),
           endDate: Joi.date().allow('Present'),
-          academicFocus: Joi.string().max(stringLengths.SCHOOL_ACADEMIC_CONC_MAX),
+          academicFocus: Joi.string().max(stringLengths.SCHOOL_ACADEMIC_CONC_MAX).allow(''),
           licenseNumber: Joi.number()
             .when('academicLevel', { is: 'Other', then: Joi.required() })
             .max(stringLengths.LICENSE_NUMBER_MAX),
-          degreeType: Joi.string().valid(...Object.values(degreeTypes))
+          degreeType: Joi.string()
+            .valid(...Object.values(degreeTypes))
+            .allow('')
         })
       ),
     accolades: Joi.array()
@@ -303,8 +315,10 @@ export const validateCardAboutPage = (
       .items(
         Joi.object({
           title: Joi.string().max(stringLengths.AWARDS_TITLES_MAX).required(),
-          designationType: Joi.string().valid(...Object.values(designationType)),
-          organization: Joi.string(),
+          designationType: Joi.string()
+            .valid(...Object.values(designationType))
+            .allow(''),
+          organization: Joi.string().allow(''),
           startDate: Joi.date().required(),
           endDate: Joi.date().allow('Present')
         })
@@ -340,7 +354,7 @@ export const validateCardAboutPage = (
           startDate: Joi.date().required(),
           endDate: Joi.date(),
           title: Joi.string().max(stringLengths.BUSINESS_GOAL_NEEDS_TITLE).required(),
-          description: Joi.string().max(stringLengths.BUSINESS_GOAL_NEEDS_DESC),
+          description: Joi.string().max(stringLengths.BUSINESS_GOAL_NEEDS_DESC).allow(''),
           status: Joi.string()
             .valid(...Object.values(businessNeedsStatus))
             .required()
