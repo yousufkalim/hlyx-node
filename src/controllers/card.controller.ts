@@ -161,6 +161,21 @@ class CardController extends BaseController {
               additionalLinks: true
             }
           },
+          User: {
+            select: {
+              id: true,
+              profileAvatar: true,
+              firstName: true,
+              middleInitial: true,
+              lastName: true,
+              profTitle: true,
+              industry: true,
+              country: true,
+              city: true,
+              state: true,
+              zipcode: true
+            }
+          },
           coverPhoto: true,
           companyIcon: true,
           profileLayout: true,
