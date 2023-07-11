@@ -1755,25 +1755,37 @@ class UserController extends BaseController {
     try {
       const { userId, linkId } = req.query as any
 
-      const link = await db.link.findUnique({
-        where: {
-          id: linkId
-        },
-        select: {
-          id: true,
-          metAt: true,
-          event: true,
-          linkedAt: true,
-          notes: {
-            select: {
-              id: true,
-              note: true,
-              createdAt: true,
-              updatedAt: true
+      let findLink: any
+
+      if (linkId) {
+        findLink = await db.link.findUnique({
+          where: {
+            id: linkId
+          },
+          select: {
+            id: true,
+            metAt: true,
+            event: true,
+            linkedAt: true,
+            notes: {
+              select: {
+                id: true,
+                note: true,
+                createdAt: true,
+                updatedAt: true
+              }
             }
           }
+        })
+
+        if (findLink) {
+          findLink.linkType = 'linked'
         }
-      })
+      } else {
+        findLink = { linkType: 'non-link' }
+      }
+
+      console.log('find links ', findLink)
       // Verify user exists
       const userAuth = await db.userAuth.findUnique({
         where: {
@@ -1958,7 +1970,7 @@ class UserController extends BaseController {
       const data = {
         ...user,
         createdAt: userAuth?.createdAt,
-        link,
+        link: findLink,
         mutualLinks,
         links: linkedProfiles,
         cards: user.cards,
