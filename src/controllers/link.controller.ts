@@ -1094,13 +1094,11 @@ class LinkController extends BaseController {
             OR: [
               {
                 cardOne: card.cardId,
-                status: 'accepted',
-                cardOneFavorite: false
+                status: 'accepted'
               },
               {
                 cardTwo: card.cardId,
-                status: 'accepted',
-                cardTwoFavorite: false
+                status: 'accepted'
               }
             ]
           },
@@ -1265,13 +1263,11 @@ class LinkController extends BaseController {
             OR: [
               {
                 cardOne: card.cardId,
-                status: 'accepted',
-                cardOneFavorite: false
+                status: 'accepted'
               },
               {
                 cardTwo: card.cardId,
-                status: 'accepted',
-                cardTwoFavorite: false
+                status: 'accepted'
               }
             ]
           },
@@ -2257,7 +2253,6 @@ class LinkController extends BaseController {
             {
               cardOne: cardId,
               status: 'accepted',
-              cardOneFavorite: false,
               CardTwoRef: {
                 OR: [
                   {
@@ -2313,7 +2308,6 @@ class LinkController extends BaseController {
             {
               cardOne: cardId,
               status: 'accepted',
-              cardOneFavorite: false,
               CardTwoRef: {
                 [searchType]: {
                   contains: search,
@@ -2369,13 +2363,11 @@ class LinkController extends BaseController {
             OR: [
               {
                 cardOne: otherCard,
-                status: 'accepted',
-                cardOneFavorite: false
+                status: 'accepted'
               },
               {
                 cardTwo: otherCard,
-                status: 'accepted',
-                cardTwoFavorite: false
+                status: 'accepted'
               }
             ]
           },
