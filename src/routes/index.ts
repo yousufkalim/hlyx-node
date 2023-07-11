@@ -407,6 +407,12 @@ router.put(
   notificationAuthorization,
   NotificationController.archiveNotification
 )
+router.put(
+  '/notification/update/read/:notificationId',
+  authenticate,
+  notificationAuthorization,
+  NotificationController.archiveNotification
+)
 router.delete(
   '/notification/delete/:notificationId',
   authenticate,

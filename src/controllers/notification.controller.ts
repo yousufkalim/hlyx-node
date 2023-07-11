@@ -370,6 +370,30 @@ class NotificationController extends BaseController {
     }
   }
 
+  // Archive Notification
+  readNotification = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      // Update and return
+      await db.notification.update({
+        where: {
+          notificationId: req.params.notificationId
+        },
+        data: {
+          read: true
+        }
+      })
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
   // Delete Notification
   deleteNotification = async (req: RequestUserAuth, res: Response): Promise<Response> => {
     try {
