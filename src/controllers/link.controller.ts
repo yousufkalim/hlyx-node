@@ -273,7 +273,7 @@ class LinkController extends BaseController {
   // Update Link
   update = async (req: RequestLink, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, linkControllerParams)
-    let { status } = params
+    let { status, notificationId } = params
     try {
       // Confirm req.card & req.link are set
       if (!req.card?.requester || !req.card?.recipient || !req.link) {
@@ -413,6 +413,18 @@ class LinkController extends BaseController {
       }
 
       const linkedAt = status === 'accepted' ? new Date() : null
+      if (status === 'accepted' || status === 'declined') {
+        if (notificationId) {
+          await db.notification.update({
+            where: {
+              notificationId
+            },
+            data: {
+              resolved: true
+            }
+          })
+        }
+      }
       // Update link status and return
       const link = await db.link.update({
         where: {

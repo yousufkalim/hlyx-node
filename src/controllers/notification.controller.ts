@@ -256,7 +256,6 @@ class NotificationController extends BaseController {
           }
         }
       })
-      // console.log('Cards ', cards)
 
       // const data = []
       const data = await this.#getDetailsForNotifications(cards)
@@ -558,11 +557,11 @@ class NotificationController extends BaseController {
                     state: true
                   }
                 })
-
-                notification.cardDirectedTo = { ...response, cardId }
+                // notification.cardDirectedTo = { ...response, cardId }
 
                 return {
                   ...notification,
+                  cardDirectedTo: { ...response, cardId },
                   sharedByRole: 'card',
                   sharedBy: null
                 }
@@ -622,10 +621,11 @@ class NotificationController extends BaseController {
                     country: true
                   }
                 })
-                data.sharedBy = profile
+                // data.sharedBy = profile
 
                 return {
                   ...notification,
+                  sharedBy: profile,
                   sharedByRole: 'card',
                   cardDirectedTo: res
                 }

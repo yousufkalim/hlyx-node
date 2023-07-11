@@ -125,7 +125,8 @@ export const linkControllerParams = [
   'message',
   'metAt',
   'event',
-  'note'
+  'note',
+  'notificationId'
 ]
 
 export const sharedContactControllerParams = [
