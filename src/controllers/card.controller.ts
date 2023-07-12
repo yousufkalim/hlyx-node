@@ -147,7 +147,7 @@ class CardController extends BaseController {
 
   getContact = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const card = await db.card.findUnique({
+      const card: any = await db.card.findUnique({
         where: {
           cardId: req.params.cardId
         },
@@ -173,7 +173,12 @@ class CardController extends BaseController {
               country: true,
               city: true,
               state: true,
-              zipcode: true
+              zipcode: true,
+              cards: {
+                select: {
+                  cardId: true
+                }
+              }
             }
           },
           coverPhoto: true,
@@ -242,6 +247,8 @@ class CardController extends BaseController {
         }
       })
 
+      // console.log('Params ', req.query.userId)
+
       // Check if null and return
       if (!card) {
         return res.status(404).json({
@@ -249,6 +256,36 @@ class CardController extends BaseController {
           message: messages.CARD_NOT_FOUND
         })
       }
+
+      const { userId } = req.query
+      if (req.query.userId && userId !== card.User.id) {
+        // const link = true
+        for (const userCard of card.User.cards) {
+          const findLink = await db.link.findFirst({
+            where: {
+              OR: [
+                {
+                  cardOne: userCard.cardId
+                },
+                {
+                  cardTwo: userCard.cardId
+                }
+              ]
+            },
+            select: {
+              status: true,
+              id: true
+            }
+          })
+          if (findLink) {
+            card.link = findLink
+          }
+        }
+      } else {
+        // card.linkType = 'own'
+      }
+
+      // const isSameUser = card.User.id === req.user.
       return res.status(200).json({
         card,
         code: codes.OK,
