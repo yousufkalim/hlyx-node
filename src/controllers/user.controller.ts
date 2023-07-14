@@ -1811,6 +1811,9 @@ class UserController extends BaseController {
           company: true,
           profileAvatar: true,
           state: true,
+          contactSharedAt: true,
+          profRole: true,
+          profTitle: true,
           cards: {
             where: {
               publicCard: true,
@@ -1820,6 +1823,9 @@ class UserController extends BaseController {
               cardId: true,
               cardName: true,
               fullName: true,
+              profTitle: true,
+              company: true,
+              userAvatar: true,
               headerPhoto: true,
               coverPhoto: true,
               brandedCoverPhoto: true,

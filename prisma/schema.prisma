@@ -33,6 +33,7 @@ model UserBio {
   profileAvatar        String      @default("")
   isOnBoardingComplete Boolean     @default(false)
   profileType          ProfileType @default(user)
+  contactSharedAt      DateTime?
   // Personal Info
   firstName            String?
   middleInitial        String?
