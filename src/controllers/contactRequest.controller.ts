@@ -74,7 +74,7 @@ class ContactRequestController extends BaseController {
           cardId: card.cardId
         }
       })
-      console.log('Exist ', contactExist)
+
       if (contactExist) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
@@ -166,7 +166,8 @@ class ContactRequestController extends BaseController {
         profileAvatar: data.Contacts.create.contactImage,
         state,
         city,
-        profileType: 'contact'
+        profileType: 'contact',
+        contactSharedAt: new Date()
       }
 
       // Create Profile of shared contact and return

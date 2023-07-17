@@ -89,7 +89,7 @@ export const messages = {
   NOTIFICATION_UNAUTHORIZED: 'Notification belongs to another authenticated user',
   NOTIFACITION_OUT_OF_SYNC: 'Notifications are out of sync within our database',
   CONTACT_NOT_FOUND: 'Contact not found',
-  CONTACT_EXIST: 'Contact has already been shared with this user using same email',
+  CONTACT_EXIST: 'Contact has already been shared with this user using same email or phone',
   CONTACT_OUT_OF_SYNC: 'Contacts are out of sync within our database',
   CONTACT_UNAUTHORIZED: 'Contact belongs to another authenticated user',
   USER_SETTING_SINGLE_OPTION: 'User can only select 1 option at same time',

@@ -1056,13 +1056,15 @@ class LinkController extends BaseController {
         cardLinks
       }
 
+      console.log('Links ', links)
+
       const contacts = {
         _count: cardContacts?.length,
         cardContacts
       }
 
       return res.status(200).json({
-        links,
+        // links,
         contacts,
         code: codes.OK,
         message: messages.SUCCESS
