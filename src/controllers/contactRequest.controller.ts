@@ -287,7 +287,7 @@ class ContactRequestController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
-      console.error(error.message)
+      console.error('ERROROOR => ', error.message)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
