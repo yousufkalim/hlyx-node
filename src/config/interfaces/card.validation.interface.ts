@@ -84,6 +84,7 @@ export interface IValidateUpdateCardContactPage {
   zipcode?: string
   socialMedias?: ICardSocialMedias[]
   additionalLinks?: ICardAdditionalLinks[]
+  officeAddresses?: ICardOfficeAddresses[]
 }
 
 export interface IValidateCardType {
