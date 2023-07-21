@@ -6,6 +6,7 @@ import CardController from '../controllers/card.controller'
 import LinkController from '../controllers/link.controller'
 import ContactRequstController from '../controllers/contactRequest.controller'
 import NotificationController from '../controllers/notification.controller'
+import FavouriteSocialMedia from '../controllers/favouriteSocialMedia.controller'
 
 import { authenticate } from '../middleware/authentication'
 import {
@@ -78,6 +79,18 @@ router.get('/user/stats/:userId', authenticate, UserController.userStats)
 router.get('/user/contact-details', authenticate, UserController.userContactDetails)
 router.get('/user/find-profile/:userName', authenticate, UserController.getUserByUserName)
 router.put('/user/update/bio/:userId', authenticate, userAuthorization, UserController.updateBio)
+router.get(
+  '/user/favourite/social-media/:userId',
+  authenticate,
+  userAuthorization,
+  FavouriteSocialMedia.getSocialMedias
+)
+router.post(
+  '/user/favourite/social-media/:userId',
+  authenticate,
+  userAuthorization,
+  FavouriteSocialMedia.create
+)
 router.post(
   '/user/add/minimal-card/:userId',
   authenticate,
