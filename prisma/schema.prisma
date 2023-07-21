@@ -61,10 +61,18 @@ model UserBio {
   blockedUsers  UserBio[]       @relation("BlockedUsers")
   profilePhotos UserPhoto[]
 
-  portfolioImages CardPortfolioImages[]
+  portfolioImages       CardPortfolioImages[]
+  favouriteSocialMedias FavouriteSocialMedias[]
 
   @@unique([id, email])
   @@unique([id, profileAvatar])
+}
+
+model FavouriteSocialMedias {
+  id     String  @id @default(uuid())
+  name   String  @unique
+  userId String
+  User   UserBio @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Group {
