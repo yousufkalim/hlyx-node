@@ -15,9 +15,10 @@ class FavouriteSocialMedia extends BaseController {
         return res.status(400).json({ code: codes.BAD_REQUEST, message: 'Name is required' })
       }
 
-      const isExist = await db.favouriteSocialMedias.findUnique({
+      const isExist = await db.favouriteSocialMedias.findFirst({
         where: {
-          name
+          name,
+          userId: req.params.userId
         }
       })
       if (isExist) {

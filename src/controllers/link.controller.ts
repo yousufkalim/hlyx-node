@@ -426,7 +426,7 @@ class LinkController extends BaseController {
         }
       }
       // Update link status and return
-      const link = await db.link.update({
+      const link: any = await db.link.update({
         where: {
           id: req.link.id
         },
@@ -442,6 +442,82 @@ class LinkController extends BaseController {
           updatedAt: true
         }
       })
+
+      // // Create Notification if requested
+      if (status === 'accepted') {
+        const reqNotification: RequestNotification = req as Request
+        reqNotification.notification = {
+          cardId: req.card.recipient,
+          directsTo: 'acceptLinkRequest',
+          idDirectedTo: req.card.recipient,
+          notificationType: 'acceptedLinkRequest'
+        }
+
+        const notification = await notificationController.createNotification(reqNotification)
+        if (!notification.success) {
+          throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
+        }
+        link.notificationId = notification.notificationId
+
+        const accepterUser = await db.userBio.findFirst({
+          where: {
+            cards: {
+              some: {
+                cardId: req.card.requester
+              }
+            }
+          },
+          select: {
+            id: true,
+            firstName: true,
+            middleInitial: true,
+            lastName: true
+          }
+        })
+
+        const requesterUser = await db.userBio.findFirst({
+          where: {
+            cards: {
+              some: {
+                cardId: req.card.recipient
+              }
+            }
+          },
+          select: {
+            id: true,
+            firstName: true,
+            middleInitial: true,
+            lastName: true
+          }
+        })
+
+        // const recipientCard = await db.card.findUnique({
+        //   where: {
+        //     card
+        //   }
+        // })
+        // Send email if user allows
+        const userId = requesterUser?.id
+        const requesterName = `${requesterUser?.firstName} ${requesterUser?.middleInitial} ${requesterUser?.lastName}`
+        const accepterName = `${accepterUser?.firstName} ${accepterUser?.middleInitial} ${accepterUser?.lastName}`
+
+        const emailPerference = await db.userNotification.findUnique({
+          where: {
+            userId
+          },
+          select: {
+            newLinkRequest: true,
+            User: {
+              select: {
+                email: true
+              }
+            }
+          }
+        })
+        if (emailPerference?.newLinkRequest) {
+          await linkRequestEmail(emailPerference.User.email, accepterName, requesterName)
+        }
+      }
 
       return res.status(200).json({
         link,
@@ -1183,6 +1259,7 @@ class LinkController extends BaseController {
 
       // Grab base info and return
       const generalLinks = await this.#getBaseInfoAllCards(general, query)
+      console.log('General links ', generalLinks)
       const searchQuery = { searchBy: '', search: '' }
       const linksWithoutSearch = await this.#getBaseInfoAllCards(connectedLinks, searchQuery)
 

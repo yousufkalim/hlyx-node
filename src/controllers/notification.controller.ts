@@ -19,7 +19,12 @@ class NotificationController extends BaseController {
   // Create Notification (called by other internal functions)
   createNotification = async (req: RequestNotification): Promise<ICreateNotification> => {
     try {
-      const NOTIFICATION_TYPES = ['newLinkRequest', 'contactRequest', 'message']
+      const NOTIFICATION_TYPES = [
+        'newLinkRequest',
+        'contactRequest',
+        'acceptedLinkRequest',
+        'message'
+      ]
       // Confirm req.notifcation is set
       if (
         !req.notification?.cardId ||
@@ -33,7 +38,8 @@ class NotificationController extends BaseController {
       if (
         req.notification.directsTo !== 'linkRequest' &&
         req.notification.directsTo !== 'message' &&
-        req.notification.directsTo !== 'contactRequest'
+        req.notification.directsTo !== 'contactRequest' &&
+        req.notification.directsTo !== 'acceptLinkRequest'
       ) {
         throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
       }
@@ -47,7 +53,7 @@ class NotificationController extends BaseController {
           Notifications: {
             create: {
               directsTo: req.notification.directsTo,
-              message: req.notification.message,
+              message: req.notification?.message,
               idDirectedTo: req.notification.idDirectedTo
             }
           }
