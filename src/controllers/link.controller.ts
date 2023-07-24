@@ -443,13 +443,52 @@ class LinkController extends BaseController {
         }
       })
 
+      const accepterUser = await db.userBio.findFirst({
+        where: {
+          cards: {
+            some: {
+              cardId: req.card.requester
+            }
+          }
+        },
+        select: {
+          id: true,
+          firstName: true,
+          middleInitial: true,
+          lastName: true
+        }
+      })
+
+      const requesterUser = await db.userBio.findFirst({
+        where: {
+          cards: {
+            some: {
+              cardId: req.card.recipient
+            }
+          }
+        },
+        select: {
+          id: true,
+          firstName: true,
+          middleInitial: true,
+          lastName: true,
+          city: true,
+          profileAvatar: true,
+          profTitle: true,
+          company: true
+        }
+      })
+
       // // Create Notification if requested
       if (status === 'accepted') {
+        console.log('Other cardid ==== ', req.card.requester)
         const reqNotification: RequestNotification = req as Request
         reqNotification.notification = {
           cardId: req.card.recipient,
           directsTo: 'acceptLinkRequest',
-          idDirectedTo: req.card.recipient,
+          idDirectedTo: accepterUser?.id ?? '',
+          idDirectedToOther: requesterUser?.id ?? '',
+          otherCardId: req.card.requester,
           notificationType: 'acceptedLinkRequest'
         }
 
@@ -458,38 +497,6 @@ class LinkController extends BaseController {
           throw Error(messages.NOTIFICATION_CREATE_CALLED_INCORRECTLY)
         }
         link.notificationId = notification.notificationId
-
-        const accepterUser = await db.userBio.findFirst({
-          where: {
-            cards: {
-              some: {
-                cardId: req.card.requester
-              }
-            }
-          },
-          select: {
-            id: true,
-            firstName: true,
-            middleInitial: true,
-            lastName: true
-          }
-        })
-
-        const requesterUser = await db.userBio.findFirst({
-          where: {
-            cards: {
-              some: {
-                cardId: req.card.recipient
-              }
-            }
-          },
-          select: {
-            id: true,
-            firstName: true,
-            middleInitial: true,
-            lastName: true
-          }
-        })
 
         // const recipientCard = await db.card.findUnique({
         //   where: {
@@ -525,7 +532,7 @@ class LinkController extends BaseController {
         message: messages.SUCCESS
       })
     } catch (error: any) {
-      console.error(error)
+      console.error(error.message)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })

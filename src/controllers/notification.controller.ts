@@ -77,6 +77,63 @@ class NotificationController extends BaseController {
         }
       })
 
+      // Create Notification for Other User accept link request
+      if (req.notification.directsTo === 'acceptLinkRequest') {
+        const otherNotifications = await db.card.update({
+          where: {
+            cardId: req.notification.otherCardId
+          },
+          data: {
+            Notifications: {
+              create: {
+                directsTo: req.notification.directsTo,
+                idDirectedTo: req.notification.idDirectedToOther
+              }
+            }
+          },
+          select: {
+            userId: true,
+            Notifications: {
+              select: {
+                notificationId: true,
+                cardId: true,
+                status: true,
+                message: true,
+                directsTo: true,
+                idDirectedTo: true
+              },
+              orderBy: {
+                updatedAt: 'desc'
+              },
+              take: 1
+            }
+          }
+        })
+
+        const otherNotif: any = otherNotifications.Notifications[0]
+
+        const data = await this.#getIdDirectedToDetails(otherNotif)
+
+        // Check user enabled notification setting and Send notification to user
+        const { notificationType } = req.notification
+        const recipientUser = await db.userAuth.findUnique({
+          where: { id: otherNotifications.userId },
+          select: {
+            userNotification: true
+          }
+        })
+        const sockets = getSocket()
+        // Check if user enabled link request notification in settings
+        const isNotificationEnabled = !!(
+          notificationType &&
+          NOTIFICATION_TYPES.includes(notificationType) &&
+          recipientUser?.userNotification?.acceptedLinkRequest
+        )
+        if (sockets && isNotificationEnabled) {
+          sockets.emit(`notifications_${otherNotif.userId}`, { notifications: data })
+        }
+      }
+
       const notification: any = notifications.Notifications[0]
 
       const data = await this.#getIdDirectedToDetails(notification)
@@ -105,6 +162,7 @@ class NotificationController extends BaseController {
         success: true
       }
     } catch (error: any) {
+      console.log('Notification error ', error.message)
       return {
         success: false
       }
@@ -424,8 +482,6 @@ class NotificationController extends BaseController {
   #getIdDirectedToDetails = async (notification: any): Promise<any> => {
     try {
       // Get details of card
-      // console.log('Direct to ', notification?.directsTo)
-      // console.log('ID Direct to ', notification?.idDirectedTo)
       if (notification?.directsTo === 'linkRequest' && notification?.idDirectedTo) {
         const res = await db.link.findUnique({
           where: { id: notification.idDirectedTo },
@@ -486,6 +542,32 @@ class NotificationController extends BaseController {
         notification.sharedBy = null
 
         return notification
+      } else if (notification?.directsTo === 'acceptLinkRequest' && notification?.idDirectedTo) {
+        const response = await db.userBio.findFirst({
+          where: {
+            profileType: 'user',
+            cards: {
+              some: { cardId: notification?.cardId }
+            }
+          },
+          select: {
+            id: true,
+            firstName: true,
+            middleInitial: true,
+            lastName: true,
+            profileAvatar: true,
+            profTitle: true,
+            company: true,
+            city: true,
+            state: true
+          }
+        })
+
+        notification.cardDirectedTo = { ...response, cardId: notification?.otherCardId }
+        notification.sharedByRole = 'card'
+        notification.sharedBy = null
+
+        return notification
       } else if (notification?.directsTo === 'contactRequest' && notification?.idDirectedTo) {
         const res = await db.contact.findUnique({
           where: { contactId: notification.idDirectedTo },
@@ -535,7 +617,6 @@ class NotificationController extends BaseController {
         cards.map(async (card: any) => {
           const Notifications = await Promise.all(
             card.Notifications.map(async (notification: any) => {
-              // console.log('DirectTo ', notification.directsTo)
               if (notification.directsTo === 'linkRequest') {
                 const res = await db.link.findUnique({
                   where: { id: notification.idDirectedTo },
@@ -592,6 +673,31 @@ class NotificationController extends BaseController {
                 return {
                   ...notification,
                   cardDirectedTo: { ...response, cardId },
+                  sharedByRole: 'card',
+                  sharedBy: null
+                }
+              } else if (notification.directsTo === 'acceptLinkRequest') {
+                const response = await db.userBio.findUnique({
+                  where: {
+                    id: notification.idDirectedTo
+                  },
+                  select: {
+                    id: true,
+                    firstName: true,
+                    middleInitial: true,
+                    lastName: true,
+                    profileAvatar: true,
+                    profTitle: true,
+                    company: true,
+                    city: true,
+                    state: true
+                  }
+                })
+                // notification.cardDirectedTo = { ...response, cardId }
+
+                return {
+                  ...notification,
+                  cardDirectedTo: { ...response, cardId: notification.cardId },
                   sharedByRole: 'card',
                   sharedBy: null
                 }
@@ -690,8 +796,6 @@ class NotificationController extends BaseController {
                   //     country: true
                   //   }
                   // })
-                  // console.log('Profile ', profile)
-                  // console.log('shared by ', notification.sharedBy)
                   // data.profileDirectedTo = profile
                 } else {
                   notification.sharedBy = res

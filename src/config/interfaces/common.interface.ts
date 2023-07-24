@@ -37,6 +37,8 @@ export interface RequestNotification extends Request {
     message?: string
     directsTo: string
     idDirectedTo: string
+    idDirectedToOther?: string
+    otherCardId?: string
     notificationType?: string
   }
 }
