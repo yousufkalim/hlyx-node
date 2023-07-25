@@ -49,7 +49,11 @@ class UserController extends BaseController {
             }
           },
           groups: true,
-          cards: true,
+          cards: {
+            orderBy: {
+              createdAt: 'desc'
+            }
+          },
           blockedUsers: true
         }
       })
@@ -778,7 +782,6 @@ class UserController extends BaseController {
         }
         // await db.cardAccolades.deleteMany({ where: { cardId: req.params.cardId } })
       }
-      console.log('About data ', aboutData)
       // Achievements
       if (aboutData.achievements) {
         for (const achievement of aboutData.achievements) {
@@ -1785,7 +1788,6 @@ class UserController extends BaseController {
         findLink = { linkType: 'non-link' }
       }
 
-      console.log('find links ', findLink)
       // Verify user exists
       const userAuth = await db.userAuth.findUnique({
         where: {
