@@ -1170,6 +1170,9 @@ class LinkController extends BaseController {
         },
         select: {
           cardId: true
+        },
+        orderBy: {
+          createdAt: 'desc'
         }
       })
 
