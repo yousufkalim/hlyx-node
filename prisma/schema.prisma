@@ -625,6 +625,7 @@ enum NotificationStatus {
 
 enum NotificationDirectsTo {
   linkRequest
+  acceptLinkRequest
   message
   contactRequest
   sharedContact

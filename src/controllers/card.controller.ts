@@ -296,29 +296,70 @@ class CardController extends BaseController {
         })
       }
 
-      const { userId } = req.query
+      const userId: any = req.query.userId
       if (req.query.userId && userId !== card.User.id) {
-        // const link = true
-        for (const userCard of card.User.cards) {
-          const findLink = await db.link.findFirst({
-            where: {
-              OR: [
-                {
-                  cardOne: userCard.cardId
-                },
-                {
-                  cardTwo: userCard.cardId
-                }
-              ]
-            },
-            select: {
-              status: true,
-              id: true
-            }
-          })
-          if (findLink) {
-            card.link = findLink
+        console.log('Entrer in condtiion ======> ')
+        const myCards = await db.card.findMany({
+          where: {
+            userId
+          },
+          select: {
+            cardId: true
+            // User: {
+            //   select: {
+            //     cards: {
+            //       select: {
+            //         cardId: true
+            //       }
+            //     }
+            //   }
+            // }
           }
+        })
+        const myCardIds = myCards?.map((item) => item?.cardId)
+        const otherCardIds = card.User.cards?.map((item: any) => item?.cardId)
+        // const link = true
+        const findLink = await db.link.findFirst({
+          where: {
+            OR: [
+              {
+                AND: [
+                  {
+                    cardOne: {
+                      in: otherCardIds
+                    }
+                  },
+                  {
+                    cardTwo: {
+                      in: myCardIds
+                    }
+                  }
+                ]
+              },
+              {
+                AND: [
+                  {
+                    cardTwo: {
+                      in: otherCardIds
+                    }
+                  },
+                  {
+                    cardOne: {
+                      in: myCardIds
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          select: {
+            status: true,
+            id: true
+          }
+        })
+
+        if (findLink) {
+          card.link = findLink
         }
       } else {
         // card.linkType = 'own'
