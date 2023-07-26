@@ -1998,6 +1998,65 @@ class UserController extends BaseController {
     }
   }
 
+  addSocialMediaFavorite = async (req: RequestUserAuth, res: Response): Promise<any> => {
+    try {
+      const { body } = req
+      const { name } = body
+      if (!name) {
+        return res.status(400).json({ code: codes.BAD_REQUEST, message: 'Name is required' })
+      }
+
+      const isExist = await db.favoriteSocialMedias.findFirst({
+        where: {
+          name,
+          userId: req.params.userId
+        }
+      })
+      if (isExist) {
+        return res
+          .status(400)
+          .json({ code: codes.BAD_REQUEST, message: 'Social media already exist in favourite' })
+      }
+      const data = {
+        favoriteSocialMedias: {
+          create: {
+            name
+          }
+        }
+      }
+      await db.userBio.update({
+        where: {
+          id: req.params.userId
+        },
+        data
+      })
+
+      return res.status(201).json({ code: codes.OK, message: messages.SUCCESS })
+    } catch (err: any) {
+      console.log('Error ', err)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  getFavoriteSocialMedias = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      const response = await db.favoriteSocialMedias.findMany({
+        where: {
+          userId: req.params.userId
+        }
+      })
+
+      return res.status(201).json({ code: codes.OK, data: response })
+    } catch (err) {
+      console.log('Error ', err)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
   #getLinkedUserInfo = async (cardId: string): Promise<any> => {
     try {
       const response: any | null = await db.userBio.findFirst({
