@@ -61,14 +61,14 @@ model UserBio {
   blockedUsers  UserBio[]       @relation("BlockedUsers")
   profilePhotos UserPhoto[]
 
-  portfolioImages       CardPortfolioImages[]
-  favouriteSocialMedias FavouriteSocialMedias[]
+  portfolioImages      CardPortfolioImages[]
+  favoriteSocialMedias FavoriteSocialMedias[]
 
   @@unique([id, email])
   @@unique([id, profileAvatar])
 }
 
-model FavouriteSocialMedias {
+model FavoriteSocialMedias {
   id     String  @id @default(uuid())
   name   String  @unique
   userId String
