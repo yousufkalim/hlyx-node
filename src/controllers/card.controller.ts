@@ -153,29 +153,68 @@ class CardController extends BaseController {
         })
       }
 
-      const { userId } = req.query
+      const userId: any = req.query.userId
       if (userId !== card.User.id) {
-        // const link = true
-        for (const userCard of card.User.cards) {
-          const findLink = await db.link.findFirst({
-            where: {
-              OR: [
-                {
-                  cardOne: userCard.cardId
-                },
-                {
-                  cardTwo: userCard.cardId
-                }
-              ]
-            },
-            select: {
-              status: true,
-              id: true
-            }
-          })
-          if (findLink) {
-            card.link = findLink
+        const myCards = await db.card.findMany({
+          where: {
+            userId
+          },
+          select: {
+            cardId: true
+            // User: {
+            //   select: {
+            //     cards: {
+            //       select: {
+            //         cardId: true
+            //       }
+            //     }
+            //   }
+            // }
           }
+        })
+        const myCardIds = myCards?.map((item) => item?.cardId)
+        const otherCardIds = card.User.cards?.map((item: any) => item?.cardId)
+        // const link = true
+        const findLink = await db.link.findFirst({
+          where: {
+            OR: [
+              {
+                AND: [
+                  {
+                    cardOne: {
+                      in: otherCardIds
+                    }
+                  },
+                  {
+                    cardTwo: {
+                      in: myCardIds
+                    }
+                  }
+                ]
+              },
+              {
+                AND: [
+                  {
+                    cardOne: {
+                      in: myCardIds
+                    }
+                  },
+                  {
+                    cardTwo: {
+                      in: otherCardIds
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          select: {
+            status: true,
+            id: true
+          }
+        })
+        if (findLink) {
+          card.link = findLink
         }
       } else {
         // card.linkType = 'own'
@@ -349,13 +388,13 @@ class CardController extends BaseController {
               {
                 AND: [
                   {
-                    cardTwo: {
-                      in: otherCardIds
+                    cardOne: {
+                      in: myCardIds
                     }
                   },
                   {
-                    cardOne: {
-                      in: myCardIds
+                    cardTwo: {
+                      in: otherCardIds
                     }
                   }
                 ]
