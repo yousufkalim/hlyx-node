@@ -1210,6 +1210,8 @@ class LinkController extends BaseController {
           }
         })
 
+        console.log('Cards  ', response)
+
         generalLinks = response
         allLinks = response
 
