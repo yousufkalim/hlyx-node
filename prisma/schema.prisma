@@ -70,9 +70,11 @@ model UserBio {
 
 model FavoriteSocialMedias {
   id     String  @id @default(uuid())
-  name   String  @unique
+  name   String
   userId String
   User   UserBio @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([name, userId])
 }
 
 model Group {
