@@ -15,7 +15,7 @@ const app = express()
 const server = http.createServer(app)
 socket.attach(server, {
   cors: {
-    origin: true
+    origin: '*'
   }
 })
 
