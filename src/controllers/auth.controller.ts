@@ -39,7 +39,6 @@ class AuthController extends BaseController {
           message: validationError
         })
       }
-
       // Verify User exists
       const user = await db.userAuth.findUnique({
         where: { email },
@@ -73,12 +72,7 @@ class AuthController extends BaseController {
           message: messages.EMAIL_NOT_VERIFIED
         })
       }
-      // if (!user.isPhoneVerified) {
-      //   return res.status(400).json({
-      //     code: codes.BAD_REQUEST,
-      //     message: messages.PHONE_NOT_VERIFIED
-      //   })
-      // }
+
       // Handle Pause / Deleted Flags if set
       if (user.isPaused) {
         if (user.isDeleted) {
@@ -123,16 +117,6 @@ class AuthController extends BaseController {
           message: messages.INVALID_CREDENTIALS
         })
       }
-
-      // Check if Two FA enabled on email
-      // if (user.userPreference?.twoFactorAuth === 'email') {
-      //   // Send email and return
-      //   await sendCodeToEmail(user.email)
-      //   return res.status(200).json({
-      //     code: codes.OK,
-      //     message: messages.CODE_SENT_SUCCESS
-      //   })
-      // }
 
       // Return jsonwebtoken
       const payload = {
@@ -285,7 +269,7 @@ class AuthController extends BaseController {
   // Register new user
   register = async (req: Request, res: Response): Promise<Response | undefined> => {
     const params = this.filterParams(req.body, authControllerParams)
-    const { email, password } = params
+    const { email, password, firstName, middleInitial, lastName, listIdentifier } = params
     try {
       // Validate input
       const validationError = validateRegister(params)
@@ -307,7 +291,6 @@ class AuthController extends BaseController {
       // Check if email is already registered
       const userWithEmail = await db.userAuth.findUnique({ where: { email } })
       if (
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (userWithEmail && !savedContactUser) ||
         (userWithEmail && savedContactUser && userWithEmail?.isEmailVerified)
       ) {
@@ -331,7 +314,27 @@ class AuthController extends BaseController {
         })
       }
 
-      data.userBio = { create: {} }
+      const userBio: {
+        firstName?: string
+        middleInitial?: string
+        lastName?: string
+      } = {}
+
+      // Names For Landing Page
+      if (firstName && firstName !== '') {
+        userBio.firstName = firstName
+      }
+      if (middleInitial && middleInitial !== '') {
+        userBio.middleInitial = middleInitial
+      }
+      if (lastName && lastName !== '') {
+        userBio.lastName = lastName
+      }
+      if (listIdentifier) {
+        data.listIdentifier = listIdentifier
+      }
+
+      data.userBio = { create: userBio }
       data.userPreference = { create: {} }
       data.userNotification = { create: {} }
 

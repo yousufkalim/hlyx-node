@@ -1,3 +1,5 @@
+export const listIdentifier = ['Investor', 'Early Bird User', 'Beta Tester']
+
 export const emailTypes = ['work', 'personal', 'alternate'] as const
 
 export const twoFactorAuthTypes = ['none', 'phone', 'email']

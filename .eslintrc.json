@@ -17,7 +17,14 @@
         "no-unused-vars": "error",
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/restrict-template-expressions": "off",
-        "@typescript-eslint/no-misused-promises": "off",
-        "@typescript-eslint/strict-boolean-expressions": "off"
+        "@typescript-eslint/no-misused-promises": [
+            "error",{
+                "checksVoidReturn": false
+            }],
+        "@typescript-eslint/strict-boolean-expressions": "off",
+        "@typescript-eslint/prefer-nullish-coalescing": [
+            "error", {
+            "ignoreConditionalTests": true
+        }]
     }
 }
