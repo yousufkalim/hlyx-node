@@ -21,6 +21,7 @@ import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { config } from '../config/env.config.validations'
 import GroupController from '../controllers/group.controller'
+import LandingPageController from '../controllers/landingPage.controller'
 
 const router = Router()
 
@@ -516,6 +517,17 @@ router.post(
   authenticate,
   groupAuthorization,
   GroupController.sendMessageInGroup
+)
+
+// Contact Us
+router.post(
+  '/contact-us',
+  LandingPageController.contactUs
+)
+
+router.post(
+  '/test',
+  LandingPageController.test
 )
 
 // Health Check
