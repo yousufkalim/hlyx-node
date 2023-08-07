@@ -202,6 +202,13 @@ router.delete(
   CardController.deleteCompanyIcon
 )
 
+router.post(
+  '/card/add/premium-card-service-photo/:userId',
+  authenticate,
+  userAuthorization,
+  CardController.addCardServiceImage
+)
+
 // Card Update Info Routes
 router.put(
   '/card/update/minimal-card/:cardId',
