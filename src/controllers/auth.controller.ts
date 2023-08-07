@@ -22,8 +22,6 @@ import {
 } from '../utils/validations/auth.controller.validation'
 import { verifyEmailEmailer, passwordResetEmailer } from '../utils/emailers'
 import { db } from '../utils/db'
-import { successHTML } from '../utils/html-templates/success'
-import { failureHTML } from '../utils/html-templates/failure'
 import { createActiveCampaignContact } from '../utils/activeCampaign'
 
 class AuthController extends BaseController {
@@ -500,14 +498,9 @@ class AuthController extends BaseController {
 
   // Verify Code via URL
   verifyCodeURL = async (req: Request, res: Response): Promise<Response> => {
+    const params = this.filterParams(req.body, authControllerParams)
+    const { email, code } = params
     try {
-      const email = req.query.email as string
-      const code = req.query.code as string
-      const params = {
-        email,
-        code
-      }
-
       // Validate input
       const validationError = validateVerifyCode(params)
       if (validationError) {
@@ -550,14 +543,15 @@ class AuthController extends BaseController {
         }
       })
 
-      res.status(200).send(successHTML)
-      return res
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.CODE_SENT_SUCCESS
+      })
     } catch (error: any) {
       console.error(error)
       if (!res.status) {
         res.status(500)
       }
-      res.send(failureHTML)
       return res
     }
   }

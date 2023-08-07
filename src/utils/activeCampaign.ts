@@ -10,35 +10,40 @@ export const createActiveCampaignContact = async (
 ): Promise<boolean> => {
   const API_URL = config.get('active_campagin_url')
   const API_KEY = config.get('active_campagin_key')
-  const enterContactUrl = `${API_URL}admin/api.php?api_key=${API_KEY}&api_action=contact_sync&api_output=json`
+  const createContactUrl = `${API_URL}/admin/api.php?api_key=${API_KEY}&api_action=contact_sync&api_output=json`
 
-  let listNumber: number
+  const collectData: any = {
+    email,
+    first_name: fname,
+    last_name: lname
+  }
+
   switch (list) {
     case 'Investor':
-      listNumber = 4
+      collectData['p[4]'] = 4
+      collectData['status[4]'] = status ? 1 : 2
       break
-    case 'Early Bird':
-      listNumber = 5
+    case 'Early Bird User':
+      collectData['p[5]'] = 5
+      collectData['status[5]'] = status ? 1 : 2
       break
     case 'Beta User':
-      listNumber = 6
+      collectData['p[6]'] = 6
+      collectData['status[6]'] = status ? 1 : 2
       break
     default:
       return false
   }
 
-  const data = {
-    email,
-    first_name: fname,
-    last_name: lname,
-    'p[3]': listNumber,
-    'status[3]': status ? 1 : 2
-  }
+  const data = new URLSearchParams(Object.entries(collectData)).toString()
 
   try {
     const response = await axios({
       method: 'post',
-      url: enterContactUrl,
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded'
+      },
+      url: createContactUrl,
       data
     })
     console.log(response)

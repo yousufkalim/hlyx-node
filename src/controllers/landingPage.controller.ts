@@ -41,7 +41,6 @@ class LandingPageController extends BaseController {
   test = async (req: Request, res: Response): Promise<Response | undefined> => {
     const { email, firstName, lastName, listIdentifer, status } = req.body
     try {
-      console.log(1)
       await createActiveCampaignContact(email, firstName, lastName, listIdentifer, status)
 
       return res.status(200).json({
