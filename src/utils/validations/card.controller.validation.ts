@@ -403,6 +403,7 @@ export const validateCardServices = (
             .valid(...Object.values(servicesTypes))
             .required(),
           title: Joi.string().max(stringLengths.SERVICES_TITLE).required(),
+          photo: Joi.string().allow(''),
           subtitle: Joi.string()
             .max(stringLengths.SERVICES_SUBTITLE)
             .when('type', { is: 'featured', then: Joi.required() }),
