@@ -2560,6 +2560,59 @@ class CardController extends BaseController {
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
+
+  // Add Service Card Image
+  addCardServiceImage = async (req: RequestUserAuth, res: Response): Promise<Response> => {
+    try {
+      if (!req.files) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.FILE_REQUIRED
+        })
+      }
+
+      const file = req.files.photo as UploadedFile
+      if (!file) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: `${messages.INVALID_FILE_LABEL} cardservicesimage`
+        })
+      }
+      // Verify Acceptable MIME Type
+      if (!ACCEPTABLE_MIME_TYPES.includes(file.mimetype)) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.INVALID_MIME_TYPE
+        })
+      }
+      // Verify Image Size
+      if (file.size > MAX_BYTES) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.FILE_SIZE_OVER_10
+        })
+      }
+      // AWS API Call
+      const pathToFile = await awsUploadFile(
+        file.data,
+        req.params.userId,
+        'card-service-image',
+        file.name,
+        file.mimetype
+      )
+
+      return res.status(200).json({
+        pathToFile,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
 }
 
 export default new CardController()
