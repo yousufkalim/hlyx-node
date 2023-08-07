@@ -8,6 +8,7 @@ export interface IValidateRegister extends IValidateLoginRegister {
   middleInitial: string
   lastName: string
   listIdentifier: string
+  status: boolean
 }
 
 export interface IValidateSendVerificationCode {

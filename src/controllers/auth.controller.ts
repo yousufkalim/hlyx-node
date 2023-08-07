@@ -24,6 +24,7 @@ import { verifyEmailEmailer, passwordResetEmailer } from '../utils/emailers'
 import { db } from '../utils/db'
 import { successHTML } from '../utils/html-templates/success'
 import { failureHTML } from '../utils/html-templates/failure'
+import { createActiveCampaignContact } from '../utils/activeCampaign'
 
 class AuthController extends BaseController {
   // Login in user
@@ -269,7 +270,7 @@ class AuthController extends BaseController {
   // Register new user
   register = async (req: Request, res: Response): Promise<Response | undefined> => {
     const params = this.filterParams(req.body, authControllerParams)
-    const { email, password, firstName, middleInitial, lastName, listIdentifier } = params
+    const { email, password, firstName, middleInitial, lastName, listIdentifier, status } = params
     try {
       // Validate input
       const validationError = validateRegister(params)
@@ -330,9 +331,13 @@ class AuthController extends BaseController {
       if (lastName && lastName !== '') {
         userBio.lastName = lastName
       }
+      // If specify list, add to active campaign
       if (listIdentifier) {
         data.listIdentifier = listIdentifier
+        await createActiveCampaignContact(email, firstName, lastName, listIdentifier, status)
       }
+
+      // Active campaign
 
       data.userBio = { create: userBio }
       data.userPreference = { create: {} }

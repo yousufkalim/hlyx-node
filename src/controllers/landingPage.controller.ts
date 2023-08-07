@@ -6,6 +6,7 @@ import { codes } from '../config/codes'
 import { messages } from '../config/messages'
 import { validateContactUs } from '../utils/validations/landingPage.controller.validation'
 import { contactUsEmailer } from '../utils/emailers'
+import { createActiveCampaignContact } from '../utils/activeCampaign'
 
 class LandingPageController extends BaseController {
   // Contact Us
@@ -37,6 +38,23 @@ class LandingPageController extends BaseController {
     }
   }
 
+  test = async (req: Request, res: Response): Promise<Response | undefined> => {
+    const { email, firstName, lastName, listIdentifer, status } = req.body
+    try {
+      console.log(1)
+      await createActiveCampaignContact(email, firstName, lastName, listIdentifer, status)
+
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
   // Pricing (least prio atm)
 }
 

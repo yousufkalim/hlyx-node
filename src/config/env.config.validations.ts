@@ -133,6 +133,18 @@ const config = convict({
     format: 'String',
     default: process.env.SUPPORT_CONTACT_US_EMAIL,
     env: 'SUPPORT_CONTACT_US_EMAIL'
+  },
+  active_campagin_url: {
+    doc: 'Active Campaign URL',
+    format: 'String',
+    default: process.env.ACTIVE_CAMPAIGN_API_URL,
+    env: 'ACTIVE_CAMPAIGN_API_URL'
+  },
+  active_campagin_key: {
+    doc: 'Active Campaign Key',
+    format: 'String',
+    default: process.env.ACTIVE_CAMPAIGN_API_KEY,
+    env: 'ACTIVE_CAMPAIGN_API_KEY'
   }
 })
 

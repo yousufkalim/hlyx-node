@@ -518,6 +518,11 @@ router.post(
   LandingPageController.contactUs
 )
 
+router.post(
+  '/test',
+  LandingPageController.test
+)
+
 // Health Check
 router.get('/health-check', (req: Request, res: Response) => {
   return res.status(200).json({

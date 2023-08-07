@@ -49,7 +49,8 @@ export const validateRegister = (registerPayload: IValidateRegister): string | u
     firstName: Joi.string().min(stringLengths.NAME_MIN).max(stringLengths.NAME_MAX),
     middleInitial: Joi.string().max(stringLengths.MIDDLE_INITIAL_MAX).allow(''),
     lastName: Joi.string().min(stringLengths.NAME_MIN).max(stringLengths.NAME_MAX),
-    listIdentifier: Joi.string().valid(...listIdentifier)
+    listIdentifier: Joi.string().valid(...listIdentifier),
+    status: Joi.boolean()
   })
   console.log(registerPayload)
   return registerSchema.validate(registerPayload)?.error?.message

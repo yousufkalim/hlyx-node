@@ -9,7 +9,8 @@ export const authControllerParams = [
   'firstName',
   'middleInitial',
   'lastName',
-  'listIdentifier'
+  'listIdentifier',
+  'status'
 ]
 
 export const userControllerParams = [
