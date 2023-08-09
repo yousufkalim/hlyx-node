@@ -119,6 +119,7 @@ class LandingPageController extends BaseController {
         select: {
           id: true,
           email: true,
+          listIdentifier: true,
           isPaused: true,
           isDeleted: true,
           createdAt: true,
@@ -210,7 +211,7 @@ class LandingPageController extends BaseController {
           }
           return res.status(200).json({
             token,
-            id: user.id,
+            listIdentifier: user.listIdentifier,
             isEmailVerified: user.isEmailVerified,
             code: codes.OK,
             message: messages.USER_LOGGED_IN
