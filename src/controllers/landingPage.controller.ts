@@ -2,13 +2,16 @@ import { Request, Response } from 'express'
 import fs from 'fs/promises'
 import path from 'path'
 import bcrypt from 'bcrypt'
-// import jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken'
 
 import BaseController from './base.controller'
 import { landingPageParams, contactUsParams } from '../config/params'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
+import { expirationTimes } from '../config/expirationTime'
+import { config } from '../config/env.config.validations'
 import { validateLandingPageRegister, validateContactUs } from '../utils/validations/landingPage.controller.validation'
+import { validateLogin } from '../utils/validations/auth.controller.validation'
 import { verifyEmailEmailer, contactUsEmailer } from '../utils/emailers'
 import { createActiveCampaignContact } from '../utils/activeCampaign'
 import { db } from '../utils/db'
@@ -92,6 +95,131 @@ class LandingPageController extends BaseController {
       if (error.status) {
         return res.status(error.status).json({ code: error.status, message: error.message })
       }
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  login = async (req: Request, res: Response): Promise<Response | undefined> => {
+    const params = this.filterParams(req.body, landingPageParams)
+    const { email, password, keepSignIn } = params
+    try {
+      // Validate input
+      const validationError = validateLogin(params)
+      if (validationError) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: validationError
+        })
+      }
+      // Verify User exists
+      const user = await db.userAuth.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          email: true,
+          isPaused: true,
+          isDeleted: true,
+          createdAt: true,
+          updatedAt: true,
+          password: true,
+          isEmailVerified: true,
+          userPreference: {
+            select: {
+              twoFactorAuth: true
+            }
+          }
+        }
+      })
+      if (!user) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.INVALID_CREDENTIALS
+        })
+      }
+
+      // Handle Pause / Deleted Flags if set
+      if (user.isPaused) {
+        if (user.isDeleted) {
+          const currentTime = new Date()
+          let diff = currentTime.getTime() - user.updatedAt.getTime()
+          // Milisecond to day conversion
+          diff = diff / 86400000
+          if (diff > expirationTimes.DAYS_FOR_PERMA_DELETE) {
+            return res.status(400).json({
+              code: codes.BAD_REQUEST,
+              message: messages.DELETED_30_DAYS
+            })
+          }
+          // Update Deleted and Paused flags (reactivate account)
+          await db.userAuth.update({
+            where: {
+              email
+            },
+            data: {
+              isPaused: false,
+              isDeleted: false
+            }
+          })
+        } else {
+          // Update Paused Flag
+          await db.userAuth.update({
+            where: {
+              email
+            },
+            data: {
+              isPaused: false
+            }
+          })
+        }
+      }
+
+      // Check passwords match
+      const isMatch = await bcrypt.compare(password, user.password ?? '')
+      if (!isMatch) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.INVALID_CREDENTIALS
+        })
+      }
+
+      // Return jsonwebtoken
+      const payload = {
+        user: {
+          id: user.id,
+          email: user.email
+        }
+      }
+      const expiry = keepSignIn
+        ? config.get('jwt_secret_key_long_expiry')
+        : config.get('jwt_secret_key_expiry')
+      const expiryDuration: string = expiry ?? '1d'
+
+      jwt.sign(
+        payload,
+        config.get('jwt_secret_key') as string,
+        { expiresIn: expiryDuration },
+        (err, token) => {
+          console.log('Error ', err)
+          if (err) {
+            return res.status(400).json({
+              code: codes.BAD_REQUEST,
+              message: messages.TOKEN_FAILURE
+            })
+          }
+          return res.status(200).json({
+            token,
+            id: user.id,
+            isEmailVerified: user.isEmailVerified,
+            code: codes.OK,
+            message: messages.USER_LOGGED_IN
+          })
+        }
+      )
+    } catch (error: any) {
+      console.log('Error ', error)
+      console.error(error)
       return res
         .status(500)
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })

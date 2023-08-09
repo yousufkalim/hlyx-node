@@ -160,7 +160,8 @@ export const landingPageParams = [
   'middleInitial',
   'lastName',
   'listIdentifier',
-  'status'
+  'status',
+  'keepSignIn'
 ]
 
 export const contactUsParams = [

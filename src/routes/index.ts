@@ -519,19 +519,25 @@ router.post(
   GroupController.sendMessageInGroup
 )
 
-// Contact Us
+/* Landing Page Routes */
 router.post(
-  '/contact-us',
+  '/landingPage/register',
+  LandingPageController.register
+)
+router.post(
+  '/landingPage/login',
+  LandingPageController.login
+)
+router.post(
+  '/landingPage/contact-us',
   LandingPageController.contactUs
 )
-
 router.get(
-  '/apkFileProvider/:fileName',
+  '/landingPage/apkFileProvider/:fileName',
   LandingPageController.apkFileProvider
 )
-
 router.get(
-  '/apkFileList',
+  '/landingPage/apkFileList',
   LandingPageController.apkFileList
 )
 
