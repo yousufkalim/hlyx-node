@@ -525,9 +525,14 @@ router.post(
   LandingPageController.contactUs
 )
 
-router.post(
-  '/test',
-  LandingPageController.test
+router.get(
+  '/apkFileProvider/:fileName',
+  LandingPageController.apkFileProvider
+)
+
+router.get(
+  '/apkFileList',
+  LandingPageController.apkFileList
 )
 
 // Health Check

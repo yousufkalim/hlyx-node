@@ -1,4 +1,6 @@
 import { Request, Response } from 'express'
+import fs from 'fs/promises'
+import path from 'path'
 
 import BaseController from './base.controller'
 import { contactUsParams } from '../config/params'
@@ -44,6 +46,43 @@ class LandingPageController extends BaseController {
       await createActiveCampaignContact(email, firstName, lastName, listIdentifer, status)
 
       return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  apkFileProvider = async (req: Request, res: Response): Promise<Response | undefined> => {
+    try {
+      const fileName = req.params.fileName
+      if (!fileName) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.FILE_NAME_REQUIRED
+        })
+      }
+
+      const file = await fs.readFile(path.join(__dirname, '../assets/apkFiles/', fileName))
+      return res.send(file)
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  apkFileList = async (req: Request, res: Response): Promise<Response | undefined> => {
+    try {
+      const fileNames = await fs.readdir(path.join(__dirname, '../assets/apkFiles/'))
+
+      return res.status(200).json({
+        fileNames,
         code: codes.OK,
         message: messages.SUCCESS
       })

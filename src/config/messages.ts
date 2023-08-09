@@ -102,5 +102,7 @@ export const messages = {
   PERMANENT_BLOCKED_OTHER: 'You are permanently blocked by the card you have requested',
   LINKS_EMPTY: 'Please select the links you want to unblock',
   EMAILER_ERROR: 'There was an error with one of the Sendgrid email routes',
-  SMS_ERROR: 'There was an error with one of the SMS routes'
+  SMS_ERROR: 'There was an error with one of the SMS routes',
+  FILE_NAME_REQUIRED: 'File name required',
+  FILE_NOT_FOUND: 'File not found'
 }
