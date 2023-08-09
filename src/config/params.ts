@@ -158,6 +158,16 @@ export const groupControllerParams = [
   'members'
 ]
 
+export const landingPageParams = [
+  'email',
+  'password',
+  'firstName',
+  'middleInitial',
+  'lastName',
+  'listIdentifier',
+  'status'
+]
+
 export const contactUsParams = [
   'name',
   'email',
