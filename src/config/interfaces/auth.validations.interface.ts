@@ -3,14 +3,6 @@ export interface IValidateLoginRegister {
   password: string
 }
 
-export interface IValidateRegister extends IValidateLoginRegister {
-  firstName: string
-  middleInitial: string
-  lastName: string
-  listIdentifier: string
-  status: boolean
-}
-
 export interface IValidateSendVerificationCode {
   email: string
 }

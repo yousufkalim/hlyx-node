@@ -5,12 +5,10 @@ import {
   IValidateVerifyCode,
   IValidateEmailUpdate,
   IValidateAddPhone,
-  IValidateVerifyPhone,
-  IValidateRegister
+  IValidateVerifyPhone
 } from '../../config/interfaces/auth.validations.interface'
 import { messages } from '../../config/messages'
 import { stringLengths } from '../../config/stringLengths'
-import { listIdentifier } from '../../config/enumTypes'
 
 /**
  *
@@ -37,7 +35,7 @@ export const validateLogin = (loginPayload: IValidateLoginRegister): string | un
  * @param registerPayload
  * @returns Error message
  */
-export const validateRegister = (registerPayload: IValidateRegister): string | undefined => {
+export const validateRegister = (registerPayload: IValidateLoginRegister): string | undefined => {
   const registerSchema = Joi.object({
     email: Joi.string()
       .email({ tlds: { allow: false } })
@@ -45,14 +43,8 @@ export const validateRegister = (registerPayload: IValidateRegister): string | u
     password: Joi.string()
       .pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d$&+,:;=?@#|'<>.^*()%!-]{8,}$/)
       .required()
-      .error(new Error(`${messages.PASSWORD_FAILURE}`)),
-    firstName: Joi.string().min(stringLengths.NAME_MIN).max(stringLengths.NAME_MAX),
-    middleInitial: Joi.string().max(stringLengths.MIDDLE_INITIAL_MAX).allow(''),
-    lastName: Joi.string().min(stringLengths.NAME_MIN).max(stringLengths.NAME_MAX),
-    listIdentifier: Joi.string().valid(...listIdentifier),
-    status: Joi.boolean()
+      .error(new Error(`${messages.PASSWORD_FAILURE}`))
   })
-  console.log(registerPayload)
   return registerSchema.validate(registerPayload)?.error?.message
 }
 

@@ -5,12 +5,7 @@ export const authControllerParams = [
   'code',
   'phone',
   'accessToken',
-  'id',
-  'firstName',
-  'middleInitial',
-  'lastName',
-  'listIdentifier',
-  'status'
+  'id'
 ]
 
 export const userControllerParams = [
