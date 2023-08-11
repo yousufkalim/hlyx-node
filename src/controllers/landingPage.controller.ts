@@ -57,7 +57,7 @@ class LandingPageController extends BaseController {
           data
         })
 
-        await verifyEmailEmailer(email)
+        await verifyEmailEmailer(email, true)
         return res.status(201).json({
           id: response.id,
           code: codes.CREATED,
@@ -83,7 +83,7 @@ class LandingPageController extends BaseController {
       await createActiveCampaignContact(email, firstName, lastName, listIdentifier, status)
 
       // Emailer
-      await verifyEmailEmailer(email)
+      await verifyEmailEmailer(email, true)
 
       return res.status(201).json({
         id: createUser.id,

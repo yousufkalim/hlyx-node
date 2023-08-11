@@ -304,7 +304,7 @@ class AuthController extends BaseController {
           data
         })
 
-        await verifyEmailEmailer(email)
+        await verifyEmailEmailer(email, false)
         return res.status(201).json({
           id: response.id,
           code: codes.CREATED,
@@ -320,7 +320,7 @@ class AuthController extends BaseController {
       const createUser = await db.userAuth.create({ data })
 
       // Emailer
-      await verifyEmailEmailer(email)
+      await verifyEmailEmailer(email, false)
       return res.status(201).json({
         id: createUser.id,
         code: codes.CREATED,
@@ -415,7 +415,7 @@ class AuthController extends BaseController {
       }
 
       // Send email and return
-      await verifyEmailEmailer(email)
+      await verifyEmailEmailer(email, false)
       return res.status(200).json({
         code: codes.OK,
         message: messages.CODE_SENT_SUCCESS
