@@ -5,7 +5,6 @@ export interface IValidateLandingPageRegister {
   middleInitial: string
   lastName: string
   listIdentifier: string
-  status: boolean
 }
 
 export interface IContactUs {

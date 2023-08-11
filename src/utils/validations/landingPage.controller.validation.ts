@@ -20,13 +20,21 @@ export const validateLandingPageRegister = (registerPayload: IValidateLandingPag
       .pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d$&+,:;=?@#|'<>.^*()%!-]{8,}$/)
       .required()
       .error(new Error(`${messages.PASSWORD_FAILURE}`)),
-    firstName: Joi.string().min(stringLengths.NAME_MIN).max(stringLengths.NAME_MAX).required(),
-    middleInitial: Joi.string().max(stringLengths.MIDDLE_INITIAL_MAX).allow(''),
-    lastName: Joi.string().min(stringLengths.NAME_MIN).max(stringLengths.NAME_MAX).required(),
-    listIdentifier: Joi.string().valid(...listIdentifier).required(),
-    status: Joi.boolean().required()
+    firstName: Joi.string()
+      .min(stringLengths.NAME_MIN)
+      .max(stringLengths.NAME_MAX)
+      .required(),
+    middleInitial: Joi.string()
+      .max(stringLengths.MIDDLE_INITIAL_MAX)
+      .allow(''),
+    lastName: Joi.string()
+      .min(stringLengths.NAME_MIN)
+      .max(stringLengths.NAME_MAX)
+      .required(),
+    listIdentifier: Joi.string()
+      .valid(...listIdentifier)
+      .required()
   })
-  console.log(registerPayload)
   return registerSchema.validate(registerPayload)?.error?.message
 }
 

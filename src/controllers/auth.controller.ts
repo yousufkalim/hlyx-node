@@ -394,7 +394,7 @@ class AuthController extends BaseController {
   // Resend Verification Email
   resendVerificationEmail = async (req: Request, res: Response): Promise<Response> => {
     const params = this.filterParams(req.body, authControllerParams)
-    const { email } = params
+    const { email, landingPage } = params
     try {
       // Validate input
       const validationError = validateSendVerificationCode(params)
@@ -415,7 +415,7 @@ class AuthController extends BaseController {
       }
 
       // Send email and return
-      await verifyEmailEmailer(email, false)
+      await verifyEmailEmailer(email, landingPage)
       return res.status(200).json({
         code: codes.OK,
         message: messages.CODE_SENT_SUCCESS

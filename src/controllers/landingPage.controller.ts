@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
 import BaseController from './base.controller'
+import { RequestUserAuth } from '../config/interfaces/common.interface'
 import { landingPageParams, contactUsParams } from '../config/params'
 import { codes } from '../config/codes'
 import { messages } from '../config/messages'
@@ -19,7 +20,7 @@ import { db } from '../utils/db'
 class LandingPageController extends BaseController {
   register = async (req: Request, res: Response): Promise<Response | undefined> => {
     const params = this.filterParams(req.body, landingPageParams)
-    const { email, password, firstName, middleInitial, lastName, listIdentifier, status } = params
+    const { email, password, firstName, middleInitial, lastName, listIdentifier } = params
     try {
       // Validate input
       const validationError = validateLandingPageRegister(params)
@@ -37,6 +38,7 @@ class LandingPageController extends BaseController {
         listIdentifier
       }
 
+      let registeredUser: any
       // Check if contact request user exists
       const savedContactUser = await db.contact.findFirst({ where: { email } })
       // Check if email is already registered
@@ -50,46 +52,61 @@ class LandingPageController extends BaseController {
           message: `${messages.USER_ALREADY_EXIST} with email "${email}"`
         })
       } else if (savedContactUser) {
-        const response = await db.userAuth.update({
+        registeredUser = await db.userAuth.update({
           where: {
             email
           },
           data
         })
+      } else {
+        // Register Completely New User
+        const userBio = {
+          firstName,
+          middleInitial,
+          lastName
+        }
 
-        await verifyEmailEmailer(email, true)
-        return res.status(201).json({
-          id: response.id,
-          code: codes.CREATED,
-          message: messages.LINK_SENT_SUCCESS
-        })
+        data.userBio = { create: userBio }
+        data.userPreference = { create: {} }
+        data.userNotification = { create: {} }
+
+        // Create User
+        registeredUser = await db.userAuth.create({ data })
       }
-
-      // Register Completely New User
-      const userBio = {
-        firstName,
-        middleInitial,
-        lastName
-      }
-
-      data.userBio = { create: userBio }
-      data.userPreference = { create: {} }
-      data.userNotification = { create: {} }
-
-      // Create User
-      const createUser = await db.userAuth.create({ data })
-
-      // Active Campagin
-      await createActiveCampaignContact(email, firstName, lastName, listIdentifier, status)
 
       // Emailer
       await verifyEmailEmailer(email, true)
 
-      return res.status(201).json({
-        id: createUser.id,
-        code: codes.CREATED,
-        message: messages.LINK_SENT_SUCCESS
-      })
+      // Return jsonwebtoken
+      const payload = {
+        user: {
+          id: registeredUser.id,
+          email: registeredUser.email
+        }
+      }
+      const expiry = config.get('jwt_secret_key_expiry')
+      const expiryDuration: string = expiry ?? '1d'
+
+      jwt.sign(
+        payload,
+        config.get('jwt_secret_key') as string,
+        { expiresIn: expiryDuration },
+        (err, token) => {
+          console.log('Error ', err)
+          if (err) {
+            return res.status(400).json({
+              code: codes.BAD_REQUEST,
+              message: messages.TOKEN_FAILURE
+            })
+          }
+          return res.status(201).json({
+            token,
+            listIdentifier: registeredUser.listIdentifier,
+            isEmailVerified: registeredUser.isEmailVerified,
+            code: codes.OK,
+            message: messages.USER_LOGGED_IN
+          })
+        })
     } catch (error: any) {
       console.error(error)
       if (error.status) {
@@ -220,6 +237,91 @@ class LandingPageController extends BaseController {
       )
     } catch (error: any) {
       console.log('Error ', error)
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  me = async (req: RequestUserAuth, res: Response): Promise<Response | undefined> => {
+    try {
+      // Verify user exists
+      const user = await db.userAuth.findUnique({
+        where: {
+          id: req.user?.id
+        },
+        select: {
+          email: true,
+          isEmailVerified: true,
+          listIdentifier: true
+        }
+      })
+      if (!user) {
+        return res.status(404).json({
+          code: codes.NOT_FOUND,
+          message: messages.USER_NOT_FOUND
+        })
+      }
+      return res.status(200).json({
+        user,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Function to be called after email has been verified to add to active campaign
+  activeCampaign = async (req: Request, res: Response): Promise<Response | undefined> => {
+    const params = this.filterParams(req.body, landingPageParams)
+    const { email } = params
+    try {
+      const user = await db.userAuth.findUnique({
+        where: {
+          email
+        },
+        select: {
+          listIdentifier: true,
+          userBio: {
+            select: {
+              firstName: true,
+              lastName: true
+            }
+          }
+        }
+      })
+
+      if (!user) {
+        return res.status(400).json({
+          code: codes.BAD_REQUEST,
+          message: messages.INVALID_CREDENTIALS
+        })
+      }
+
+      const firstName = user.userBio?.firstName
+      const lastName = user.userBio?.lastName
+      const listIdentifier = user.listIdentifier
+
+      if (!firstName || !lastName || !listIdentifier) {
+        return res.status(500).json({
+          code: codes.INTERNAL_SERVER_ERROR,
+          message: 'Somehow backend server is out of sync, critical error'
+        })
+      }
+
+      // Active Campagin
+      await createActiveCampaignContact(email, firstName, lastName, listIdentifier, true)
+
+      return res.status(200).json({
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
       console.error(error)
       return res
         .status(500)

@@ -59,7 +59,8 @@ export const validateSendVerificationCode = (
   const sendVerificationCodeSchema = Joi.object({
     email: Joi.string()
       .email({ tlds: { allow: false } })
-      .required()
+      .required(),
+    landingPage: Joi.boolean()
   })
 
   return sendVerificationCodeSchema.validate(sendVerificationCodePayload)?.error?.message

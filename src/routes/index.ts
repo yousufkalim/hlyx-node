@@ -32,7 +32,7 @@ router.post('/auth/2fa/login', AuthController.loginWith2FA)
 router.get('/auth/navigation', authenticate, AuthController.navigationHelper)
 router.post('/auth/send-verify-email', AuthController.resendVerificationEmail)
 router.post('/auth/send-password-reset', AuthController.passwordResetEmail)
-router.get('/auth/verify-email-url', AuthController.verifyCodeURL)
+router.put('/auth/verify-email-url', AuthController.verifyCodeURL)
 router.post('/auth/verify-code-password-reset', AuthController.verifyCodePassword)
 router.put('/auth/forgot-password', AuthController.forgotPassword)
 router.put(
@@ -527,6 +527,11 @@ router.post(
 router.post(
   '/landingPage/login',
   LandingPageController.login
+)
+router.get(
+  '/landingPage/me',
+  authenticate,
+  LandingPageController.me
 )
 router.post(
   '/landingPage/contact-us',

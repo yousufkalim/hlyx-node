@@ -5,7 +5,7 @@ import { sgMail } from './sendgrid'
 import { messages } from '../config/messages'
 
 export const verifyEmailEmailer = async (email: string, landingPage: boolean): Promise<VerificationInstance> => {
-  const landingPageUrl = 'http:/localhost/3000/verifyEmail'
+  const landingPageUrl = 'http:/localhost:3000/verifyEmail'
   const appUrl = 'https://somedeeplink.idonthaveyet'
   const routeUrl = landingPage ? landingPageUrl : appUrl
 

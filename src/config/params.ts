@@ -5,7 +5,8 @@ export const authControllerParams = [
   'code',
   'phone',
   'accessToken',
-  'id'
+  'id',
+  'landingPage'
 ]
 
 export const userControllerParams = [
@@ -160,7 +161,6 @@ export const landingPageParams = [
   'middleInitial',
   'lastName',
   'listIdentifier',
-  'status',
   'keepSignIn'
 ]
 

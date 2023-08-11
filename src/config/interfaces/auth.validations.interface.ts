@@ -5,6 +5,7 @@ export interface IValidateLoginRegister {
 
 export interface IValidateSendVerificationCode {
   email: string
+  landingPage: boolean
 }
 
 export interface IValidateVerifyCode extends IValidateSendVerificationCode {
