@@ -60,7 +60,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: 14
+          node-version: 16.13
 
       # The third step installs the dependencies and creates a build.
       - name: Install deps and build project

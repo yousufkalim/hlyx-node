@@ -5,7 +5,12 @@ export const authControllerParams = [
   'code',
   'phone',
   'accessToken',
-  'id'
+  'id',
+  'firstName',
+  'middleInitial',
+  'lastName',
+  'listIdentifier',
+  'status'
 ]
 
 export const userControllerParams = [
@@ -151,4 +156,12 @@ export const groupControllerParams = [
   'tags',
   'description',
   'members'
+]
+
+export const contactUsParams = [
+  'name',
+  'email',
+  'phone',
+  'subject',
+  'message'
 ]

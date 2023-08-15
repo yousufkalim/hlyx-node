@@ -151,3 +151,31 @@ export const acceptContactEmailer = async (
     console.error(error)
   }
 }
+
+export const contactUsEmailer = async (
+  name: string,
+  email: string,
+  phone: string,
+  subject: string,
+  message: string
+): Promise<void> => {
+  const to = subject === 'Sales'
+    ? config.get('sales_contact_us_email') as string
+    : config.get('support_contact_us_email') as string
+
+  const msg = {
+    to,
+    from: 'hello@hlyx.io',
+    subject,
+    text: `Message from: ${name}\nEmail: ${email}\nPhone: ${phone}\n\n${message}`
+  }
+
+  try {
+    const response = await sgMail.send(msg)
+    if (response[0].statusCode !== 202) {
+      throw Error(messages.EMAILER_ERROR)
+    }
+  } catch (error: any) {
+    console.error(error)
+  }
+}

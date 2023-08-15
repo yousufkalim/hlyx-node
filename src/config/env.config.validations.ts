@@ -121,6 +121,30 @@ const config = convict({
     format: 'String',
     default: process.env.AWS_BUCKET_NAME,
     env: 'AWS_BUCKET_NAME'
+  },
+  sales_contact_us_email: {
+    doc: 'Sales contact us email',
+    format: 'String',
+    default: process.env.SALES_CONTACT_US_EMAIL,
+    env: 'SALES_CONTACT_US_EMAIL'
+  },
+  support_contact_us_email: {
+    doc: 'Support contact us email',
+    format: 'String',
+    default: process.env.SUPPORT_CONTACT_US_EMAIL,
+    env: 'SUPPORT_CONTACT_US_EMAIL'
+  },
+  active_campagin_url: {
+    doc: 'Active Campaign URL',
+    format: 'String',
+    default: process.env.ACTIVE_CAMPAIGN_API_URL,
+    env: 'ACTIVE_CAMPAIGN_API_URL'
+  },
+  active_campagin_key: {
+    doc: 'Active Campaign Key',
+    format: 'String',
+    default: process.env.ACTIVE_CAMPAIGN_API_KEY,
+    env: 'ACTIVE_CAMPAIGN_API_KEY'
   }
 })
 
