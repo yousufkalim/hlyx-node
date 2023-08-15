@@ -39,6 +39,7 @@ export const socialMedia = [
   'baidu',
   'behance',
   'clubhouse',
+  'custom',
   'dailymotion',
   'devianart',
   'discord',

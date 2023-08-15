@@ -337,7 +337,7 @@ model CardServices {
   title       String
   details     String?
   cardId      String
-  photo       String     @default("")
+  photo       String       @default("")
   type        ServiceTypes
   subtitle    String?
   positioning Int
@@ -510,6 +510,7 @@ enum SocialMediaPlatforms {
   baidu
   behance
   clubhouse
+  custom
   dailymotion
   devianart
   discord

@@ -24,6 +24,12 @@ io.on('connection', (socketInstance) => {
   socketInstance.on('message', (data: any) => {
     console.log('Group message ', data)
   })
+
+  setInterval(() => {
+    socketInstance.emit('notifications', {
+      message: `Hello clients - ${new Date().toString()}`
+    })
+  }, 5000)
 })
 
 export const getSocket = (): Socket | null => {
