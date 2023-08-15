@@ -6,11 +6,7 @@ export const authControllerParams = [
   'phone',
   'accessToken',
   'id',
-  'firstName',
-  'middleInitial',
-  'lastName',
-  'listIdentifier',
-  'status'
+  'landingPage'
 ]
 
 export const userControllerParams = [
@@ -156,6 +152,16 @@ export const groupControllerParams = [
   'tags',
   'description',
   'members'
+]
+
+export const landingPageParams = [
+  'email',
+  'password',
+  'firstName',
+  'middleInitial',
+  'lastName',
+  'listIdentifier',
+  'keepSignIn'
 ]
 
 export const contactUsParams = [
