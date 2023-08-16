@@ -20,7 +20,7 @@ import { db } from '../utils/db'
 class LandingPageController extends BaseController {
   register = async (req: Request, res: Response): Promise<Response | undefined> => {
     const params = this.filterParams(req.body, landingPageParams)
-    const { email, password, firstName, middleInitial, lastName, listIdentifier } = params
+    const { email, password, firstName, lastName, listIdentifier, phone, company, profTitle } = params
     try {
       // Validate input
       const validationError = validateLandingPageRegister(params)
@@ -62,8 +62,10 @@ class LandingPageController extends BaseController {
         // Register Completely New User
         const userBio = {
           firstName,
-          middleInitial,
-          lastName
+          lastName,
+          phone,
+          company,
+          profTitle
         }
 
         data.userBio = { create: userBio }
@@ -253,6 +255,7 @@ class LandingPageController extends BaseController {
         },
         select: {
           email: true,
+          isInvestorVerified: true,
           isEmailVerified: true,
           listIdentifier: true
         }
