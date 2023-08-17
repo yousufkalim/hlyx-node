@@ -449,8 +449,8 @@ model Contact {
   fullName     String
   company      String?
   jobTitle     String?
-  phone        String        @unique
-  email        String        @unique
+  phone        String
+  email        String
   message      String?
   notes        String?
   createdAt    DateTime      @default(now())
@@ -460,6 +460,9 @@ model Contact {
   event        String?
   metAt        String?
   Card         Card          @relation(fields: [cardId], references: [cardId], onDelete: Cascade)
+
+  @@unique([cardId, phone])
+  @@unique([cardId, email])
 }
 
 model Notification {
