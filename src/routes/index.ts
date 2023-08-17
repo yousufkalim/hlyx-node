@@ -538,8 +538,12 @@ router.post(
   LandingPageController.contactUs
 )
 router.get(
-  '/landingPage/apkFileProvider/:fileName',
-  LandingPageController.apkFileProvider
+  '/landingPage/fileProvider/:dir/:fileName',
+  LandingPageController.fileProvider
+)
+router.get(
+  '/landingPage/investorFileList',
+  LandingPageController.investorFileList
 )
 router.get(
   '/landingPage/apkFileList',

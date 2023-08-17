@@ -161,6 +161,9 @@ export const landingPageParams = [
   'middleInitial',
   'lastName',
   'listIdentifier',
+  'phone',
+  'company',
+  'profTitle',
   'keepSignIn'
 ]
 
