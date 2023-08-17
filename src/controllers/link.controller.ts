@@ -235,12 +235,12 @@ class LinkController extends BaseController {
         let linkRequesterName: string
         if (foundCardOne.cardId === req.card.recipient) {
           userId = foundCardOne.userId
-          emailerName = foundCardTwo.fullName
-          linkRequesterName = foundCardOne.fullName
-        } else {
-          userId = foundCardTwo.userId
           emailerName = foundCardOne.fullName
           linkRequesterName = foundCardTwo.fullName
+        } else {
+          userId = foundCardTwo.userId
+          emailerName = foundCardTwo.fullName
+          linkRequesterName = foundCardOne.fullName
         }
         const emailPerference = await db.userNotification.findUnique({
           where: {
@@ -480,6 +480,14 @@ class LinkController extends BaseController {
       })
 
       // // Create Notification if requested
+      /* @ Yousuf I came to modify the linkRequestEmail function call because it had the
+        * names reversed in the create link function (my mistake). However, I noticed the
+        * comment here above mentions this logic is for if the link is being updated; however,
+        * the check is for accepted and creates an accepted notification.
+        * This seems like a bug to me, please confirm. We will likely need to separate if
+        * statements one for 'accepted' and one for 'requested' that creates specfic
+        * notifications and sends the appriopiate email.
+      */
       if (status === 'accepted') {
         console.log('Other cardid ==== ', req.card.requester)
         const reqNotification: RequestNotification = req as Request

@@ -262,10 +262,15 @@ class NotificationController extends BaseController {
 
           // Check if user enabled link request notification in settings
           const isNotificationEnabled = recipientUser?.userNotification?.profileShare
+          const senderFullName =
+            data.sharedBy.middleInitial && data.sharedBy.middleInitial !== ''
+              ? `${data.sharedBy.fullName} ${data.sharedBy.middleInitial} ${data.sharedBy.lastName}`
+              : `${data.sharedBy.fullName} ${data.sharedBy.lastName}`
+
           if (isNotificationEnabled) {
             await profileShareEmail(
               recipientUser.email,
-              data.sharedBy.fullName,
+              senderFullName,
               notifications.fullName
             )
           }

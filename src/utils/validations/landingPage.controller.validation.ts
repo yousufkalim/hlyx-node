@@ -1,6 +1,42 @@
 import Joi from 'joi'
-import { IContactUs } from '../../config/interfaces/landingPage.validation.interface'
+
+import { IValidateLandingPageRegister, IContactUs } from '../../config/interfaces/landingPage.validation.interface'
 import { stringLengths } from '../../config/stringLengths'
+import { messages } from '../../config/messages'
+import { listIdentifier } from '../../config/enumTypes'
+
+/**
+ *
+ * @param registerPayload
+ * @returns Error message
+ */
+
+export const validateLandingPageRegister = (registerPayload: IValidateLandingPageRegister): string | undefined => {
+  const registerSchema = Joi.object({
+    email: Joi.string()
+      .email({ tlds: { allow: false } })
+      .required(),
+    password: Joi.string()
+      .pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d$&+,:;=?@#|'<>.^*()%!-]{8,}$/)
+      .required()
+      .error(new Error(`${messages.PASSWORD_FAILURE}`)),
+    firstName: Joi.string()
+      .min(stringLengths.NAME_MIN)
+      .max(stringLengths.NAME_MAX)
+      .required(),
+    middleInitial: Joi.string()
+      .max(stringLengths.MIDDLE_INITIAL_MAX)
+      .allow(''),
+    lastName: Joi.string()
+      .min(stringLengths.NAME_MIN)
+      .max(stringLengths.NAME_MAX)
+      .required(),
+    listIdentifier: Joi.string()
+      .valid(...listIdentifier)
+      .required()
+  })
+  return registerSchema.validate(registerPayload)?.error?.message
+}
 
 /**
  *
