@@ -36,6 +36,7 @@ class CardController extends BaseController {
         select: {
           cardName: true,
           coverPhoto: true,
+          brandedCoverPhoto: true,
           slug: true,
           profileLayout: true,
           publicCard: true,
