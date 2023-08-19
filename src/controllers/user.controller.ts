@@ -1653,27 +1653,29 @@ class UserController extends BaseController {
       const totalOps = linkedCards.length + linkRequests.length + savedContacts.length
 
       // Find Percent Increases
-      const percentIncreases = {
-        linkPercentIncrease: {
-          pastWeek: {
-            count: filteredLinks.pastWeek,
-            percentIncrease:
-              linkedCards.length > 0 ? +(filteredLinks.pastWeek / linkedCards.length).toFixed(2) : 0
-          },
-          pastMonth: {
-            count: filteredLinks.pastMonth,
-            percentIncrease:
-              linkedCards.length > 0
-                ? +(filteredLinks.pastMonth / linkedCards.length).toFixed(2)
-                : 0
-          },
-          pastYear: {
-            count: filteredLinks.pastYear,
-            percentIncrease:
-              linkedCards.length > 0 ? +(filteredLinks.pastYear / linkedCards.length).toFixed(2) : 0
-          }
+      const percentIncreases = [
+        {
+        label: 'Network Links',
+        pastWeek: {
+          count: filteredLinks.pastWeek,
+          percentIncrease:
+            linkedCards.length > 0 ? +(filteredLinks.pastWeek / linkedCards.length).toFixed(2) : 0
         },
-        linkRequestPercentIncrease: {
+        pastMonth: {
+          count: filteredLinks.pastMonth,
+          percentIncrease:
+            linkedCards.length > 0
+              ? +(filteredLinks.pastMonth / linkedCards.length).toFixed(2)
+              : 0
+        },
+        pastYear: {
+          count: filteredLinks.pastYear,
+          percentIncrease:
+            linkedCards.length > 0 ? +(filteredLinks.pastYear / linkedCards.length).toFixed(2) : 0
+        }
+        },
+        {
+          label: 'Link Request',
           pastWeek: {
             count: filteredLinkRequests.pastWeek,
             percentIncrease:
@@ -1696,7 +1698,8 @@ class UserController extends BaseController {
                 : 0
           }
         },
-        contactPercentIncrease: {
+        {
+          label: 'Saved Contacts',
           pastWeek: {
             count: filteredContacts.pastWeek,
             percentIncrease:
@@ -1719,7 +1722,8 @@ class UserController extends BaseController {
                 : 0
           }
         },
-        opsRequestPercentIncrease: {
+        {
+          label: 'Ops Request',
           pastWeek: {
             count: filteredOpsRequests.pastWeek,
             percentIncrease:
@@ -1736,7 +1740,7 @@ class UserController extends BaseController {
               totalOps > 0 ? +(filteredOpsRequests.pastYear / totalOps).toFixed(2) : 0
           }
         }
-      }
+      ]
 
       const data = { links: linkedCards, cards: user.cards, savedContacts, percentIncreases }
 

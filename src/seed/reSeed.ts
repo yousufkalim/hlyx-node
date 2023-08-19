@@ -15,7 +15,10 @@ const reSeedDatabase = async (): Promise<void> => {
     })
 
     for (let i = 0; i < emails.length; i++) {
-      await db.userAuth.delete({ where: { email: emails[i][0] } })
+      const check = await db.userAuth.findUnique({ where: { email: emails[i][0] } })
+      if (check) {
+        await db.userAuth.delete({ where: { email: emails[i][0] } })
+      }
     }
 
     await seedData()

@@ -20,7 +20,7 @@ import { db } from '../utils/db'
 class LandingPageController extends BaseController {
   register = async (req: Request, res: Response): Promise<Response | undefined> => {
     const params = this.filterParams(req.body, landingPageParams)
-    const { email, password, firstName, middleInitial, lastName, listIdentifier } = params
+    const { email, password, firstName, lastName, listIdentifier, phone, company, profTitle } = params
     try {
       // Validate input
       const validationError = validateLandingPageRegister(params)
@@ -62,8 +62,10 @@ class LandingPageController extends BaseController {
         // Register Completely New User
         const userBio = {
           firstName,
-          middleInitial,
-          lastName
+          lastName,
+          phone,
+          company,
+          profTitle
         }
 
         data.userBio = { create: userBio }
@@ -253,6 +255,7 @@ class LandingPageController extends BaseController {
         },
         select: {
           email: true,
+          isInvestorVerified: true,
           isEmailVerified: true,
           listIdentifier: true
         }
@@ -375,18 +378,21 @@ class LandingPageController extends BaseController {
     }
   }
 
-  // Get list of files in apkFolder
-  apkFileProvider = async (req: Request, res: Response): Promise<Response | undefined> => {
+  // Returns specified file
+  fileProvider = async (req: Request, res: Response): Promise<Response | undefined> => {
     try {
+      const dir = req.params.dir
       const fileName = req.params.fileName
-      if (!fileName) {
+      if (!dir || !fileName) {
         return res.status(400).json({
           code: codes.BAD_REQUEST,
           message: messages.FILE_NAME_REQUIRED
         })
       }
 
-      const file = await fs.readFile(path.join(__dirname, '../assets/apkFiles/', fileName))
+      console.log(path.join(__dirname, '../assets/', dir, fileName))
+
+      const file = await fs.readFile(path.join(__dirname, '../assets/', dir, fileName))
       return res.send(file)
     } catch (error: any) {
       console.error(error)
@@ -396,7 +402,25 @@ class LandingPageController extends BaseController {
     }
   }
 
-  // Returns specified apk file
+  // Get list of files in investor folder
+  investorFileList = async (req: Request, res: Response): Promise<Response | undefined> => {
+    try {
+      let fileNames = await fs.readdir(path.join(__dirname, '../assets/investor/'))
+      fileNames = fileNames.map(file => file.split('-')[1])
+      return res.status(200).json({
+        fileNames,
+        code: codes.OK,
+        message: messages.SUCCESS
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
+  // Get list of files in apkFolder
   apkFileList = async (req: Request, res: Response): Promise<Response | undefined> => {
     try {
       const fileNames = await fs.readdir(path.join(__dirname, '../assets/apkFiles/'))
@@ -413,6 +437,7 @@ class LandingPageController extends BaseController {
         .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
     }
   }
+
   // Pricing (least prio atm)
 }
 

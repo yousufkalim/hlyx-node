@@ -24,16 +24,20 @@ export const validateLandingPageRegister = (registerPayload: IValidateLandingPag
       .min(stringLengths.NAME_MIN)
       .max(stringLengths.NAME_MAX)
       .required(),
-    middleInitial: Joi.string()
-      .max(stringLengths.MIDDLE_INITIAL_MAX)
-      .allow(''),
     lastName: Joi.string()
       .min(stringLengths.NAME_MIN)
       .max(stringLengths.NAME_MAX)
       .required(),
     listIdentifier: Joi.string()
       .valid(...listIdentifier)
-      .required()
+      .required(),
+    phone: Joi.string()
+      .min(stringLengths.PHONE_MIN)
+      .max(stringLengths.PHONE_MAX)
+      .pattern(/^[0-9]+$/)
+      .required(),
+    company: Joi.string().max(stringLengths.COMPANY_MAX).required(),
+    profTitle: Joi.string().max(stringLengths.PROFESSIONAL_TITLE_MAX).required()
   })
   return registerSchema.validate(registerPayload)?.error?.message
 }
