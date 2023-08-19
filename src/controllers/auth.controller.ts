@@ -475,9 +475,14 @@ class AuthController extends BaseController {
 
   // Verify Code via URL
   verifyCodeURL = async (req: Request, res: Response): Promise<Response> => {
-    const params = this.filterParams(req.body, authControllerParams)
-    const { email, code } = params
     try {
+      const email = req.query.email as string
+      const code = req.query.code as string
+      const params = {
+        email,
+        code
+      }
+
       // Validate input
       const validationError = validateVerifyCode(params)
       if (validationError) {

@@ -8,7 +8,8 @@ export interface IValidateSendVerificationCode {
   landingPage: boolean
 }
 
-export interface IValidateVerifyCode extends IValidateSendVerificationCode {
+export interface IValidateVerifyCode {
+  email: string
   code: string
 }
 
