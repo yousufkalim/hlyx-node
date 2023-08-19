@@ -5,8 +5,9 @@ import { sgMail } from './sendgrid'
 import { messages } from '../config/messages'
 
 export const verifyEmailEmailer = async (email: string, landingPage: boolean): Promise<VerificationInstance> => {
+  // Change when landing page is done
   const landingPageUrl = 'http:/localhost:3000/verifyEmail'
-  const appUrl = 'https://somedeeplink.idonthaveyet'
+  const appUrl = 'https://dev-api.hlyx.me/api/v1/auth/verify-code-email'
   const routeUrl = landingPage ? landingPageUrl : appUrl
 
   return await twilioClient.verify.v2

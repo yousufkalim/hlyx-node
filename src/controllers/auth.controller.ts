@@ -21,6 +21,8 @@ import {
   validateVerifyPhone
 } from '../utils/validations/auth.controller.validation'
 import { verifyEmailEmailer, passwordResetEmailer } from '../utils/emailers'
+import { successHTML } from '../utils/html-templates/success'
+import { failureHTML } from '../utils/html-templates/failure'
 import { db } from '../utils/db'
 
 class AuthController extends BaseController {
@@ -518,15 +520,14 @@ class AuthController extends BaseController {
         }
       })
 
-      return res.status(200).json({
-        code: codes.OK,
-        message: messages.CODE_SENT_SUCCESS
-      })
+      res.status(200).send(successHTML)
+      return res
     } catch (error: any) {
       console.error(error)
       if (!res.status) {
         res.status(500)
       }
+      res.send(failureHTML)
       return res
     }
   }

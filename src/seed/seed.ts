@@ -31,6 +31,7 @@ export const seedData = async (): Promise<void> => {
 
     const createdCardIds: string[] = []
     for (let i = 0; i < numberOfSeeds; i++) {
+      const coverPhoto = generateDummyImage('200', '200')
       const user = await db.userAuth.create({
         data: {
           email: emails[i][0],
@@ -64,7 +65,12 @@ export const seedData = async (): Promise<void> => {
                   industry: industries[i][0],
                   city: cities[i][0],
                   state: states[i][0],
-                  coverPhoto: generateDummyImage('200', '200'),
+                  coverPhoto,
+                  coverPhotos: {
+                    create: {
+                      pathToFile: coverPhoto
+                    }
+                  },
                   brandedCoverPhoto: generateDummyImage('300', '300'),
                   headerPhoto: generateDummyImage('100', '100'),
                   companyIcon: generateDummyImage('50', '50'),
