@@ -1246,7 +1246,11 @@ class LinkController extends BaseController {
                     lastName: true,
                     phone: true,
                     userName: true,
-                    profileAvatar: true
+                    profileAvatar: true,
+                    company: true,
+                    profTitle: true,
+                    state: true,
+                    city: true
                   }
                 }
               }
