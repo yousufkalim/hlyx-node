@@ -501,6 +501,20 @@ class ContactRequestController extends BaseController {
             }
           }
         })
+
+        const contacts = cards.flatMap((c) => c.Contacts)
+        for (const contact of contacts) {
+          const { email } = contact
+          const userBio = await db.userAuth.findUnique({
+            where: { email },
+            select: { id: true }
+          })
+
+          if (userBio?.id) {
+            const { id } = userBio
+            Object.assign(contact, { id })
+          }
+        }
         cardsContacts = cards
       }
 
