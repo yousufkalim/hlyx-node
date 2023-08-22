@@ -1256,12 +1256,14 @@ class LinkController extends BaseController {
               }
             })
             // contactProfile = { ...contactProfile, ...contactProfile?.userBio }
-            contactProfiles.push({
-              id: contactProfile.id,
-              email: contactProfile.email,
-              contactId: contact.contactId,
-              ...contactProfile?.userBio
-            })
+            if (contactProfile?.id) {
+              contactProfiles.push({
+                id: contactProfile.id,
+                email: contactProfile.email,
+                contactId: contact.contactId,
+                ...contactProfile?.userBio
+              })
+            }
           }
         }
 
