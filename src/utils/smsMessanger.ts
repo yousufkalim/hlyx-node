@@ -15,15 +15,15 @@ export const contactRequesterPhone = async (
   phone: string,
   receiverName: string,
   requesterName: string,
-  cardUrl: string,
-  mediaUrl: string | null
+  mediaUrl: string | null,
+  cardId: string
 ): Promise<MessageInstance | string> => {
   if (!phone) {
     throw Error(messages.SMS_ERROR)
   }
   try {
     return await twilioClient.messages.create({
-      body: `Hello ${requesterName},\nWe've successfully shared your contact information with ${receiverName}\n\nHere is ${receiverName} contact info:\n\nProfile Card\n${cardUrl}\n\nUnlock all the benefits of HLYX, create your own profile today!`,
+      body: `Hello ${requesterName},\nWe've successfully shared your contact information with ${receiverName}\n\nHere is ${receiverName} contact info:\n\nProfile Card\nhttps://dev.hlyx.me/pl/${cardId}\n\nUnlock all the benefits of HLYX, create your own profile today!`,
       messagingServiceSid: config.get('sms_messaging_sid') as string,
       mediaUrl: mediaUrl ?? '',
       from: '+18668756944',

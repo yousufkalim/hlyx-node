@@ -272,13 +272,12 @@ class ContactRequestController extends BaseController {
         )
       }
       // Always send text to requester
-      const cardUrl = `https://hlyx.me/${card.cardId}`
       await contactRequesterPhone(
         params.phone,
         card.fullName,
         params.fullName,
-        cardUrl,
-        card.qrCodeImage
+        card.qrCodeImage,
+        card.cardId
       )
 
       return res.status(200).json({
