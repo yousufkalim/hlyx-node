@@ -470,6 +470,7 @@ model Notification {
   cardId         String
   status         NotificationStatus    @default(active)
   updatedAt      DateTime              @updatedAt
+  createdAt      DateTime      @default(now())
   directsTo      NotificationDirectsTo
   message        String?
   idDirectedTo   String?
