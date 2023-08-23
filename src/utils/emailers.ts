@@ -48,7 +48,10 @@ export const linkRequestEmail = async (
 
   const msg = {
     to: email,
-    from: 'hello@hlyx.io',
+    from: {
+      name: 'HLYX',
+      email: 'hello@hlyx.io'
+    },
     templateId,
     dynamicTemplateData: {
       email,
@@ -78,7 +81,10 @@ export const profileShareEmail = async (
 
   const msg = {
     to: email,
-    from: 'hello@hlyx.io',
+    from: {
+      name: 'HLYX',
+      email: 'hello@hlyx.io'
+    },
     templateId,
     dynamicTemplateData: {
       email,
@@ -109,7 +115,10 @@ export const contactRequestEmailer = async (
 
   const msg = {
     to: email,
-    from: 'hello@hlyx.io',
+    from: {
+      name: 'HLYX',
+      email: 'hello@hlyx.io'
+    },
     templateId,
     dynamicTemplateData: {
       email,
@@ -141,7 +150,10 @@ export const acceptContactEmailer = async (
 
   const msg = {
     to: email,
-    from: 'hello@hlyx.io',
+    from: {
+      name: 'HLYX',
+      email: 'hello@hlyx.io'
+    },
     templateId,
     dynamicTemplateData: {
       email,
