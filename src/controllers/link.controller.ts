@@ -233,14 +233,17 @@ class LinkController extends BaseController {
         let userId: string
         let emailerName: string
         let linkRequesterName: string
+        let cardId: string
         if (foundCardOne.cardId === req.card.recipient) {
           userId = foundCardOne.userId
           emailerName = foundCardOne.fullName
           linkRequesterName = foundCardTwo.fullName
+          cardId = foundCardTwo.cardId
         } else {
           userId = foundCardTwo.userId
           emailerName = foundCardTwo.fullName
           linkRequesterName = foundCardOne.fullName
+          cardId = foundCardOne.cardId
         }
         const emailPerference = await db.userNotification.findUnique({
           where: {
@@ -256,7 +259,7 @@ class LinkController extends BaseController {
           }
         })
         if (emailPerference?.newLinkRequest) {
-          await linkRequestEmail(emailPerference.User.email, emailerName, linkRequesterName)
+          await linkRequestEmail(emailPerference.User.email, emailerName, linkRequesterName, cardId)
         }
       }
 
@@ -513,8 +516,8 @@ class LinkController extends BaseController {
         // })
         // Send email if user allows
         const userId = requesterUser?.id
-        const requesterName = `${requesterUser?.firstName} ${requesterUser?.middleInitial} ${requesterUser?.lastName}`
-        const accepterName = `${accepterUser?.firstName} ${accepterUser?.middleInitial} ${accepterUser?.lastName}`
+        const requesterName = `${requesterUser?.firstName} ${requesterUser?.middleInitial ? requesterUser?.middleInitial + ' ' : ''}${requesterUser?.lastName}`
+        const accepterName = `${accepterUser?.firstName} ${accepterUser?.middleInitial ? accepterUser?.middleInitial + ' ' : ''}${accepterUser?.lastName}`
 
         const emailPerference = await db.userNotification.findUnique({
           where: {
@@ -530,7 +533,7 @@ class LinkController extends BaseController {
           }
         })
         if (emailPerference?.newLinkRequest) {
-          await linkRequestEmail(emailPerference.User.email, accepterName, requesterName)
+          await linkRequestEmail(emailPerference.User.email, accepterName, requesterName, req.card.requester)
         }
       }
 

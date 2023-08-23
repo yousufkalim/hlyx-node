@@ -260,7 +260,7 @@ class ContactRequestController extends BaseController {
         }
       })
       if (user?.userNotification?.newContactRequest) {
-        await contactRequestEmailer(user.email, card.fullName, params.fullName, card.cardName)
+        await contactRequestEmailer(user.email, card.fullName, params.fullName, card.cardName, card.cardId)
       }
       if (user?.userNotification?.newContactRequestPhone && user?.userBio?.phone) {
         await contactRecieverPhone(
@@ -599,16 +599,22 @@ class ContactRequestController extends BaseController {
             cardId: contact.cardId
           },
           select: {
+            cardId: true,
             fullName: true,
             qrCodeImage: true
           }
         })
+        if (!card) {
+          return res.status(400).json({
+            code: codes.BAD_REQUEST
+          })
+        }
         await acceptContactEmailer(
           contact.email,
           contact.fullName,
-          card?.fullName ?? '',
-          'https://hlyx.me/' + contact.cardId,
-          card?.qrCodeImage ?? ''
+          card.fullName,
+          card?.qrCodeImage ?? '',
+          card?.cardId
         )
       }
 

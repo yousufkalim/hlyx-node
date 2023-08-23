@@ -41,7 +41,8 @@ export const passwordResetEmailer = async (email: string): Promise<VerificationI
 export const linkRequestEmail = async (
   email: string,
   emailerName: string,
-  linkRequesterName: string
+  linkRequesterName: string,
+  cardId: string
 ): Promise<void> => {
   const templateId = 'd-5c1f2de002b4462b8acf7ca9b7e6b12f'
 
@@ -52,7 +53,8 @@ export const linkRequestEmail = async (
     dynamicTemplateData: {
       email,
       emailerName,
-      linkRequesterName
+      linkRequesterName,
+      buttonUrl: `https://dev.hlyx.me/pl/${cardId}`
     }
   }
 
@@ -69,7 +71,8 @@ export const linkRequestEmail = async (
 export const profileShareEmail = async (
   email: string,
   senderName: string,
-  receiverName: string
+  receiverName: string,
+  cardId: string
 ): Promise<void> => {
   const templateId = 'd-f3fa3ed995114fc09344db01f029762e'
 
@@ -80,7 +83,8 @@ export const profileShareEmail = async (
     dynamicTemplateData: {
       email,
       receiverName,
-      senderName
+      senderName,
+      buttonUrl: `https://dev.hlyx.me/pl/${cardId}`
     }
   }
 
@@ -98,7 +102,8 @@ export const contactRequestEmailer = async (
   email: string,
   emailerName: string,
   contactRequesterFullName: string,
-  cardName: string
+  cardName: string,
+  cardId: string
 ): Promise<void> => {
   const templateId = 'd-1ab30a0250e84226967a4873fae0733c'
 
@@ -110,7 +115,8 @@ export const contactRequestEmailer = async (
       email,
       emailerName,
       contactRequesterFullName,
-      cardName
+      cardName,
+      buttonUrl: `https://dev.hlyx.me/pl/${cardId}`
     }
   }
 
@@ -128,8 +134,8 @@ export const acceptContactEmailer = async (
   email: string,
   contactName: string,
   userName: string,
-  cardUrl: string,
-  qrCodeUrl: string
+  qrCodeUrl: string,
+  cardId: string
 ): Promise<void> => {
   const templateId = 'd-c36e1f885cd74f82a3ad43d9e642a262'
 
@@ -141,8 +147,8 @@ export const acceptContactEmailer = async (
       email,
       contactName,
       userName,
-      cardUrl,
-      qrCodeUrl
+      qrCodeUrl,
+      buttonUrl: `https://dev.hlyx.me/pl/${cardId}`
     }
   }
 

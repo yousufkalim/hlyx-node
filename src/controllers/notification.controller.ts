@@ -271,7 +271,8 @@ class NotificationController extends BaseController {
             await profileShareEmail(
               recipientUser.email,
               senderFullName,
-              notifications.fullName
+              notifications.fullName,
+              cardId
             )
           }
 
