@@ -2412,7 +2412,7 @@ class CardController extends BaseController {
       })
 
       // Create QR Code and Add
-      const urlRoute = 'https://hlyx.me/' + req.params.cardId
+      const urlRoute = 'https://dev.hlyx.me/pl' + req.params.cardId
       const bufferImage = await QRCode.toBuffer(urlRoute, {
         type: 'png',
         width: 200,
