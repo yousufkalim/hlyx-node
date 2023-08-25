@@ -528,6 +528,10 @@ router.post(
   '/landingPage/login',
   LandingPageController.login
 )
+router.put(
+  '/landingPage/verify-email',
+  LandingPageController.verifyEmail
+)
 router.get(
   '/landingPage/me',
   authenticate,

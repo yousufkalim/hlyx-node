@@ -3,6 +3,7 @@ import fs from 'fs/promises'
 import path from 'path'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import { twilioClient } from '../utils/twilio'
 
 import BaseController from './base.controller'
 import { RequestUserAuth } from '../config/interfaces/common.interface'
@@ -12,7 +13,7 @@ import { messages } from '../config/messages'
 import { expirationTimes } from '../config/expirationTime'
 import { config } from '../config/env.config.validations'
 import { validateLandingPageRegister, validateContactUs } from '../utils/validations/landingPage.controller.validation'
-import { validateLogin } from '../utils/validations/auth.controller.validation'
+import { validateLogin, validateVerifyCode } from '../utils/validations/auth.controller.validation'
 import { verifyEmailEmailer, contactUsEmailer } from '../utils/emailers'
 import { createActiveCampaignContact } from '../utils/activeCampaign'
 import { db } from '../utils/db'
@@ -246,6 +247,66 @@ class LandingPageController extends BaseController {
     }
   }
 
+  // Verify Email
+  verifyEmail = async (req: Request, res: Response): Promise<Response> => {
+    const params = this.filterParams(req.body, landingPageParams)
+    const { email, code } = params
+    try {
+      // Validate input
+      const validationError = validateVerifyCode(params)
+      if (validationError) {
+        res.status(400)
+        throw Error(validationError)
+      }
+
+      // Verify User exists
+      const user = await db.userAuth.findUnique({ where: { email } })
+      if (!user) {
+        res.status(400)
+        throw Error(`User with "${email}" does not exist`)
+      }
+
+      // Twilio verify
+      let twilioFound = true
+      const verification = await twilioClient.verify.v2
+        .services(config.get('email_verification_sid') as string)
+        .verificationChecks.create({ to: email, code })
+        .catch((error) => {
+          console.error(error)
+          twilioFound = false
+        })
+
+      if (!twilioFound) {
+        res.status(401)
+        throw Error(messages.TWILIO_NOT_FOUND)
+      }
+
+      if (verification?.status !== 'approved') {
+        res.status(401)
+        throw Error(messages.INVALID_CODE)
+      }
+
+      // Update User and return
+      await db.userAuth.update({
+        where: { email },
+        data: {
+          isEmailVerified: true
+        }
+      })
+
+      return res.status(200).json({
+        isEmailVerified: user.isEmailVerified,
+        code: codes.OK,
+        message: messages.USER_LOGGED_IN
+      })
+    } catch (error: any) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ code: codes.INTERNAL_SERVER_ERROR, message: messages.SERVER_FAILURE })
+    }
+  }
+
   me = async (req: RequestUserAuth, res: Response): Promise<Response | undefined> => {
     try {
       // Verify user exists
@@ -389,8 +450,6 @@ class LandingPageController extends BaseController {
           message: messages.FILE_NAME_REQUIRED
         })
       }
-
-      console.log(path.join(__dirname, '../assets/', dir, fileName))
 
       const file = await fs.readFile(path.join(__dirname, '../assets/', dir, fileName))
       return res.send(file)

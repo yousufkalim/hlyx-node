@@ -157,6 +157,7 @@ export const groupControllerParams = [
 export const landingPageParams = [
   'email',
   'password',
+  'code',
   'firstName',
   'middleInitial',
   'lastName',
