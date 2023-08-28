@@ -22,6 +22,7 @@ model UserAuth {
   isPaused         Boolean           @default(false)
   passwordReset    DateTime?
   id               String            @id @default(uuid())
+  fcmToken         String?
   userBio          UserBio?
   userNotification UserNotification?
   userPreference   UserPreferences?
