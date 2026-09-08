@@ -69,7 +69,7 @@
     "bcrypt": "^5.1.0",
     "convict": "^6.2.3",
     "cors": "^2.8.5",
-    "csv-parse": "^5.4.0",
+    "csv-parse": "^7.0.2",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "express-fileupload": "^1.4.0",
