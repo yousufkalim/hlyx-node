@@ -76,7 +76,7 @@
     "firebase-admin": "^11.10.1",
     "joi": "^17.7.0",
     "jsonwebtoken": "^8.5.1",
-    "morgan": "^1.10.0",
+    "morgan": "^1.12.1",
     "qrcode": "^1.5.3",
     "socket.io": "^4.6.1",
     "socket.io-adapter": "^2.4.0",
